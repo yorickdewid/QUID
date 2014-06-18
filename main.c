@@ -4,42 +4,31 @@
 #include <time.h>
 #include "uuid.h"
 
-#define UUIDS_PER_TICK 1024
-#define EPOCH_DIFF 11644473600LL
+/* read seed or create if not exist */
+void get_ieee_node_identifier(uuid_node_t *node){
+	static int inited = 0;
+	static uuid_node_t saved_node;
+	char seed[16];
+	FILE *fp;
 
-/* various forward declarations */
-static void format_uuid_v1(cuuid_t *uuid, unsigned short clockseq, uuid_time_t timestamp, uuid_node_t node);
-static void get_current_time(uuid_time_t *timestamp);
-static void get_ieee_node_identifier(uuid_node_t *node);
-static void get_system_time(uuid_time_t *uuid_time);
-static unsigned short true_random();
-static int uuid_create(cuuid_t * uuid);
+	if(!inited){
+		memset(&saved_node, 0, sizeof(uuid_node_t));
+		fp = fopen(RANDFILE, "rb");
+		if(fp){
+			fread(&saved_node, sizeof saved_node, 1, fp);
+			fclose(fp);
+		}else{
+			seed[0] |= 0x01;
+			memcpy(&saved_node, seed, sizeof(saved_node));
 
-void get_ieee_node_identifier(uuid_node_t *node)
-{
-    static int inited = 0;
-    static uuid_node_t saved_node;
-    char seed[16];
-    FILE *fp;
-
-    //if(!inited){
-        //fp = fopen("nodeid", "rb");
-        //if(fp){
-        //    fread(&saved_node, sizeof saved_node, 1, fp);
-        //    fclose(fp);
-        //}else{
-            //get_random_info(seed);
-            seed[0] |= 0x01;
-            memcpy(&saved_node, seed, sizeof(saved_node));
-            printf("memgrap %x\n", seed);
-            fp = fopen("nodeid", "wb");
+            fp = fopen(RANDFILE, "wb");
             if(fp){
-                fwrite(&saved_node, sizeof saved_node, 1, fp);
+                fwrite(&saved_node, sizeof(saved_node), 1, fp);
                 fclose(fp);
             }
-        //}
-    //    inited = 1;
-    //}
+        }
+        inited = 1;
+    }
 
     *node = saved_node;
 }
@@ -156,17 +145,16 @@ void get_current_time(uuid_time_t *timestamp)
     *timestamp = time_now + uuids_this_tick;
 }
 
-double get_tick_count()
-{
+double get_tick_count(){
 #ifdef __WIN32___
 	return GetTickCount();
 #else
-    struct timespec now;
-    if(clock_gettime(CLOCK_MONOTONIC, &now)){
-        return 0;
-    }
+	struct timespec now;
+	if(clock_gettime(CLOCK_MONOTONIC, &now)){
+		return 0;
+	}
 
-    return now.tv_sec * 1000.0 + now.tv_nsec / 1000000.0;
+	return now.tv_sec * 1000.0 + now.tv_nsec / 1000000.0;
 #endif
 }
 
@@ -213,41 +201,42 @@ void twait(int ms)
 #endif
 }
 
-int main(int argc, char **argv)
-{
-    cuuid_t u;
-    int n;
+int main(int argc, char **argv){
+	cuuid_t u;
+	int n;
 
-    for(n = 0; n < 10; n++){
+    for(n = 0; n < 5000; n++){
         uuid_create(&u);
         puid(u);
-        twait(100);
+        twait(5);
     }
 
-    printf("Generated QUID # %d\nWith options:\n", n);
+	printf("Generated QUID # %d\n", n);
+	printf("-------------------\n");
+	printf("With flags:\n");
 
     unsigned char data = 0xc5;
     unsigned char cat = 0x9;
 
     if(data & (1<<0)){
-        printf("PUBLIC\n");
+        printf("  PUBLIC\n");
     }else{
-        printf("PRIVATE\n");
+        printf("  PRIVATE\n");
     }
     if(data & (1<<2)){
-        printf("MASTER\n");
+        printf("  MASTER\n");
     }else{
-        printf("SLAVE\n");
+        printf("  SLAVE\n");
     }
     if(data & (1<<4)){
-        printf("SIGNED\n");
+        printf("  SIGNED\n");
     }else{
-        printf("UNSIGNED\n");
+        printf("  UNSIGNED\n");
     }
     if(data & (1<<5)){
-        printf("TAGGED\n");
+        printf("  TAGGED\n");
     }else{
-        printf("UNTAGGED\n");
+        printf("  UNTAGGED\n");
     }
 
     switch(cat)
@@ -283,6 +272,8 @@ int main(int argc, char **argv)
         printf("UNKNOWN\n");
         break;
     }
+
+	printf("-------------------\n");
 
     return EXIT_SUCCESS;
 }

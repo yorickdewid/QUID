@@ -1,8 +1,8 @@
 all:
-	gcc main.c -lrt -o guid.out
+	gcc -g -Wall main.c -lrt -o quid.out
 
 run:
-	valgrind ./guid.out
+	valgrind ./quid.out
 
 clean:
-	rm -rf *.o guid.out
+	rm -rf *.o .rnd quid.out
