@@ -1,0 +1,21 @@
+# Object files
+*~
+*.o
+*.ko
+*.elf
+*.out
+
+*.rnd
+
+# Libraries
+*.a
+
+# Shared objects
+*.so
+*.so.*
+
+# Executables
+*.out
+*.i*86
+*.x86_64
+*.hex
