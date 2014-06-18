@@ -2,12 +2,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-#ifdef __WIN32__
-#include <unistd.h>
-#include <winsock2.h>
-#else
-#include <unistd.h>
-#endif
 #include "uuid.h"
 
 #define UUIDS_PER_TICK 1024
