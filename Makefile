@@ -1,7 +1,9 @@
-all:
-	gcc -g -Wall main.c -lrt -o quid.out
+compile:
+	gcc -g -Wall -DDEBUG main.c -lrt -o quid.out
 
-run:
+all: compile
+
+run: compile
 	valgrind ./quid.out
 
 clean:

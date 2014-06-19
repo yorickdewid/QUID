@@ -5,14 +5,13 @@
 #include "uuid.h"
 
 /* read seed or create if not exist */
-void get_ieee_node_identifier(uuid_node_t *node){
+void get_mem_seed(uuid_node_t *node){
 	static int inited = 0;
 	static uuid_node_t saved_node;
-	char seed[16];
+	char *seed = malloc(16);
 	FILE *fp;
 
 	if(!inited){
-		memset(&saved_node, 0, sizeof(uuid_node_t));
 		fp = fopen(RANDFILE, "rb");
 		if(fp){
 			fread(&saved_node, sizeof saved_node, 1, fp);
@@ -29,19 +28,15 @@ void get_ieee_node_identifier(uuid_node_t *node){
         }
         inited = 1;
     }
+	free(seed);
 
     *node = saved_node;
 }
 
-void get_system_time(uuid_time_t *uuid_time)
-{
+void get_system_time(uuid_time_t *uuid_time){
 #ifdef __WIN32___
-    ULARGE_INTEGER time;
+	ULARGE_INTEGER time;
 
-    /* NT keeps time in FILETIME format which is 100ns ticks since
-       Jan 1, 1601. UUIDs use time in 100ns ticks since Oct 15, 1582.
-       The difference is 17 Days in Oct + 30 (Nov) + 31 (Dec)
-       + 18 years and 5 leap days. */
     GetSystemTimeAsFileTime((FILETIME *)&time);
     time.QuadPart +=
 
@@ -50,7 +45,7 @@ void get_system_time(uuid_time_t *uuid_time)
         * (unsigned __int64) (17+30+31+365*18+5); // # of days
     *uuid_time = time.QuadPart;
 #else
-    struct timeval tv;
+	struct timeval tv;
     unsigned long long result = EPOCH_DIFF;
     gettimeofday(&tv, NULL);
     result += tv.tv_sec;
@@ -60,61 +55,46 @@ void get_system_time(uuid_time_t *uuid_time)
 #endif
 }
 
-/* uuid_create -- generator a UUID */
-int uuid_create(cuuid_t *uuid)
-{
-    uuid_time_t timestamp;
-    unsigned short clockseq;
-    uuid_node_t node;
+/* construct QUID */
+int uuid_create(cuuid_t *uuid){
+	uuid_time_t timestamp;
+	unsigned short clockseq;
+	uuid_node_t node;
 
-    get_current_time(&timestamp);
-    get_ieee_node_identifier(&node);
-    clockseq = true_random();
+	get_current_time(&timestamp);
+	get_mem_seed(&node);
+	clockseq = true_random();
 
-    format_uuid_v1(uuid, clockseq, timestamp, node);
-    return 1;
+	printf("node0 %x\n", node.nodeID[0]);
+	printf("node1 %x\n", node.nodeID[1]);
+	printf("node2 %x\n", node.nodeID[2]);
+	printf("node3 %x\n", node.nodeID[3]);
+	printf("node4 %x\n", node.nodeID[4]);
+	printf("node5 %x\n", node.nodeID[5]);
+	format_uuid_v1(uuid, clockseq, timestamp, node);
+	return 1;
 }
 
 /* format_uuid_v1 -- make a UUID from the timestamp, clockseq, and node ID */
-void format_uuid_v1(cuuid_t* uuid, unsigned short clock_seq, uuid_time_t timestamp, uuid_node_t node)
-{
-    /* Construct a version 1 uuid with the information we've gathered plus a few constants. */
-    //printf("timestamp %016lld\t\t %016llx\n", timestamp, timestamp);
+void format_uuid_v1(cuuid_t* uuid, unsigned short clock_seq, uuid_time_t timestamp, uuid_node_t node){
+	uuid->time_low = (unsigned long)(timestamp & 0xFFFFFFFF);
+	uuid->time_mid = (unsigned short)((timestamp >> 32) & 0xFFFF);
 
-    uuid->time_low = (unsigned long)(timestamp & 0xFFFFFFFF);
-    //printf("uuid->time_low %d\t\t %x\n", (int)uuid->time_low, (int)uuid->time_low);
+	uuid->time_hi_and_version = (unsigned short)((timestamp >> 48) & 0xFFF);
+	uuid->time_hi_and_version ^= 0x80;
+	uuid->time_hi_and_version |= 0xa000;
 
-    uuid->time_mid = (unsigned short)((timestamp >> 32) & 0xFFFF);
+	uuid->clock_seq_low = (clock_seq & 0xFF);
+	uuid->clock_seq_hi_and_reserved = (clock_seq & 0x3F00) >> 8;
+	uuid->clock_seq_hi_and_reserved |= 0x80;
 
-    //printf("uuid->time_mid %d\t\t\t %x\n", (int)uuid->time_mid, (int)uuid->time_mid);
-    //printf("options \t\t\t\t %x\n", ( ( timestamp >> 40) & 0xFF) );
-    //printf("options \t\t\t\t %x\n", ( ( timestamp >> 32) & 0xFF) );
-
-    uuid->time_hi_and_version = (unsigned short)((timestamp >> 48) & 0xFFF);
-    uuid->time_hi_and_version ^= 0x80;
-    //printf("uuid->time_hi %x\t\t\t %x\n", (int)uuid->time_hi_and_version, (int)uuid->time_hi_and_version^0x80);
-
-    uuid->time_hi_and_version |= 0xa000;
-    //printf("uuid->time_hi_and_version %d\t\t %x\n", (int)uuid->time_hi_and_version, (int)uuid->time_hi_and_version);
-
-    uuid->clock_seq_low = (clock_seq & 0xFF);
-    //printf("uuid->clock_seq_low %d\t\t\t %x\n", (int)uuid->clock_seq_low, (int)uuid->clock_seq_low);
-
-    uuid->clock_seq_hi_and_reserved = (clock_seq & 0x3F00) >> 8;
-    //printf("uuid->clock_seq_hi %d\t\t\t %x\n", (int)uuid->clock_seq_hi_and_reserved, (int)uuid->clock_seq_hi_and_reserved);
-
-    uuid->clock_seq_hi_and_reserved |= 0x80;
-    //printf("uuid->clock_seq_hi_and_reserved %d\t %x\n", (int)uuid->clock_seq_hi_and_reserved, (int)uuid->clock_seq_hi_and_reserved);
-
-    memcpy(&uuid->node, &node, sizeof(uuid->node));
-    uuid->node[0] = 0xec; // Class
-    uuid->node[1] = 0x16; // Category
-    uuid->node[5] = (true_random() & 0xFF);
-    //printf("uuid->node %d\t\t\t %x\n\n", (int)uuid->node, (int)uuid->node);
+	memcpy(&uuid->node, &node, sizeof(uuid->node));
+	uuid->node[0] = 0xec; // Class
+	uuid->node[1] = 0x16; // Category
+	uuid->node[5] = (true_random() & 0xFF);
 }
 
-void get_current_time(uuid_time_t *timestamp)
-{
+void get_current_time(uuid_time_t *timestamp){
     static int inited = 0;
     static uuid_time_t time_last;
     static unsigned short uuids_this_tick;
@@ -158,32 +138,30 @@ double get_tick_count(){
 #endif
 }
 
-static unsigned short true_random()
-{
-    static int inited = 0;
-    uuid_time_t time_now;
+static unsigned short true_random(){
+	static int inited = 0;
+	uuid_time_t time_now;
 
-    if(!inited){
-        get_system_time(&time_now);
-        time_now = time_now / UUIDS_PER_TICK;
-        srand((unsigned int)(((time_now >> 32) ^ time_now) & 0xffffffff));
-        inited = 1;
-    }
+	if(!inited){
+		get_system_time(&time_now);
+		time_now = time_now / UUIDS_PER_TICK;
+		srand((unsigned int)(((time_now >> 32) ^ time_now) & 0xffffffff));
+		inited = 1;
+	}
 
-    return (rand()+get_tick_count());
+	return (rand()+get_tick_count());
 }
 
 /* puid -- print a UUID */
-void puid(cuuid_t u)
-{
-    printf("{%.8x-", (unsigned int)u.time_low);
-    printf("%.4x-", u.time_mid);
+void puid(cuuid_t u){
+	printf("{%.8x-", (unsigned int)u.time_low);
+	printf("%.4x-", u.time_mid);
     printf("%.4x-", u.time_hi_and_version);
     printf("%x", u.clock_seq_hi_and_reserved);
     printf("%.2x-", u.clock_seq_low);
 
     printf("%.2x", u.node[0]); // Class
-    printf("%.2x", u.node[1]); // Category
+    printf("%.2x!", u.node[1]); // Category
     printf("%.2x", u.node[2]);
     printf("%.2x", u.node[3]);
     printf("%.2x", u.node[4]); // Random note
@@ -192,12 +170,11 @@ void puid(cuuid_t u)
     printf("}\n");
 }
 
-void twait(int ms)
-{
+void twait(int ms){
 #ifdef __WIN32__
-    Sleep(ms);
+	Sleep(ms);
 #else
-    usleep(ms * 1000);
+	usleep(ms * 1000);
 #endif
 }
 
@@ -205,18 +182,18 @@ int main(int argc, char **argv){
 	cuuid_t u;
 	int n;
 
-    for(n = 0; n < 5000; n++){
-        uuid_create(&u);
-        puid(u);
-        twait(5);
-    }
+	for(n = 0; n < 2; n++){
+		uuid_create(&u);
+		puid(u);
+		twait(5);
+	}
 
 	printf("Generated QUID # %d\n", n);
 	printf("-------------------\n");
 	printf("With flags:\n");
 
-    unsigned char data = 0xc5;
-    unsigned char cat = 0x9;
+	unsigned char data = 0xc5;
+	unsigned char cat = 0x9;
 
     if(data & (1<<0)){
         printf("  PUBLIC\n");
@@ -275,5 +252,5 @@ int main(int argc, char **argv){
 
 	printf("-------------------\n");
 
-    return EXIT_SUCCESS;
+	return EXIT_SUCCESS;
 }

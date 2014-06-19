@@ -5,6 +5,9 @@
 #include <unistd.h>
 #include <sys/time.h>
 #endif
+#ifdef DEBUG
+#include <valgrind/valgrind.h>
+#endif
 
 #ifndef __DB_TREE__
 #define __DB_TREE__
@@ -30,7 +33,7 @@ typedef struct {
 
 static void format_uuid_v1(cuuid_t *, unsigned short, uuid_time_t, uuid_node_t);
 static void get_current_time(uuid_time_t *);
-static void get_ieee_node_identifier(uuid_node_t *);
+static void get_mem_seed(uuid_node_t *);
 static void get_system_time(uuid_time_t *);
 static unsigned short true_random();
 static int uuid_create(cuuid_t *);
