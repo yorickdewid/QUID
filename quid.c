@@ -6,12 +6,12 @@
 
 /* read seed or create if not exist */
 void get_mem_seed(uuid_node_t *node){
-	static int inited = 0;
+	static int mem_seed_count = 0;
 	static uuid_node_t saved_node;
 	char seed[16];
 	FILE *fp;
 
-	if(!inited){
+	if(!mem_seed_count){
 		fp = fopen(RANDFILE, "rb");
 		if(fp){
 			fread(&saved_node, sizeof saved_node, 1, fp);
@@ -26,7 +26,11 @@ void get_mem_seed(uuid_node_t *node){
 				fclose(fp);
 			}
 		}
-		inited = 1;
+	}
+	if(mem_seed_count == MEM_SEED_CYCLE){
+		mem_seed_count = 0;
+	}else{
+		mem_seed_count++;
 	}
 
 	*node = saved_node;
@@ -142,7 +146,7 @@ static unsigned short true_random(){
 }
 
 /* puid -- print a UUID */
-void puid(cuuid_t u){
+void quid_print(cuuid_t u){
 	printf("{%.8x-", (unsigned int)u.time_low);
 	printf("%.4x-", u.time_mid);
 	printf("%.4x-", u.time_hi_and_version);

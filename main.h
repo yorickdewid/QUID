@@ -22,6 +22,6 @@ typedef struct {
 } cuuid_t;
 
 extern int uuid_create(cuuid_t *);
-extern void puid(cuuid_t);
+extern void quid_print(cuuid_t);
 
 #endif

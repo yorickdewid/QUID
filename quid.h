@@ -9,20 +9,22 @@
 #include <valgrind/valgrind.h>
 #endif
 
-#ifndef __DB_TREE__
-#define __DB_TREE__
+#ifndef __QUID__
+#define __QUID__
 
 #define UUIDS_PER_TICK 1024
 #define EPOCH_DIFF 11644473600LL
 #define RANDFILE ".rnd"
+#define MEM_SEED_CYCLE 65536
+#define RND_SEED_CYCLE 4096
 
 typedef struct {
-	unsigned long   time_low;
-	unsigned short  time_mid;
-	unsigned short  time_hi_and_version;
-	unsigned char   clock_seq_hi_and_reserved;
-	unsigned char   clock_seq_low;
-	unsigned char   node[6];
+	unsigned long time_low;
+	unsigned short time_mid;
+	unsigned short time_hi_and_version;
+	unsigned char clock_seq_hi_and_reserved;
+	unsigned char clock_seq_low;
+	unsigned char node[6];
 } cuuid_t;
 
 typedef unsigned long long uuid_time_t;
@@ -37,6 +39,6 @@ static void get_mem_seed(uuid_node_t *);
 static void get_system_time(uuid_time_t *);
 static unsigned short true_random();
 int uuid_create(cuuid_t *);
-void puid(cuuid_t);
+void quid_print(cuuid_t);
 
 #endif

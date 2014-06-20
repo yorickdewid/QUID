@@ -16,9 +16,9 @@ int main(int argc, char **argv){
 	cuuid_t u;
 	int n;
 
-	for(n = 0; n < 8000000; n++){
+	for(n = 0; n < 20; n++){
 		uuid_create(&u);
-		puid(u);
+		quid_print(u);
 //		twait(5);
 	}
 
@@ -29,8 +29,8 @@ int main(int argc, char **argv){
 	unsigned char data = 0xc5;
 	unsigned char cat = 0x9;
 
-    if(data & (1<<0)){
-        printf("  PUBLIC\n");
+	if(data & (1<<0)){
+		printf("  PUBLIC\n");
     }else{
         printf("  PRIVATE\n");
     }
@@ -50,8 +50,7 @@ int main(int argc, char **argv){
         printf("  UNTAGGED\n");
     }
 
-    switch(cat)
-    {
+	switch(cat){
     case 2:
         printf("COMMON IDENTIFIER\n");
         break;
