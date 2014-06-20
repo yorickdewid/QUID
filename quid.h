@@ -36,6 +36,7 @@ static void get_current_time(uuid_time_t *);
 static void get_mem_seed(uuid_node_t *);
 static void get_system_time(uuid_time_t *);
 static unsigned short true_random();
-static int uuid_create(cuuid_t *);
+int uuid_create(cuuid_t *);
+void puid(cuuid_t);
 
 #endif

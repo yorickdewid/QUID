@@ -1,10 +1,14 @@
-compile:
-	gcc -g -Wall -DDEBUG main.c -lrt -o quid.out
+all: shared shell
 
-all: compile
+shared:
+	gcc -g -c -Wall -fpic -DDEBUG quid.c
+	gcc -shared -o libquid.so quid.o
 
-run: compile
-	valgrind ./quid.out
+shell:
+	gcc -g -Wall -DDEBUG main.c -L$(shell pwd) -lquid -lrt -o main.out
+
+run: all
+	valgrind ./main.out
 
 clean:
-	rm -rf *.o .rnd quid.out
+	rm -rf *.o .rnd *.out *.so*
