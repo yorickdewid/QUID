@@ -4,6 +4,9 @@
 #include <time.h>
 #include "quid.h"
 
+int mem_seed = MEM_SEED_CYCLE;
+int rnd_seed = RND_SEED_CYCLE;
+
 /* read seed or create if not exist */
 void get_mem_seed(uuid_node_t *node){
 	static int mem_seed_count = 0;
@@ -27,7 +30,7 @@ void get_mem_seed(uuid_node_t *node){
 			}
 		}
 	}
-	if(mem_seed_count == MEM_SEED_CYCLE){
+	if(mem_seed_count == mem_seed){
 		mem_seed_count = 0;
 	}else{
 		mem_seed_count++;
@@ -55,7 +58,7 @@ void get_system_time(uuid_time_t *uuid_time){
 }
 
 /* construct QUID */
-int uuid_create(cuuid_t *uuid){
+int quid_create(cuuid_t *uuid){
 	uuid_time_t timestamp;
 	unsigned short clockseq;
 	uuid_node_t node;
@@ -65,6 +68,7 @@ int uuid_create(cuuid_t *uuid){
 	clockseq = true_random();
 
 	format_quid(uuid, clockseq, timestamp, node);
+
 	return 1;
 }
 
@@ -138,8 +142,7 @@ static unsigned short true_random(){
 		time_now = time_now / UUIDS_PER_TICK;
 		srand((unsigned int)(((time_now >> 32) ^ time_now) & 0xffffffff));
 	}
-
-	if(rnd_seed_count == RND_SEED_CYCLE){
+	if(rnd_seed_count == rnd_seed){
 		rnd_seed_count = 0;
 	}else{
 		rnd_seed_count++;
@@ -164,4 +167,14 @@ void quid_print(cuuid_t u){
 	printf("%.2x", u.node[5]); // Serie
 
 	printf("}\n");
+}
+
+/* set memory seed cycle*/
+void quid_set_mem_seed(int cnt){
+	mem_seed = cnt;
+}
+
+/* set rnd seed cycle */
+void quid_set_rnd_seed(int cnt){
+	rnd_seed = cnt;
 }

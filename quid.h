@@ -38,7 +38,9 @@ static void get_current_time(uuid_time_t *);
 static void get_mem_seed(uuid_node_t *);
 static void get_system_time(uuid_time_t *);
 static unsigned short true_random();
-int uuid_create(cuuid_t *);
+int quid_create(cuuid_t *);
 void quid_print(cuuid_t);
+void quid_set_rnd_seed(int);
+void quid_set_mem_seed(int);
 
 #endif

@@ -4,24 +4,62 @@
 #include <time.h>
 #include "main.h"
 
-void twait(int ms){
-#ifdef __WIN32__
-	Sleep(ms);
-#else
-	usleep(ms * 1000);
-#endif
+int delay = GL_DELAY;
+
+void usage(char *pname){
+	printf("Usage: %s [options]\n", pname);
+	printf("Options:\n");
+	printf("  -c <count>               Generation cycles per <count>\n");
+	printf("  -d <ms>                  Delay between generation in miliseconds\n");
+	printf("  -f <flags>               Set identifier flags\n");
+	printf("  -s <category>            Set identifier subcategory\n");
+	printf("  --rnd-seed <cycles>      Reinitialize rand seed per <cycles>\n");
+	printf("  --mem-seed <cycles>      Reinitialize memory seed per <cycles>\n");
+	printf("  -h                       Show this help\n");
 }
 
-int main(int argc, char **argv){
+int main(int argc, char *argv[]){
 	cuuid_t u;
-	int n;
+	int n = 1;
+	int c,i;
 
-	for(n = 0; n < 20; n++){
-		uuid_create(&u);
-		quid_print(u);
-		twait(25);
+	while((c = getopt(argc, argv, "c:d:r:m:f:s:h")) != -1){
+		switch(c){
+			case 'c':
+				n = atoi(optarg);
+				break;
+			case 'd':
+				delay = atoi(optarg);
+				break;
+			case 'f':
+				// flags
+				break;
+			case 's':
+				// subcategory
+				break;
+			case 'r':
+				// rnd
+				quid_set_rnd_seed(atoi(optarg));
+				break;
+			case 'm':
+				// mem
+				quid_set_mem_seed(atoi(optarg));
+				break;
+			case 'h':
+				usage(argv[0]);
+				exit(1);
+			default:
+				usage(argv[0]);
+				exit(1);
+		}
 	}
 
+	for(i=0; i<n; i++){
+		quid_create(&u);
+		quid_print(u);
+		usleep((delay * 1000));
+	}
+/*
 	printf("Generated QUID # %d\n", n);
 	printf("-------------------\n");
 	printf("With flags:\n");
@@ -84,6 +122,6 @@ int main(int argc, char **argv){
     }
 
 	printf("-------------------\n");
-
-	return EXIT_SUCCESS;
+*/
+	return 0;
 }
