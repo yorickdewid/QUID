@@ -64,12 +64,12 @@ int uuid_create(cuuid_t *uuid){
 	get_mem_seed(&node);
 	clockseq = true_random();
 
-	format_uuid_v1(uuid, clockseq, timestamp, node);
+	format_quid(uuid, clockseq, timestamp, node);
 	return 1;
 }
 
-/* format_uuid_v1 -- make a UUID from the timestamp, clockseq, and node ID */
-void format_uuid_v1(cuuid_t* uuid, unsigned short clock_seq, uuid_time_t timestamp, uuid_node_t node){
+/* make a QUID from the timestamp, clockseq, and node ID */
+void format_quid(cuuid_t* uuid, unsigned short clock_seq, uuid_time_t timestamp, uuid_node_t node){
 	uuid->time_low = (unsigned long)(timestamp & 0xFFFFFFFF);
 	uuid->time_mid = (unsigned short)((timestamp >> 32) & 0xFFFF);
 
@@ -88,34 +88,32 @@ void format_uuid_v1(cuuid_t* uuid, unsigned short clock_seq, uuid_time_t timesta
 }
 
 void get_current_time(uuid_time_t *timestamp){
-    static int inited = 0;
-    static uuid_time_t time_last;
-    static unsigned short uuids_this_tick;
-    uuid_time_t time_now;
+	static int inited = 0;
+	static uuid_time_t time_last;
+	static unsigned short uuids_this_tick;
+	uuid_time_t time_now;
 
-    if(!inited){
-        get_system_time(&time_now);
-        uuids_this_tick = UUIDS_PER_TICK;
-        inited = 1;
-    }
+	if(!inited){
+		get_system_time(&time_now);
+		uuids_this_tick = UUIDS_PER_TICK;
+		inited = 1;
+	}
 
-    for(;;){
-        get_system_time(&time_now);
+	for(;;){
+		get_system_time(&time_now);
 
-        /* if clock reading changed since last UUID generated, */
-        if (time_last != time_now){
-            /* reset count of uuids gen'd with this clock reading */
-            uuids_this_tick = 0;
-            time_last = time_now;
-            break;
-        }
-        if (uuids_this_tick < UUIDS_PER_TICK){
-            uuids_this_tick++;
-            break;
-        }
-    }
+		if(time_last != time_now){
+			uuids_this_tick = 0;
+			time_last = time_now;
+			break;
+		}
+		if(uuids_this_tick < UUIDS_PER_TICK){
+			uuids_this_tick++;
+			break;
+		}
+	}
 
-    *timestamp = time_now + uuids_this_tick;
+	*timestamp = time_now + uuids_this_tick;
 }
 
 double get_tick_count(){
@@ -132,20 +130,25 @@ double get_tick_count(){
 }
 
 static unsigned short true_random(){
-	static int inited = 0;
+	static int rnd_seed_count = 0;
 	uuid_time_t time_now;
 
-	if(!inited){
+	if(!rnd_seed_count){
 		get_system_time(&time_now);
 		time_now = time_now / UUIDS_PER_TICK;
 		srand((unsigned int)(((time_now >> 32) ^ time_now) & 0xffffffff));
-		inited = 1;
+	}
+
+	if(rnd_seed_count == RND_SEED_CYCLE){
+		rnd_seed_count = 0;
+	}else{
+		rnd_seed_count++;
 	}
 
 	return (rand()+get_tick_count());
 }
 
-/* puid -- print a UUID */
+/* print QUID */
 void quid_print(cuuid_t u){
 	printf("{%.8x-", (unsigned int)u.time_low);
 	printf("%.4x-", u.time_mid);

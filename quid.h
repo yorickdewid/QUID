@@ -33,7 +33,7 @@ typedef struct {
 	char nodeID[6];
 } uuid_node_t;
 
-static void format_uuid_v1(cuuid_t *, unsigned short, uuid_time_t, uuid_node_t);
+static void format_quid(cuuid_t *, unsigned short, uuid_time_t, uuid_node_t);
 static void get_current_time(uuid_time_t *);
 static void get_mem_seed(uuid_node_t *);
 static void get_system_time(uuid_time_t *);

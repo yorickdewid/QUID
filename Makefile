@@ -8,6 +8,7 @@ shell:
 	gcc -g -Wall -DDEBUG main.c -L$(shell pwd) -lquid -lrt -o main.out
 
 run: all
+	export LD_LIBRARY_PATH=`pwd`:$(LD_LIBRARY_PATH)
 	valgrind ./main.out
 
 clean:

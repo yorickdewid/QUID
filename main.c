@@ -19,7 +19,7 @@ int main(int argc, char **argv){
 	for(n = 0; n < 20; n++){
 		uuid_create(&u);
 		quid_print(u);
-//		twait(5);
+		twait(25);
 	}
 
 	printf("Generated QUID # %d\n", n);
