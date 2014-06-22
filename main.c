@@ -28,9 +28,7 @@ int main(int argc, char *argv[]){
 	int c,i;
 	char *fname;
 	FILE *fp;
-	int fout = 0;
-	int nout = 0;
-	int fmat = 0;
+	int fout = 0,nout = 0,fmat = 0;
 
 	while((c = getopt(argc, argv, "c:d:r:m:f:o:s:qxih")) != -1){
 		switch(c){
@@ -79,7 +77,7 @@ int main(int argc, char *argv[]){
 		if((!fout)&&(!nout)){
 			quid_print(u, fmat);
 		}else{
-			fp = fopen(fname, "w");
+			fp = fopen(fname, "a");
 			quid_print_file(fp, u, fmat);
 			fclose(fp);
 		}
@@ -91,8 +89,8 @@ int main(int argc, char *argv[]){
 	printf("Generated QUID # %d\n", n);
 	printf("-------------------\n");
 	printf("With flags:\n");
-
-	unsigned char data = 0xc5;
+*/
+	unsigned char data = 0xff;
 	unsigned char cat = 0x9;
 
 	if(data & (1<<0)){
@@ -148,7 +146,7 @@ int main(int argc, char *argv[]){
         printf("UNKNOWN\n");
         break;
     }
-
+/*
 	printf("-------------------\n");
 */
 	return 0;
