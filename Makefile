@@ -12,4 +12,4 @@ run: all
 	@valgrind ./main.out
 
 clean:
-	@rm -rf *.o .rnd *.out *.so*
+	@rm -rf *.o .rnd *.out *.so* *.txt

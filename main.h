@@ -24,8 +24,8 @@ typedef struct {
 } cuuid_t;
 
 extern int quid_create(cuuid_t *);
-extern void quid_print(cuuid_t);
-extern void quid_print_file(FILE *, cuuid_t);
+extern void quid_print(cuuid_t, int);
+extern void quid_print_file(FILE *, cuuid_t, int);
 extern void quid_set_rnd_seed(int);
 extern void quid_set_mem_seed(int);
 

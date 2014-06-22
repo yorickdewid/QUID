@@ -14,6 +14,8 @@ void usage(char *pname){
 	printf("  -f <flags>               Set identifier flags\n");
 	printf("  -o <file>                output to <file>\n");
 	printf("  -s <category>            Set identifier subcategory\n");
+	printf("  -x                       Output identifier as hexadecimal\n");
+	printf("  -i                       Output identifier as number\n");
 	printf("  -q                       Silent, no output shown on screen\n");
 	printf("  --rnd-seed <cycles>      Reinitialize rand seed per <cycles>\n");
 	printf("  --mem-seed <cycles>      Reinitialize memory seed per <cycles>\n");
@@ -28,8 +30,9 @@ int main(int argc, char *argv[]){
 	FILE *fp;
 	int fout = 0;
 	int nout = 0;
+	int fmat = 0;
 
-	while((c = getopt(argc, argv, "c:d:r:m:f:o:s:qh")) != -1){
+	while((c = getopt(argc, argv, "c:d:r:m:f:o:s:qxih")) != -1){
 		switch(c){
 			case 'c':
 				n = atoi(optarg);
@@ -53,6 +56,12 @@ int main(int argc, char *argv[]){
 			case 'm':
 				quid_set_mem_seed(atoi(optarg));
 				break;
+			case 'x':
+				fmat = 1;
+				break;
+			case 'i':
+				fmat = 2;
+				break;
 			case 'q':
 				nout = 1;
 				break;
@@ -68,10 +77,10 @@ int main(int argc, char *argv[]){
 	for(i=0; i<n; i++){
 		quid_create(&u);
 		if((!fout)&&(!nout)){
-			quid_print(u);
+			quid_print(u, fmat);
 		}else{
 			fp = fopen(fname, "w");
-			quid_print_file(fp, u);
+			quid_print_file(fp, u, fmat);
 			fclose(fp);
 		}
 		if(delay){
