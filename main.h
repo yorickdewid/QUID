@@ -9,6 +9,11 @@
 
 #define GL_DELAY 15
 
+#define FLAG_PUBLIC 1<<0
+#define FLAG_MASTER 1<<2
+#define FLAG_SIGNED 1<<3
+#define FLAG_TAGGED 1<<5
+
 typedef struct {
 	unsigned long   time_low;
 	unsigned short  time_mid;
@@ -20,6 +25,7 @@ typedef struct {
 
 extern int quid_create(cuuid_t *);
 extern void quid_print(cuuid_t);
+extern void quid_print_file(FILE *, cuuid_t);
 extern void quid_set_rnd_seed(int);
 extern void quid_set_mem_seed(int);
 

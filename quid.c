@@ -151,22 +151,26 @@ static unsigned short true_random(){
 	return (rand()+get_tick_count());
 }
 
-/* print QUID */
 void quid_print(cuuid_t u){
-	printf("{%.8x-", (unsigned int)u.time_low);
-	printf("%.4x-", u.time_mid);
-	printf("%.4x-", u.time_hi_and_version);
-	printf("%x", u.clock_seq_hi_and_reserved);
-	printf("%.2x-", u.clock_seq_low);
+	quid_print_file(stdout, u);
+}
 
-	printf("%.2x", u.node[0]); // Class
-	printf("%.2x", u.node[1]); // Category
-	printf("%.2x", u.node[2]);
-	printf("%.2x", u.node[3]);
-	printf("%.2x", u.node[4]); // Random note
-	printf("%.2x", u.node[5]); // Serie
+/* print QUID */
+void quid_print_file(FILE *fp, cuuid_t u){
+	fprintf(fp, "{%.8x-", (unsigned int)u.time_low);
+	fprintf(fp, "%.4x-", u.time_mid);
+	fprintf(fp, "%.4x-", u.time_hi_and_version);
+	fprintf(fp, "%x", u.clock_seq_hi_and_reserved);
+	fprintf(fp, "%.2x-", u.clock_seq_low);
 
-	printf("}\n");
+	fprintf(fp, "%.2x", u.node[0]); // Class
+	fprintf(fp, "%.2x", u.node[1]); // Category
+	fprintf(fp, "%.2x", u.node[2]);
+	fprintf(fp, "%.2x", u.node[3]);
+	fprintf(fp, "%.2x", u.node[4]); // Random note
+	fprintf(fp, "%.2x", u.node[5]); // Serie
+
+	fprintf(fp, "}\n");
 }
 
 /* set memory seed cycle*/

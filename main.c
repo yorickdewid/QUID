@@ -12,6 +12,7 @@ void usage(char *pname){
 	printf("  -c <count>               Generation cycles per <count>\n");
 	printf("  -d <ms>                  Delay between generation in miliseconds\n");
 	printf("  -f <flags>               Set identifier flags\n");
+	printf("  -o <file>                output to <file>\n");
 	printf("  -s <category>            Set identifier subcategory\n");
 	printf("  --rnd-seed <cycles>      Reinitialize rand seed per <cycles>\n");
 	printf("  --mem-seed <cycles>      Reinitialize memory seed per <cycles>\n");
@@ -22,8 +23,11 @@ int main(int argc, char *argv[]){
 	cuuid_t u;
 	int n = 1;
 	int c,i;
+	char *fname;
+	FILE *fp;
+	int fout = 0;
 
-	while((c = getopt(argc, argv, "c:d:r:m:f:s:h")) != -1){
+	while((c = getopt(argc, argv, "c:d:r:m:f:o:s:h")) != -1){
 		switch(c){
 			case 'c':
 				n = atoi(optarg);
@@ -38,11 +42,13 @@ int main(int argc, char *argv[]){
 				// subcategory
 				break;
 			case 'r':
-				// rnd
 				quid_set_rnd_seed(atoi(optarg));
 				break;
+			case 'o':
+				fname = optarg;
+				fout = 1;
+				break;
 			case 'm':
-				// mem
 				quid_set_mem_seed(atoi(optarg));
 				break;
 			case 'h':
@@ -56,8 +62,16 @@ int main(int argc, char *argv[]){
 
 	for(i=0; i<n; i++){
 		quid_create(&u);
-		quid_print(u);
-		usleep((delay * 1000));
+		if(!fout){
+			quid_print(u);
+		}else{
+			fp = fopen(fname, "w");
+			quid_print_file(fp, u);
+			fclose(fp);
+		}
+		if(delay){
+			usleep((delay * 1000));
+		}
 	}
 /*
 	printf("Generated QUID # %d\n", n);
