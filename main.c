@@ -14,6 +14,7 @@ void usage(char *pname){
 	printf("  -f <flags>               Set identifier flags\n");
 	printf("  -o <file>                output to <file>\n");
 	printf("  -s <category>            Set identifier subcategory\n");
+	printf("  -q                       Silent, no output shown on screen\n");
 	printf("  --rnd-seed <cycles>      Reinitialize rand seed per <cycles>\n");
 	printf("  --mem-seed <cycles>      Reinitialize memory seed per <cycles>\n");
 	printf("  -h                       Show this help\n");
@@ -26,8 +27,9 @@ int main(int argc, char *argv[]){
 	char *fname;
 	FILE *fp;
 	int fout = 0;
+	int nout = 0;
 
-	while((c = getopt(argc, argv, "c:d:r:m:f:o:s:h")) != -1){
+	while((c = getopt(argc, argv, "c:d:r:m:f:o:s:qh")) != -1){
 		switch(c){
 			case 'c':
 				n = atoi(optarg);
@@ -51,6 +53,9 @@ int main(int argc, char *argv[]){
 			case 'm':
 				quid_set_mem_seed(atoi(optarg));
 				break;
+			case 'q':
+				nout = 1;
+				break;
 			case 'h':
 				usage(argv[0]);
 				exit(1);
@@ -62,7 +67,7 @@ int main(int argc, char *argv[]){
 
 	for(i=0; i<n; i++){
 		quid_create(&u);
-		if(!fout){
+		if((!fout)&&(!nout)){
 			quid_print(u);
 		}else{
 			fp = fopen(fname, "w");
