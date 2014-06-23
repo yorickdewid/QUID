@@ -57,6 +57,7 @@ int main(int argc, char *argv[]){
 		option_index = 0;
 		static struct option long_options[] = {
 			{"list-flags",     no_argument,       0, 0},
+			{"list-categories",no_argument,       0, 0},
 			{"rand-seed",      required_argument, 0, 0},
 			{"memory-seed",    required_argument, 0, 0},
 			{"output-hex",     no_argument,       0, 'x'},
@@ -85,6 +86,11 @@ int main(int argc, char *argv[]){
 					printf("IDF_SIGNED   Set signed\n");
 					printf("IDF_TAGGED   Set tagged\n");
 					printf("IDF_STRICT   Set strict\n");
+				}else if(!strcmp("list-categories", long_options[option_index].name)){
+					printf("CLS_CMON     Default class\n");
+					printf("CLS_INFO     Indicate info\n");
+					printf("CLS_WARN     Indicate warning\n");
+					printf("CLS_ERROR    Indicate error\n");
 				}
 				break;
 			case 'c':
