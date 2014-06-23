@@ -19,9 +19,17 @@ void usage(char *pname){
 	printf("  -x                       Output identifier as hexadecimal\n");
 	printf("  -i                       Output identifier as number\n");
 	printf("  -q                       Silent, no output shown on screen\n");
-	printf("  --rnd-seed <cycles>      Reinitialize rand seed per <cycles>\n");
-	printf("  --mem-seed <cycles>      Reinitialize memory seed per <cycles>\n");
+	printf("  -r <cycles>              Reinitialize rand seed per <cycles>\n");
+	printf("  -m <cycles>              Reinitialize memory seed per <cycles>\n");
+	printf("  -v                       Output verbose information\n");
+	printf("  -V                       Show version\n");
 	printf("  -h                       Show this help\n");
+}
+
+void print_version(){
+	printf("QUID Generator\n");
+	printf("Copyright (C) 2014 Quenza, Inc.\n");
+	printf("Compiled %s\n", __DATE__);
 }
 
 int check_fname(const char *pathname){
@@ -44,7 +52,7 @@ int main(int argc, char *argv[]){
 	FILE *fp;
 	int fout = 0,nout = 0,fmat = 0;
 
-	while((c = getopt(argc, argv, "c:d:r:m:f:o:s:qxih")) != -1){
+	while((c = getopt(argc, argv, "c:d:r:m:f:o:s:qxiVh")) != -1){
 		switch(c){
 			case 'c':
 				n = atoi(optarg);
@@ -77,6 +85,9 @@ int main(int argc, char *argv[]){
 			case 'q':
 				nout = 1;
 				break;
+			case 'V':
+				print_version();
+				exit(1);
 			case 'h':
 				usage(argv[0]);
 				exit(1);
@@ -87,7 +98,7 @@ int main(int argc, char *argv[]){
 	}
 
 	for(i=0; i<n; i++){
-		quid_create(&u, IDF_TAGGED | IDF_PUBLIC);
+		quid_create(&u, IDF_TAGGED | IDF_PUBLIC, CLS_CMON);
 		if((!fout)&&(!nout)){
 			quid_print(u, fmat);
 		}else{
@@ -110,41 +121,6 @@ int main(int argc, char *argv[]){
 	printf("Generated QUID # %d\n", n);
 	printf("-------------------\n");
 	printf("With flags:\n");
-
-	unsigned char cat = 0x9;
-
-	switch(cat){
-    case 2:
-        printf("COMMON IDENTIFIER\n");
-        break;
-    case 7:
-        printf("INDEX IDENTIFIER\n");
-        break;
-    case 9:
-        printf("SYSTEM IDENTIFIER\n");
-        break;
-    case 12:
-        printf("COMMON INFO\n");
-        break;
-    case 13:
-        printf("COMMON WARNING\n");
-        break;
-    case 14:
-        printf("COMMON ERROR\n");
-        break;
-    case 22:
-        printf("SYSTEM INFO\n");
-        break;
-    case 23:
-        printf("SYSTEM WARNING\n");
-        break;
-    case 24:
-        printf("SYSTEM ERROR\n");
-        break;
-    default:
-        printf("UNKNOWN\n");
-        break;
-    }
 
 	printf("-------------------\n");
 */
