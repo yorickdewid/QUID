@@ -87,7 +87,7 @@ int main(int argc, char *argv[]){
 	}
 
 	for(i=0; i<n; i++){
-		quid_create(&u);
+		quid_create(&u, IDF_TAGGED | IDF_PUBLIC);
 		if((!fout)&&(!nout)){
 			quid_print(u, fmat);
 		}else{
@@ -110,30 +110,8 @@ int main(int argc, char *argv[]){
 	printf("Generated QUID # %d\n", n);
 	printf("-------------------\n");
 	printf("With flags:\n");
-*/
-	unsigned char data = 0xff;
-	unsigned char cat = 0x9;
 
-	if(data & (1<<0)){
-		printf("  PUBLIC\n");
-    }else{
-        printf("  PRIVATE\n");
-    }
-    if(data & (1<<2)){
-        printf("  MASTER\n");
-    }else{
-        printf("  SLAVE\n");
-    }
-    if(data & (1<<4)){
-        printf("  SIGNED\n");
-    }else{
-        printf("  UNSIGNED\n");
-    }
-    if(data & (1<<5)){
-        printf("  TAGGED\n");
-    }else{
-        printf("  UNTAGGED\n");
-    }
+	unsigned char cat = 0x9;
 
 	switch(cat){
     case 2:
@@ -167,7 +145,7 @@ int main(int argc, char *argv[]){
         printf("UNKNOWN\n");
         break;
     }
-/*
+
 	printf("-------------------\n");
 */
 	return 0;

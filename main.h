@@ -10,9 +10,20 @@
 #define GL_DELAY 15
 
 #define FLAG_PUBLIC 1<<0
+#define FLAG_IDSAFE 1<<1
 #define FLAG_MASTER 1<<2
 #define FLAG_SIGNED 1<<3
+#define FLAG_DMAGIC 1<<4
 #define FLAG_TAGGED 1<<5
+#define FLAG_STRICT 1<<6
+
+#define IDF_NULL 0x0
+#define IDF_PUBLIC 0x1
+#define IDF_IDSAFE 0x2
+#define IDF_MASTER 0x4
+#define IDF_SIGNED 0x8
+#define IDF_TAGGED 0x20
+#define IDF_STRICT 0x40
 
 typedef struct {
 	unsigned long   time_low;
@@ -23,7 +34,7 @@ typedef struct {
 	unsigned char   node[6];
 } cuuid_t;
 
-extern int quid_create(cuuid_t *);
+extern int quid_create(cuuid_t *, char);
 extern void quid_print(cuuid_t, int);
 extern void quid_print_file(FILE *, cuuid_t, int);
 extern void quid_set_rnd_seed(int);
