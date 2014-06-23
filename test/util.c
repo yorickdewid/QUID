@@ -9,21 +9,21 @@
 int delay = GL_DELAY;
 
 void usage(char *pname){
-	printf("Usage: %s [options]\n", pname);
+	printf("Usage: %s [options] identifier...\n", pname);
 	printf("Options:\n");
 	printf("  -c <count>               Generation cycles per <count>\n");
 	printf("  -d <ms>                  Delay between generation in miliseconds\n");
-	printf("  -f <flags>               Set identifier flags\n");
 	printf("  -o <file>                output to <file>\n");
-	printf("  -s <category>            Set identifier subcategory\n");
-	printf("  -x                       Output identifier as hexadecimal\n");
-	printf("  -i                       Output identifier as number\n");
+	printf("  --list-flags             Show available flags");
+	printf("  --list-categories        Show all categories");
+	printf("  -x, --output-hex         Output identifier as hexadecimal\n");
+	printf("  -i, --output-number      Output identifier as number\n");
 	printf("  -q                       Silent, no output shown on screen\n");
-	printf("  -r <cycles>              Reinitialize rand seed per <cycles>\n");
-	printf("  -m <cycles>              Reinitialize memory seed per <cycles>\n");
-	printf("  -v                       Output verbose information\n");
-	printf("  -V                       Show version\n");
-	printf("  -h                       Show this help\n");
+	printf("  --rand-seek=<cycles>     Reinitialize rand seed per <cycles>\n");
+	printf("  --memory-seed=<cycles>   Reinitialize memory seed per <cycles>\n");
+//	printf("  -V, --verbose            Output verbose information\n");
+	printf("  -v, --version            Show version\n");
+	printf("  -h, --help               Show this help\n");
 }
 
 void print_version(){
@@ -47,34 +47,49 @@ int check_fname(const char *pathname){
 int main(int argc, char *argv[]){
 	cuuid_t u;
 	int n = 1;
-	int c,i;
+	int c, i;
 	char *fname;
 	FILE *fp;
 	int fout = 0,nout = 0,fmat = 0;
+	int option_index;
 
-	while((c = getopt(argc, argv, "c:d:r:m:f:o:s:qxiVh")) != -1){
+	while(1){
+		option_index = 0;
+		static struct option long_options[] = {
+			{"list-flags",     no_argument,       0, 0},
+			{"rand-seed",      required_argument, 0, 0},
+			{"memory-seed",    required_argument, 0, 0},
+			{"output-hex",     no_argument,       0, 'x'},
+			{"output-number",  no_argument,       0, 'i'},
+			{"version",        no_argument,       0, 'v'},
+			{"help",           no_argument,       0, 'h'},
+			{0,                0,                 0,  0 }
+		};
+
+		c = getopt_long(argc, argv, "c:d:o:qxivh", long_options, &option_index);
+		if(c == -1){
+			break;
+		}
+
 		switch(c){
+			case 0:
+				if(!strcmp("rand-seed", long_options[option_index].name)){
+					quid_set_rnd_seed(atoi(optarg));
+				}else if(!strcmp("memory-seed", long_options[option_index].name)){
+					quid_set_mem_seed(atoi(optarg));
+				}else if(!strcmp("list-flags", long_options[option_index].name)){
+//					printf("\n");
+				}
+				break;
 			case 'c':
 				n = atoi(optarg);
 				break;
 			case 'd':
 				delay = atoi(optarg);
 				break;
-			case 'f':
-				// flags
-				break;
-			case 's':
-				// subcategory
-				break;
-			case 'r':
-				quid_set_rnd_seed(atoi(optarg));
-				break;
 			case 'o':
 				fname = optarg;
 				fout = 1;
-				break;
-			case 'm':
-				quid_set_mem_seed(atoi(optarg));
 				break;
 			case 'x':
 				fmat = 1;
@@ -85,10 +100,11 @@ int main(int argc, char *argv[]){
 			case 'q':
 				nout = 1;
 				break;
-			case 'V':
+			case 'v':
 				print_version();
 				exit(1);
 			case 'h':
+			case '?':
 				usage(argv[0]);
 				exit(1);
 			default:
@@ -116,6 +132,14 @@ int main(int argc, char *argv[]){
 		if(delay){
 			usleep((delay * 1000));
 		}
+	}
+
+	if(optind < argc){
+		printf("identifier: ");
+		while(optind < argc){
+            printf("%s ", argv[optind++]);
+		}
+		printf("\n");
 	}
 /*
 	printf("Generated QUID # %d\n", n);

@@ -1,5 +1,6 @@
 #include <unistd.h>
 #include <sys/time.h>
+#include <getopt.h>
 #ifdef DEBUG
 #include <valgrind/valgrind.h>
 #endif
