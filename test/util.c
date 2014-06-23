@@ -4,7 +4,7 @@
 #include <time.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-#include "main.h"
+#include "util.h"
 
 int delay = GL_DELAY;
 
@@ -27,9 +27,9 @@ void usage(char *pname){
 int check_fname(const char *pathname){
 	struct stat info;
 
-	if(stat(pathname, &info) != 0){
+	if(stat(pathname, &info)!= 0){
 		return 0;
-	}else if(info.st_mode & S_IFDIR){  // S_ISDIR() doesn't exist on my windows 
+	}else if(info.st_mode & S_IFDIR){
 		return 1;
 	}else{
 		return 2;

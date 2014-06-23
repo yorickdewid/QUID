@@ -87,8 +87,7 @@ void format_quid(cuuid_t* uuid, unsigned short clock_seq, uuid_time_t timestamp,
 	uuid->clock_seq_hi_and_reserved |= 0x80;
 
 	memcpy(&uuid->node, &node, sizeof(uuid->node));
-//	uuid->node[0] = 0xec; // Class
-	uuid->node[1] = 0x10; // Category
+	uuid->node[1] = 0x10;
 	uuid->node[5] = (true_random() & 0xFF);
 }
 
