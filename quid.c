@@ -58,7 +58,7 @@ void get_system_time(uuid_time_t *uuid_time){
 }
 
 /* construct QUID */
-int quid_create(cuuid_t *uuid, char flag){
+int quid_create(cuuid_t *uuid, char flag, char subc){
 	uuid_time_t timestamp;
 	unsigned short clockseq;
 	uuid_node_t node;
@@ -69,6 +69,7 @@ int quid_create(cuuid_t *uuid, char flag){
 
 	format_quid(uuid, clockseq, timestamp, node);
 	set_flag(uuid, flag);
+	set_class(uuid, subc);
 
 	return 1;
 }
@@ -83,10 +84,11 @@ void format_quid(cuuid_t* uuid, unsigned short clock_seq, uuid_time_t timestamp,
 	uuid->time_hi_and_version |= 0xa000;
 
 	uuid->clock_seq_low = (clock_seq & 0xFF);
-	uuid->clock_seq_hi_and_reserved = (clock_seq & 0x3F00) >> 8;
+	uuid->clock_seq_hi_and_reserved = (clock_seq & 0x3f00) >> 8;
 	uuid->clock_seq_hi_and_reserved |= 0x80;
 
 	memcpy(&uuid->node, &node, sizeof(uuid->node));
+	uuid->node[0] = true_random();
 	uuid->node[1] = 0x10;
 	uuid->node[5] = (true_random() & 0xFF);
 }
@@ -222,4 +224,8 @@ void set_flag(cuuid_t* uuid, char f){
 
 void unset_flag(cuuid_t* uuid, char f){
 	uuid->node[1] ^= f;
+}
+
+void set_class(cuuid_t* uuid, char c){
+	uuid->node[2] = c;
 }
