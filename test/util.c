@@ -14,8 +14,8 @@ void usage(char *pname){
 	printf("  -c <count>               Generation cycles per <count>\n");
 	printf("  -d <ms>                  Delay between generation in miliseconds\n");
 	printf("  -o <file>                output to <file>\n");
-	printf("  --list-flags             Show available flags");
-	printf("  --list-categories        Show all categories");
+	printf("  --list-flags             Show available flags\n");
+	printf("  --list-categories        Show all categories\n");
 	printf("  -x, --output-hex         Output identifier as hexadecimal\n");
 	printf("  -i, --output-number      Output identifier as number\n");
 	printf("  -q                       Silent, no output shown on screen\n");
@@ -78,7 +78,13 @@ int main(int argc, char *argv[]){
 				}else if(!strcmp("memory-seed", long_options[option_index].name)){
 					quid_set_mem_seed(atoi(optarg));
 				}else if(!strcmp("list-flags", long_options[option_index].name)){
-//					printf("\n");
+					printf("IDF_NULL     No flag\n");
+					printf("IDF_PUBLIC   Set public\n");
+					printf("IDF_IDSAFE   Set safe\n");
+					printf("IDF_MASTER   Set master\n");
+					printf("IDF_SIGNED   Set signed\n");
+					printf("IDF_TAGGED   Set tagged\n");
+					printf("IDF_STRICT   Set strict\n");
 				}
 				break;
 			case 'c':
