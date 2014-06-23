@@ -2,6 +2,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 #include "main.h"
 
 int delay = GL_DELAY;
@@ -20,6 +22,18 @@ void usage(char *pname){
 	printf("  --rnd-seed <cycles>      Reinitialize rand seed per <cycles>\n");
 	printf("  --mem-seed <cycles>      Reinitialize memory seed per <cycles>\n");
 	printf("  -h                       Show this help\n");
+}
+
+int check_fname(const char *pathname){
+	struct stat info;
+
+	if(stat(pathname, &info) != 0){
+		return 0;
+	}else if(info.st_mode & S_IFDIR){  // S_ISDIR() doesn't exist on my windows 
+		return 1;
+	}else{
+		return 2;
+	}
 }
 
 int main(int argc, char *argv[]){
@@ -77,9 +91,16 @@ int main(int argc, char *argv[]){
 		if((!fout)&&(!nout)){
 			quid_print(u, fmat);
 		}else{
-			fp = fopen(fname, "a");
-			quid_print_file(fp, u, fmat);
-			fclose(fp);
+			int rtn = check_fname(fname);
+			if(!rtn){
+				fp = fopen(fname, "a");
+				quid_print_file(fp, u, fmat);
+				fclose(fp);
+			}else if(rtn==1){
+				printf("%s is a directory\n", fname);
+			}else if(rtn==2){
+				printf("%s already exists\n", fname);
+			}
 		}
 		if(delay){
 			usleep((delay * 1000));
