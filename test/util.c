@@ -112,6 +112,11 @@ int main(int argc, char *argv[]){
 					flg |= IDF_SIGNED;
 				}else if(!strcmp("category", long_options[option_index].name)){
 					cat = atoi(optarg);
+					if(cat > CLS_ERROR){
+						printf("unknown category %d\n", cat);
+						printf("see --help for more information\n");
+						cat = 0;
+					}
 				}
 				break;
 			case 'c':
