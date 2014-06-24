@@ -54,9 +54,9 @@ int check_fname(const char *pathname){
 int main(int argc, char *argv[]){
 	cuuid_t u;
 	int n = 1;
-	int c, i;
+	int c, i, rtn;
 	char *fname;
-	FILE *fp;
+	FILE *fp = NULL;
 	int fout = 0,nout = 0,fmat = 0,vbose = 0,gen = 1;
 	int option_index;
 	char flg = IDF_NULL;
@@ -163,37 +163,51 @@ int main(int argc, char *argv[]){
 	}
 
 	if(optind < argc){
-		gen = 0;
 		printf("identifier: ");
 		while(optind < argc){
 			printf("%s ", argv[optind++]);
 		}
 		printf("\n");
+
+		return 0;
 	}
 
 	if(gen){
 		gettimeofday(&t1, NULL);
+
+		if(fout){
+			rtn = check_fname(fname);
+			if(!rtn){
+				fp = fopen(fname, "a");
+			}else if(rtn==1){
+				printf("%s is a directory\n", fname);
+
+				return 1;
+			}else if(rtn==2){
+				printf("%s already exists\n", fname);
+
+				return 1;
+			}
+		}
+
 		for(i=0; i<n; i++){
 			quid_create(&u, flg, cat);
-			if((!fout)&&(!nout)){
-				quid_print(u, fmat);
-			}else{
-				int rtn = check_fname(fname);
-				if(!rtn){
-					fp = fopen(fname, "a");
-					quid_print_file(fp, u, fmat);
-					fclose(fp);
-				}else if(rtn==1){
-					printf("%s is a directory\n", fname);
-				}else if(rtn==2){
-					printf("%s already exists\n", fname);
+			if(!fout){
+				if(!nout){
+					quid_print(u, fmat);
 				}
+			}else{
+				quid_print_file(fp, u, fmat);
 			}
 			if(delay){
 				usleep((delay * 1000));
 			}
 			ticks = clock();
 		}
+		if(fp){
+			fclose(fp);
+		}
+
 		gettimeofday(&t2, NULL);
 	}
 
