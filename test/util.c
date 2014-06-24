@@ -57,7 +57,7 @@ int main(int argc, char *argv[]){
 	int c, i;
 	char *fname;
 	FILE *fp;
-	int fout = 0,nout = 0,fmat = 0,vbose = 0;
+	int fout = 0,nout = 0,fmat = 0,vbose = 0,gen = 1;
 	int option_index;
 	char flg = IDF_NULL;
 	char cat = CLS_CMON;
@@ -103,6 +103,7 @@ int main(int argc, char *argv[]){
 					printf("%d) CLS_INFO\n", CLS_INFO);
 					printf("%d) CLS_WARN\n", CLS_WARN);
 					printf("%d) CLS_ERROR\n", CLS_ERROR);
+					gen = 0;
 				}else if(!strcmp("set-safe", long_options[option_index].name)){
 					flg |= IDF_IDSAFE;
 				}else if(!strcmp("set-public", long_options[option_index].name)){
@@ -148,79 +149,86 @@ int main(int argc, char *argv[]){
 				break;
 			case 'v':
 				print_version();
-				exit(1);
+				gen = 0;
+				break;
 			case 'h':
 			case '?':
 				usage(argv[0]);
-				exit(1);
+				gen = 0;
+				break;
 			default:
 				usage(argv[0]);
-				exit(1);
+				gen = 0;
 		}
 	}
 
-	gettimeofday(&t1, NULL);
-	for(i=0; i<n; i++){
-		quid_create(&u, flg, cat);
-		if((!fout)&&(!nout)){
-			quid_print(u, fmat);
-		}else{
-			int rtn = check_fname(fname);
-			if(!rtn){
-				fp = fopen(fname, "a");
-				quid_print_file(fp, u, fmat);
-				fclose(fp);
-			}else if(rtn==1){
-				printf("%s is a directory\n", fname);
-			}else if(rtn==2){
-				printf("%s already exists\n", fname);
-			}
-		}
-		if(delay){
-			usleep((delay * 1000));
-		}
-		ticks = clock();
-	}
-	gettimeofday(&t2, NULL);
-/*
 	if(optind < argc){
+		gen = 0;
 		printf("identifier: ");
 		while(optind < argc){
-            printf("%s ", argv[optind++]);
+			printf("%s ", argv[optind++]);
 		}
 		printf("\n");
 	}
-*/
+
+	if(gen){
+		gettimeofday(&t1, NULL);
+		for(i=0; i<n; i++){
+			quid_create(&u, flg, cat);
+			if((!fout)&&(!nout)){
+				quid_print(u, fmat);
+			}else{
+				int rtn = check_fname(fname);
+				if(!rtn){
+					fp = fopen(fname, "a");
+					quid_print_file(fp, u, fmat);
+					fclose(fp);
+				}else if(rtn==1){
+					printf("%s is a directory\n", fname);
+				}else if(rtn==2){
+					printf("%s already exists\n", fname);
+				}
+			}
+			if(delay){
+				usleep((delay * 1000));
+			}
+			ticks = clock();
+		}
+		gettimeofday(&t2, NULL);
+	}
+
 	if(vbose){
-		elapsedTime = (t2.tv_sec - t1.tv_sec) * 1000.0;
-		elapsedTime += (t2.tv_usec - t1.tv_usec) / 1000.0;
-		elapsedTime = (elapsedTime / 1000);
 		printf("-----------------------------\n");
-		printf("Generated %d identifiers\n", n);
-		printf("Used %0.2f seconds of CPU time\n", (double)ticks/CLOCKS_PER_SEC);
-		printf("Finished in about %0.2f seconds\n", elapsedTime);
-		printf("Delayed %d miliseconds\n", delay);
-		printf("Category index %d\n", cat);
-		printf("Flags");
-		if(flg & FLAG_PUBLIC){
-			printf(" PUBLIC");
+		if(gen){
+			elapsedTime = (t2.tv_sec - t1.tv_sec) * 1000.0;
+			elapsedTime += (t2.tv_usec - t1.tv_usec) / 1000.0;
+			elapsedTime = (elapsedTime / 1000);
+			printf("Generated %d identifiers\n", n);
+			printf("Used %0.2f seconds of CPU time\n", (double)ticks/CLOCKS_PER_SEC);
+			printf("Finished in about %0.2f seconds\n", elapsedTime);
+			printf("Delayed %d miliseconds\n", delay);
+			printf("Category index %d\n", cat);
+			printf("Flags");
+			if(flg & FLAG_PUBLIC){
+				printf(" PUBLIC");
+			}
+			if(flg & FLAG_IDSAFE){
+				printf(" IDSAFE");
+			}
+			if(flg & FLAG_MASTER){
+				printf(" MASTER");
+			}
+			if(flg & FLAG_SIGNED){
+				printf(" SIGNED");
+			}
+			if(flg & FLAG_TAGGED){
+				printf(" TAGGED");
+			}
+			if(flg & FLAG_STRICT){
+				printf(" STRICT");
+			}
+			printf("\n");
 		}
-		if(flg & FLAG_IDSAFE){
-			printf(" IDSAFE");
-		}
-		if(flg & FLAG_MASTER){
-			printf(" MASTER");
-		}
-		if(flg & FLAG_SIGNED){
-			printf(" SIGNED");
-		}
-		if(flg & FLAG_TAGGED){
-			printf(" TAGGED");
-		}
-		if(flg & FLAG_STRICT){
-			printf(" STRICT");
-		}
-		printf("\n");
 		printf("-----------------------------\n");
 	}
 
