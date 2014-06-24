@@ -19,6 +19,7 @@ void usage(char *pname){
 	printf("  --set-public             Set public flag\n");
 	printf("  --set-safe               Set safety flag\n");
 	printf("  --set-master             Set master flag\n");
+	printf("  --set-sign               Set signed flag\n");
 	printf("  --set-tag                Set tagging flag\n");
 	printf("  --set-strict             Set strict data flag\n");
 	printf("  -x, --output-hex         Output identifier as hexadecimal\n");
@@ -67,6 +68,7 @@ int main(int argc, char *argv[]){
 			{"set-safe",       no_argument,       0, 0},
 			{"set-master",     no_argument,       0, 0},
 			{"set-public",     no_argument,       0, 0},
+			{"set-sign",       no_argument,       0, 0},
 			{"set-tag",        no_argument,       0, 0},
 			{"set-strict",     no_argument,       0, 0},
 			{"list-categories",no_argument,       0, 0},
@@ -106,6 +108,8 @@ int main(int argc, char *argv[]){
 					flg |= IDF_TAGGED;
 				}else if(!strcmp("set-strict", long_options[option_index].name)){
 					flg |= IDF_STRICT;
+				}else if(!strcmp("set-sign", long_options[option_index].name)){
+					flg |= IDF_SIGNED;
 				}else if(!strcmp("category", long_options[option_index].name)){
 					cat = atoi(optarg);
 				}
@@ -179,6 +183,13 @@ int main(int argc, char *argv[]){
 		printf("Generated identifiers\t %d\n", n);
 		printf("Delay\t\t\t %d\n", delay);
 		printf("Category\t\t %d\n", cat);
+		printf("Flags\n");
+		if(flg & FLAG_PUBLIC){ printf(" PUBLIC\n"); }
+		if(flg & FLAG_IDSAFE){ printf(" IDSAFE\n"); }
+		if(flg & FLAG_MASTER){ printf(" MASTER\n"); }
+		if(flg & FLAG_SIGNED){ printf(" SIGNED\n"); }
+		if(flg & FLAG_TAGGED){ printf(" TAGGED\n"); }
+		if(flg & FLAG_STRICT){ printf(" STRICT\n"); }
 		printf("-----------------------------\n");
 	}
 
