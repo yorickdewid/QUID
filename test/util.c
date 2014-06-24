@@ -26,7 +26,7 @@ void usage(char *pname){
 	printf("  -q                       Silent, no output shown on screen\n");
 	printf("  --rand-seek=<cycles>     Reinitialize rand seed per <cycles>\n");
 	printf("  --memory-seed=<cycles>   Reinitialize memory seed per <cycles>\n");
-//	printf("  -V, --verbose            Output verbose information\n");
+	printf("  -V, --verbose            Output verbose information\n");
 	printf("  -v, --version            Show version\n");
 	printf("  -h, --help               Show this help\n");
 }
@@ -55,7 +55,7 @@ int main(int argc, char *argv[]){
 	int c, i;
 	char *fname;
 	FILE *fp;
-	int fout = 0,nout = 0,fmat = 0;
+	int fout = 0,nout = 0,fmat = 0,vbose = 0;
 	int option_index;
 	char flg = IDF_NULL;
 	char cat = CLS_CMON;
@@ -74,12 +74,13 @@ int main(int argc, char *argv[]){
 			{"memory-seed",    required_argument, 0, 0},
 			{"output-hex",     no_argument,       0, 'x'},
 			{"output-number",  no_argument,       0, 'i'},
+			{"verbose",        no_argument,       0, 'V'},
 			{"version",        no_argument,       0, 'v'},
 			{"help",           no_argument,       0, 'h'},
 			{0,                0,                 0,  0 }
 		};
 
-		c = getopt_long(argc, argv, "c:d:o:qxivh", long_options, &option_index);
+		c = getopt_long(argc, argv, "c:d:o:qxivVh", long_options, &option_index);
 		if(c == -1){
 			break;
 		}
@@ -128,6 +129,9 @@ int main(int argc, char *argv[]){
 			case 'q':
 				nout = 1;
 				break;
+			case 'V':
+				vbose = 1;
+				break;
 			case 'v':
 				print_version();
 				exit(1);
@@ -161,7 +165,7 @@ int main(int argc, char *argv[]){
 			usleep((delay * 1000));
 		}
 	}
-
+/*
 	if(optind < argc){
 		printf("identifier: ");
 		while(optind < argc){
@@ -169,12 +173,14 @@ int main(int argc, char *argv[]){
 		}
 		printf("\n");
 	}
-/*
-	printf("Generated QUID # %d\n", n);
-	printf("-------------------\n");
-	printf("With flags:\n");
-
-	printf("-------------------\n");
 */
+	if(vbose){
+		printf("-----------------------------\n");
+		printf("Generated identifiers\t %d\n", n);
+		printf("Delay\t\t\t %d\n", delay);
+		printf("Category\t\t %d\n", cat);
+		printf("-----------------------------\n");
+	}
+
 	return 0;
 }
