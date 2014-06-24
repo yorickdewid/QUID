@@ -4,6 +4,7 @@
 #include <time.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/time.h>
 #include "util.h"
 
 int delay = GL_DELAY;
@@ -154,8 +155,15 @@ int main(int argc, char *argv[]){
 		}
 	}
 
+	static struct timeval t1;
+	static struct timeval t2;
+	clock_t ticks;
+	double elapsedTime;
+
+	gettimeofday(&t1, NULL);
 	for(i=0; i<n; i++){
 		quid_create(&u, flg, cat);
+		ticks = clock();
 		if((!fout)&&(!nout)){
 			quid_print(u, fmat);
 		}else{
@@ -174,6 +182,7 @@ int main(int argc, char *argv[]){
 			usleep((delay * 1000));
 		}
 	}
+	gettimeofday(&t2, NULL);
 /*
 	if(optind < argc){
 		printf("identifier: ");
@@ -184,9 +193,13 @@ int main(int argc, char *argv[]){
 	}
 */
 	if(vbose){
+		elapsedTime = (t2.tv_sec - t1.tv_sec) * 1000.0;
+		elapsedTime += (t2.tv_usec - t1.tv_usec) / 1000.0;
 		printf("-----------------------------\n");
-		printf("Generated identifiers\t %d\n", n);
-		printf("Delay\t\t\t %d\n", delay);
+		printf("Generated %d identifiers\n", n);
+		printf("Used %0.2f seconds of CPU time\n", (double)ticks/CLOCKS_PER_SEC);
+		printf("Finished in about %0.2f miliseconds\n", elapsedTime);
+		printf("Delayed %d miliseconds\n", delay);
 		printf("Category\t\t %d\n", cat);
 		printf("Flags\n");
 		if(flg & FLAG_PUBLIC){ printf(" PUBLIC\n"); }
