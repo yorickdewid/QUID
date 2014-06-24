@@ -61,6 +61,10 @@ int main(int argc, char *argv[]){
 	int option_index;
 	char flg = IDF_NULL;
 	char cat = CLS_CMON;
+	static struct timeval t1;
+    static struct timeval t2;
+    clock_t ticks;
+    double elapsedTime;
 
 	while(1){
 		option_index = 0;
@@ -155,15 +159,9 @@ int main(int argc, char *argv[]){
 		}
 	}
 
-	static struct timeval t1;
-	static struct timeval t2;
-	clock_t ticks;
-	double elapsedTime;
-
 	gettimeofday(&t1, NULL);
 	for(i=0; i<n; i++){
 		quid_create(&u, flg, cat);
-		ticks = clock();
 		if((!fout)&&(!nout)){
 			quid_print(u, fmat);
 		}else{
@@ -181,6 +179,7 @@ int main(int argc, char *argv[]){
 		if(delay){
 			usleep((delay * 1000));
 		}
+		ticks = clock();
 	}
 	gettimeofday(&t2, NULL);
 /*
@@ -195,19 +194,33 @@ int main(int argc, char *argv[]){
 	if(vbose){
 		elapsedTime = (t2.tv_sec - t1.tv_sec) * 1000.0;
 		elapsedTime += (t2.tv_usec - t1.tv_usec) / 1000.0;
+		elapsedTime = (elapsedTime / 1000);
 		printf("-----------------------------\n");
 		printf("Generated %d identifiers\n", n);
 		printf("Used %0.2f seconds of CPU time\n", (double)ticks/CLOCKS_PER_SEC);
-		printf("Finished in about %0.2f miliseconds\n", elapsedTime);
+		printf("Finished in about %0.2f seconds\n", elapsedTime);
 		printf("Delayed %d miliseconds\n", delay);
-		printf("Category\t\t %d\n", cat);
-		printf("Flags\n");
-		if(flg & FLAG_PUBLIC){ printf(" PUBLIC\n"); }
-		if(flg & FLAG_IDSAFE){ printf(" IDSAFE\n"); }
-		if(flg & FLAG_MASTER){ printf(" MASTER\n"); }
-		if(flg & FLAG_SIGNED){ printf(" SIGNED\n"); }
-		if(flg & FLAG_TAGGED){ printf(" TAGGED\n"); }
-		if(flg & FLAG_STRICT){ printf(" STRICT\n"); }
+		printf("Category index %d\n", cat);
+		printf("Flags");
+		if(flg & FLAG_PUBLIC){
+			printf(" PUBLIC");
+		}
+		if(flg & FLAG_IDSAFE){
+			printf(" IDSAFE");
+		}
+		if(flg & FLAG_MASTER){
+			printf(" MASTER");
+		}
+		if(flg & FLAG_SIGNED){
+			printf(" SIGNED");
+		}
+		if(flg & FLAG_TAGGED){
+			printf(" TAGGED");
+		}
+		if(flg & FLAG_STRICT){
+			printf(" STRICT");
+		}
+		printf("\n");
 		printf("-----------------------------\n");
 	}
 
