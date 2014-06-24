@@ -12,10 +12,15 @@ void usage(char *pname){
 	printf("Usage: %s [options] identifier...\n", pname);
 	printf("Options:\n");
 	printf("  -c <count>               Generation cycles per <count>\n");
+	printf("  --category=<index>       Set identifier with category\n");
 	printf("  -d <ms>                  Delay between generation in miliseconds\n");
 	printf("  -o <file>                output to <file>\n");
-	printf("  --list-flags             Show available flags\n");
 	printf("  --list-categories        Show all categories\n");
+	printf("  --set-public             Set public flag\n");
+	printf("  --set-safe               Set safety flag\n");
+	printf("  --set-master             Set master flag\n");
+	printf("  --set-tag                Set tagging flag\n");
+	printf("  --set-strict             Set strict data flag\n");
 	printf("  -x, --output-hex         Output identifier as hexadecimal\n");
 	printf("  -i, --output-number      Output identifier as number\n");
 	printf("  -q                       Silent, no output shown on screen\n");
@@ -52,11 +57,18 @@ int main(int argc, char *argv[]){
 	FILE *fp;
 	int fout = 0,nout = 0,fmat = 0;
 	int option_index;
+	char flg = IDF_NULL;
+	char cat = CLS_CMON;
 
 	while(1){
 		option_index = 0;
 		static struct option long_options[] = {
-			{"list-flags",     no_argument,       0, 0},
+			{"category",       required_argument, 0, 0},
+			{"set-safe",       no_argument,       0, 0},
+			{"set-master",     no_argument,       0, 0},
+			{"set-public",     no_argument,       0, 0},
+			{"set-tag",        no_argument,       0, 0},
+			{"set-strict",     no_argument,       0, 0},
 			{"list-categories",no_argument,       0, 0},
 			{"rand-seed",      required_argument, 0, 0},
 			{"memory-seed",    required_argument, 0, 0},
@@ -78,19 +90,23 @@ int main(int argc, char *argv[]){
 					quid_set_rnd_seed(atoi(optarg));
 				}else if(!strcmp("memory-seed", long_options[option_index].name)){
 					quid_set_mem_seed(atoi(optarg));
-				}else if(!strcmp("list-flags", long_options[option_index].name)){
-					printf("IDF_NULL     No flag\n");
-					printf("IDF_PUBLIC   Set public\n");
-					printf("IDF_IDSAFE   Set safe\n");
-					printf("IDF_MASTER   Set master\n");
-					printf("IDF_SIGNED   Set signed\n");
-					printf("IDF_TAGGED   Set tagged\n");
-					printf("IDF_STRICT   Set strict\n");
 				}else if(!strcmp("list-categories", long_options[option_index].name)){
-					printf("CLS_CMON     Default class\n");
-					printf("CLS_INFO     Indicate info\n");
-					printf("CLS_WARN     Indicate warning\n");
-					printf("CLS_ERROR    Indicate error\n");
+					printf("%d) CLS_CMON\n", CLS_CMON);
+					printf("%d) CLS_INFO\n", CLS_INFO);
+					printf("%d) CLS_WARN\n", CLS_WARN);
+					printf("%d) CLS_ERROR\n", CLS_ERROR);
+				}else if(!strcmp("set-safe", long_options[option_index].name)){
+					flg |= IDF_IDSAFE;
+				}else if(!strcmp("set-public", long_options[option_index].name)){
+					flg |= IDF_PUBLIC;
+				}else if(!strcmp("set-master", long_options[option_index].name)){
+					flg |= IDF_MASTER;
+				}else if(!strcmp("set-tag", long_options[option_index].name)){
+					flg |= IDF_TAGGED;
+				}else if(!strcmp("set-strict", long_options[option_index].name)){
+					flg |= IDF_STRICT;
+				}else if(!strcmp("category", long_options[option_index].name)){
+					cat = atoi(optarg);
 				}
 				break;
 			case 'c':
@@ -126,7 +142,7 @@ int main(int argc, char *argv[]){
 	}
 
 	for(i=0; i<n; i++){
-		quid_create(&u, IDF_TAGGED | IDF_PUBLIC, CLS_CMON);
+		quid_create(&u, flg, cat);
 		if((!fout)&&(!nout)){
 			quid_print(u, fmat);
 		}else{

@@ -27,10 +27,10 @@
 #define IDF_TAGGED 0x20
 #define IDF_STRICT 0x40
 
-#define CLS_CMON 0xe2
-#define CLS_INFO 0x02
-#define CLS_WARN 0x07
-#define CLS_ERROR 0x09
+#define CLS_CMON 0x1
+#define CLS_INFO 0x2
+#define CLS_WARN 0x3
+#define CLS_ERROR 0x4
 
 typedef struct {
 	unsigned long   time_low;
