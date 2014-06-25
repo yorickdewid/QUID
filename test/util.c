@@ -62,9 +62,9 @@ int main(int argc, char *argv[]){
 	char flg = IDF_NULL;
 	char cat = CLS_CMON;
 	static struct timeval t1;
-    static struct timeval t2;
-    clock_t ticks;
-    double elapsedTime;
+	static struct timeval t2;
+	clock_t ticks;
+	double elapsedTime;
 
 	while(1){
 		option_index = 0;
@@ -163,9 +163,12 @@ int main(int argc, char *argv[]){
 	}
 
 	if(optind < argc){
-		printf("identifier: ");
 		while(optind < argc){
-			printf("%s ", argv[optind++]);
+			if(quid_validate(argv[optind++])){
+				printf("valid\n");
+			}else{
+				printf("invalid\n");
+			}
 		}
 		printf("\n");
 
