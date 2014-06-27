@@ -229,3 +229,121 @@ void unset_flag(cuuid_t* uuid, char f){
 void set_class(cuuid_t* uuid, char c){
 	uuid->node[2] = c;
 }
+
+static void strip_quid_string(char *s){
+    char *pr = s, *pw = s;
+    while(*pr){
+        *pw = *pr++;
+        if((*pw != '-')&&(*pw != '{')&&(*pw != '}')&&(*pw != ' ')){
+			pw++;
+		}
+    }
+    *pw = '\0';
+}
+
+static int check_ifhex(char *s){
+	while(*s){
+		if(!isxdigit(*s)){
+			return 0;
+		}
+		s++;
+	}
+
+	return 1;
+}
+
+void strtouuid(char *str, cuuid_t *u){
+	char octet1[9];
+	char octet[5];
+	char node[3];
+
+	octet1[8] = '\0';
+	octet[4] = '\0';
+	node[2] = '\0';
+
+	octet1[0] = str[0];
+	octet1[1] = str[1];
+	octet1[2] = str[2];
+	octet1[3] = str[3];
+	octet1[4] = str[4];
+	octet1[5] = str[5];
+	octet1[6] = str[6];
+	octet1[7] = str[7];
+	u->time_low = strtol(octet1, NULL, 16);
+
+	octet[0] = str[8];
+	octet[1] = str[9];
+	octet[2] = str[10];
+	octet[3] = str[11];
+	u->time_mid = (int)strtol(octet, NULL, 16);
+
+	octet[0] = str[12];
+	octet[1] = str[13];
+	octet[2] = str[14];
+	octet[3] = str[15];
+	u->time_hi_and_version = (int)strtol(octet, NULL, 16);
+
+	node[0] = str[16];
+	node[1] = str[17];
+	u->clock_seq_hi_and_reserved = (char)strtol(node, NULL, 16);
+
+	node[0] = str[18];
+	node[1] = str[19];
+	u->clock_seq_low = (char)strtol(node, NULL, 16);
+
+	node[0] = str[20];
+	node[1] = str[21];
+	u->node[0] = (char)strtol(node, NULL, 16);
+
+	node[0] = str[22];
+	node[1] = str[23];
+	u->node[1] = (char)strtol(node, NULL, 16);
+
+	node[0] = str[24];
+	node[1] = str[25];
+	u->node[2] = (char)strtol(node, NULL, 16);
+
+	node[0] = str[26];
+	node[1] = str[27];
+	u->node[3] = (char)strtol(node, NULL, 16);
+
+	node[0] = str[28];
+	node[1] = str[29];
+	u->node[4] = (char)strtol(node, NULL, 16);
+
+	node[0] = str[30];
+	node[1] = str[31];
+	u->node[5] = (char)strtol(node, NULL, 16);
+}
+
+static int validate(cuuid_t u){
+	if(u.node[1] < 0x10){
+		return 0;
+	}
+
+	if(!u.node[2]){
+		return 0;
+	}
+
+	return 1;
+}
+
+int quid_get_uuid(char *quid, cuuid_t *uuid){
+	strip_quid_string(quid);
+	int len = strlen(quid);
+
+	if(len == QUID_STRLEN){
+		if(check_ifhex(quid)){
+			strtouuid(quid, uuid);
+			if(!validate(*uuid)){
+				return 0;
+			}
+		}else{
+			return 0;
+		}
+	}else{
+		return 0;
+	}
+
+	return 1;
+}

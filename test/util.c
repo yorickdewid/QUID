@@ -163,21 +163,22 @@ int main(int argc, char *argv[]){
 	}
 
 	if(optind < argc){
+		cuuid_t uuid;
 		while(optind < argc){
-			if(quid_validate(argv[optind++])){
-				printf("valid\n");
+			printf("%s\t", argv[optind]);
+			if(quid_get_uuid(argv[optind], &uuid)){
+				printf("VALID\n");
 			}else{
-				printf("invalid\n");
+				printf("INVALID\n");
 			}
+			optind++;
 		}
-		printf("\n");
 
 		return 0;
 	}
 
 	if(gen){
 		gettimeofday(&t1, NULL);
-
 		if(fout){
 			rtn = check_fname(fname);
 			if(!rtn){

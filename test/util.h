@@ -42,7 +42,7 @@ typedef struct {
 } cuuid_t;
 
 extern int quid_create(cuuid_t *, char, char);
-extern int quid_validate(char *);
+extern int quid_get_uuid(char *, cuuid_t *);
 extern void quid_print(cuuid_t, int);
 extern void quid_print_file(FILE *, cuuid_t, int);
 extern void quid_set_rnd_seed(int);

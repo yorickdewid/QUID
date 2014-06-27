@@ -4,6 +4,7 @@
 #else
 #include <unistd.h>
 #include <sys/time.h>
+#include <ctype.h>
 #endif
 #ifdef DEBUG
 #include <valgrind/valgrind.h>
@@ -17,6 +18,7 @@
 #define RANDFILE ".rnd"
 #define MEM_SEED_CYCLE 65536
 #define RND_SEED_CYCLE 4096
+#define QUID_STRLEN 32
 
 typedef struct {
 	unsigned long time_low;
@@ -39,6 +41,7 @@ static void get_mem_seed(uuid_node_t *);
 static void get_system_time(uuid_time_t *);
 static unsigned short true_random();
 int quid_create(cuuid_t *, char, char);
+int quid_get_uuid(char *, cuuid_t *);
 void quid_print(cuuid_t, int);
 void quid_print_file(FILE *, cuuid_t, int);
 void quid_set_rnd_seed(int);
