@@ -8,9 +8,85 @@
 #include "util.h"
 
 int delay = GL_DELAY;
+static struct timeval t1,t2;
+clock_t ticks = 0;
+int n = 1;
+char flg = IDF_NULL;
+char cat = CLS_CMON;
 
-void usage(char *pname){
-	printf("Usage: %s [options] identifier...\n", pname);
+void input_verbose(cuuid_t u)
+{
+	printf("-----------------------------\n");
+
+	char sflag = (u.node[1] ^ IDF_NULL);
+	printf("Flags");
+
+	if(sflag & FLAG_PUBLIC)
+		printf(" PUBLIC");
+
+	if(sflag & FLAG_IDSAFE)
+		printf(" IDSAFE");
+
+	if(sflag & FLAG_MASTER)
+		printf(" MASTER");
+
+	if(sflag & FLAG_SIGNED)
+		printf(" SIGNED");
+
+	if(sflag & FLAG_TAGGED)
+		printf(" TAGGED");
+
+	if(sflag & FLAG_STRICT)
+		printf(" STRICT");
+
+	printf("\n");
+
+	printf("-----------------------------\n");
+}
+
+void generate_verbose()
+{
+		double elapsedTime;
+
+		printf("-----------------------------\n");
+
+		elapsedTime = (t2.tv_sec - t1.tv_sec) * 1000.0;
+		elapsedTime += (t2.tv_usec - t1.tv_usec) / 1000.0;
+		elapsedTime = (elapsedTime / 1000);
+
+		printf("Generated %d identifiers\n", n);
+		printf("Used %0.2f seconds of CPU time\n", (double)ticks/CLOCKS_PER_SEC);
+		printf("Finished in about %0.2f seconds\n", elapsedTime);
+		printf("Delayed %d miliseconds\n", delay);
+		printf("Category index %d\n", cat);
+		printf("Flags");
+
+		if(flg & FLAG_PUBLIC)
+			printf(" PUBLIC");
+
+		if(flg & FLAG_IDSAFE)
+			printf(" IDSAFE");
+
+		if(flg & FLAG_MASTER)
+			printf(" MASTER");
+
+		if(flg & FLAG_SIGNED)
+			printf(" SIGNED");
+
+		if(flg & FLAG_TAGGED)
+			printf(" TAGGED");
+
+		if(flg & FLAG_STRICT)
+			printf(" STRICT");
+
+		printf("\n");
+
+        printf("-----------------------------\n");
+}
+
+void usage(char *prog)
+{
+	printf("Usage: %s [options] identifier...\n", prog);
 	printf("Options:\n");
 	printf("  -c <count>               Generation cycles per <count>\n");
 	printf("  --category=<index>       Set identifier with category\n");
@@ -33,40 +109,36 @@ void usage(char *pname){
 	printf("  -h, --help               Show this help\n");
 }
 
-void print_version(){
+void print_version()
+{
 	printf("QUID Generator\n");
 	printf("Copyright (C) 2014 Quenza, Inc.\n");
 	printf("Compiled %s\n", __DATE__);
 }
 
-int check_fname(const char *pathname){
+int check_fname(const char *pathname)
+{
 	struct stat info;
 
-	if(stat(pathname, &info)!= 0){
+	if(stat(pathname, &info) != 0)
 		return 0;
-	}else if(info.st_mode & S_IFDIR){
+	else if(info.st_mode & S_IFDIR)
 		return 1;
-	}else{
+	else
 		return 2;
-	}
 }
 
-int main(int argc, char *argv[]){
+int main(int argc, char *argv[])
+{
 	cuuid_t u;
-	int n = 1;
 	int c, i, rtn;
 	char *fname;
 	FILE *fp = NULL;
-	int fout = 0,nout = 0,fmat = 0,vbose = 0,gen = 1;
+	int fout = 0,nout = 0,fmat = 0,vbose = 0,gen = 1,chk = 0;
 	int option_index;
-	char flg = IDF_NULL;
-	char cat = CLS_CMON;
-	static struct timeval t1;
-	static struct timeval t2;
-	clock_t ticks;
-	double elapsedTime;
 
-	while(1){
+	while(1)
+	{
 		option_index = 0;
 		static struct option long_options[] = {
 			{"category",       required_argument, 0, 0},
@@ -88,11 +160,11 @@ int main(int argc, char *argv[]){
 		};
 
 		c = getopt_long(argc, argv, "c:d:o:qxivVh", long_options, &option_index);
-		if(c == -1){
+		if(c == -1)
 			break;
-		}
 
-		switch(c){
+		switch(c)
+		{
 			case 0:
 				if(!strcmp("rand-seed", long_options[option_index].name)){
 					quid_set_rnd_seed(atoi(optarg));
@@ -168,6 +240,8 @@ int main(int argc, char *argv[]){
 			printf("%s\t", argv[optind]);
 			if(quid_get_uuid(argv[optind], &uuid)){
 				printf("VALID\n");
+				if(vbose)
+					input_verbose(uuid);
 			}else{
 				printf("INVALID\n");
 			}
@@ -177,13 +251,16 @@ int main(int argc, char *argv[]){
 		return 0;
 	}
 
-	if(gen){
+	if(gen)
+	{
 		gettimeofday(&t1, NULL);
-		if(fout){
+
+		if(fout)
+		{
 			rtn = check_fname(fname);
-			if(!rtn){
+			if(!rtn)
 				fp = fopen(fname, "a");
-			}else if(rtn==1){
+			else if(rtn==1){
 				printf("%s is a directory\n", fname);
 
 				return 1;
@@ -194,61 +271,30 @@ int main(int argc, char *argv[]){
 			}
 		}
 
-		for(i=0; i<n; i++){
+		for(i=0; i<n; i++)
+		{
 			quid_create(&u, flg, cat);
+
 			if(!fout){
-				if(!nout){
+				if(!nout)
 					quid_print(u, fmat);
-				}
-			}else{
+			}else
 				quid_print_file(fp, u, fmat);
-			}
-			if(delay){
+
+			if(delay)
 				usleep((delay * 1000));
-			}
+
 			ticks = clock();
 		}
-		if(fp){
+
+		if(fp)
 			fclose(fp);
-		}
 
 		gettimeofday(&t2, NULL);
 	}
 
-	if(vbose){
-		printf("-----------------------------\n");
-		if(gen){
-			elapsedTime = (t2.tv_sec - t1.tv_sec) * 1000.0;
-			elapsedTime += (t2.tv_usec - t1.tv_usec) / 1000.0;
-			elapsedTime = (elapsedTime / 1000);
-			printf("Generated %d identifiers\n", n);
-			printf("Used %0.2f seconds of CPU time\n", (double)ticks/CLOCKS_PER_SEC);
-			printf("Finished in about %0.2f seconds\n", elapsedTime);
-			printf("Delayed %d miliseconds\n", delay);
-			printf("Category index %d\n", cat);
-			printf("Flags");
-			if(flg & FLAG_PUBLIC){
-				printf(" PUBLIC");
-			}
-			if(flg & FLAG_IDSAFE){
-				printf(" IDSAFE");
-			}
-			if(flg & FLAG_MASTER){
-				printf(" MASTER");
-			}
-			if(flg & FLAG_SIGNED){
-				printf(" SIGNED");
-			}
-			if(flg & FLAG_TAGGED){
-				printf(" TAGGED");
-			}
-			if(flg & FLAG_STRICT){
-				printf(" STRICT");
-			}
-			printf("\n");
-		}
-		printf("-----------------------------\n");
-	}
+	if(vbose && gen)
+		generate_verbose();
 
 	return 0;
 }
