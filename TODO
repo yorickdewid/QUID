@@ -1,1 +1,11 @@
+ TODO
+============================================================
 
+* Improve performance
+	o Use more macro's where possible
+	o Allow goto jumps from loop statements to skip unwanted
+	  compiler code.
+	o Move static variables into defines
+
+* Change lib responsebilities
+	o Move print and output functions to util
