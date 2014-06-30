@@ -15,4 +15,4 @@ lcov.info
 *.rnd
 
 # Local excludes in root directory
-test/util
+common/util

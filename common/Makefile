@@ -1,0 +1,21 @@
+PROG=util
+CFLAGS=-Wall -Wmissing-prototypes -Wpointer-arith -Wdeclaration-after-statement -Wendif-labels -Wmissing-format-attribute -Wformat-security
+LIBCUR=$(shell pwd)
+LIBINC=$(shell dirname $(LIBCUR))/src
+LINK=-lrt
+
+.PHONY: clean all util util-debug run
+
+all: util
+
+util:
+	gcc $(CFLAGS) util.c -L$(LIBINC) -lquid $(LINK) -o $(PROG)
+
+util-debug:
+	gcc -g $(CFLAGS) -DDEBUG util.c -L$(LIBINC) -lquid $(LINK) -o $(PROG)
+
+run: all
+	valgrind ./$(PROG)
+
+clean:
+	@rm -rf *.o .rnd $(PROG)
