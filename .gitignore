@@ -1,21 +1,18 @@
-# Object files
-*~
+# Global excludes across all subdirectories
 *.o
-*.ko
-*.elf
-*.out
-
+*.so
+*.so.[0-9]
+*.so.[0-9].[0-9]
+*.dylib
+*.a
+*.mo
+*.pot
+*.gcno
+*.gcda
+*.gcov
+*.gcov.out
+lcov.info
 *.rnd
 
-# Libraries
-*.a
-
-# Shared objects
-*.so
-*.so.*
-
-# Executables
-*.out
-*.i*86
-*.x86_64
-*.hex
+# Local excludes in root directory
+test/util
