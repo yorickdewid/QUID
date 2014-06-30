@@ -14,13 +14,20 @@ int n = 1;
 char flg = IDF_NULL;
 char cat = CLS_CMON;
 
-void input_verbose(cuuid_t u)
-{
+void input_verbose(cuuid_t);
+void generate_verbose(void);
+void usage(char *);
+void print_version(void);
+int check_fname(const char *);
+
+void input_verbose(cuuid_t u) {
+	char sflag;
+
 	printf("-----------------------------\n");
 
 	printf("Category index %d\n", u.node[2]);
 
-	char sflag = (u.node[1] ^ IDF_NULL);
+	sflag = (u.node[1] ^ IDF_NULL);
 	printf("Flags");
 
 	if(sflag & FLAG_PUBLIC)
@@ -46,8 +53,7 @@ void input_verbose(cuuid_t u)
 	printf("-----------------------------\n");
 }
 
-void generate_verbose()
-{
+void generate_verbose(void) {
 	double elapsedTime;
 
 	printf("-----------------------------\n");
@@ -64,8 +70,7 @@ void generate_verbose()
 	printf("-----------------------------\n");
 }
 
-void usage(char *prog)
-{
+void usage(char *prog) {
 	printf("Usage: %s [options] identifier...\n", prog);
 	printf("Options:\n");
 	printf("  -c <count>               Generation cycles per <count>\n");
@@ -89,15 +94,13 @@ void usage(char *prog)
 	printf("  -h, --help               Show this help\n");
 }
 
-void print_version()
-{
+void print_version(void) {
 	printf("QUID Generator\n");
 	printf("Copyright (C) 2014 Quenza, Inc.\n");
 	printf("Compiled %s\n", __DATE__);
 }
 
-int check_fname(const char *pathname)
-{
+int check_fname(const char *pathname) {
 	struct stat info;
 
 	if(stat(pathname, &info) != 0)
@@ -114,30 +117,29 @@ int main(int argc, char *argv[])
 	int c, i, rtn;
 	char *fname;
 	FILE *fp = NULL;
-	int fout = 0,nout = 0,fmat = 0,vbose = 0,gen = 1;
+	int fout = 0, nout = 0, fmat = 0, vbose = 0, gen = 1;
 	int option_index;
+	static struct option long_options[] = {
+		{"category",       required_argument, 0, 0},
+		{"set-safe",       no_argument,       0, 0},
+		{"set-master",     no_argument,       0, 0},
+		{"set-public",     no_argument,       0, 0},
+		{"set-sign",       no_argument,       0, 0},
+		{"set-tag",        no_argument,       0, 0},
+		{"set-strict",     no_argument,       0, 0},
+		{"list-categories",no_argument,       0, 0},
+		{"rand-seed",      required_argument, 0, 0},
+		{"memory-seed",    required_argument, 0, 0},
+		{"output-hex",     no_argument,       0, 'x'},
+		{"output-number",  no_argument,       0, 'i'},
+		{"verbose",        no_argument,       0, 'V'},
+		{"version",        no_argument,       0, 'v'},
+		{"help",           no_argument,       0, 'h'},
+		{0,                0,                 0,  0 }
+	};
 
-	while(1)
-	{
+	while (1) {
 		option_index = 0;
-		static struct option long_options[] = {
-			{"category",       required_argument, 0, 0},
-			{"set-safe",       no_argument,       0, 0},
-			{"set-master",     no_argument,       0, 0},
-			{"set-public",     no_argument,       0, 0},
-			{"set-sign",       no_argument,       0, 0},
-			{"set-tag",        no_argument,       0, 0},
-			{"set-strict",     no_argument,       0, 0},
-			{"list-categories",no_argument,       0, 0},
-			{"rand-seed",      required_argument, 0, 0},
-			{"memory-seed",    required_argument, 0, 0},
-			{"output-hex",     no_argument,       0, 'x'},
-			{"output-number",  no_argument,       0, 'i'},
-			{"verbose",        no_argument,       0, 'V'},
-			{"version",        no_argument,       0, 'v'},
-			{"help",           no_argument,       0, 'h'},
-			{0,                0,                 0,  0 }
-		};
 
 		c = getopt_long(argc, argv, "c:d:o:qxivVh", long_options, &option_index);
 		if(c == -1)
