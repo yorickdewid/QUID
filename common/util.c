@@ -18,6 +18,8 @@ void input_verbose(cuuid_t u)
 {
 	printf("-----------------------------\n");
 
+	printf("Category index %d\n", u.node[2]);
+
 	char sflag = (u.node[1] ^ IDF_NULL);
 	printf("Flags");
 
@@ -46,42 +48,20 @@ void input_verbose(cuuid_t u)
 
 void generate_verbose()
 {
-		double elapsedTime;
+	double elapsedTime;
 
-		printf("-----------------------------\n");
+	printf("-----------------------------\n");
 
-		elapsedTime = (t2.tv_sec - t1.tv_sec) * 1000.0;
-		elapsedTime += (t2.tv_usec - t1.tv_usec) / 1000.0;
-		elapsedTime = (elapsedTime / 1000);
+	elapsedTime = (t2.tv_sec - t1.tv_sec) * 1000.0;
+	elapsedTime += (t2.tv_usec - t1.tv_usec) / 1000.0;
+	elapsedTime = (elapsedTime / 1000);
 
-		printf("Generated %d identifiers\n", n);
-		printf("Used %0.2f seconds of CPU time\n", (double)ticks/CLOCKS_PER_SEC);
-		printf("Finished in about %0.2f seconds\n", elapsedTime);
-		printf("Delayed %d miliseconds\n", delay);
-		printf("Category index %d\n", cat);
-		printf("Flags");
+	printf("Generated %d identifiers\n", n);
+	printf("Used %0.2f seconds of CPU time\n", (double)ticks/CLOCKS_PER_SEC);
+	printf("Finished in about %0.2f seconds\n", elapsedTime);
+	printf("Delayed %d miliseconds\n", delay);
 
-		if(flg & FLAG_PUBLIC)
-			printf(" PUBLIC");
-
-		if(flg & FLAG_IDSAFE)
-			printf(" IDSAFE");
-
-		if(flg & FLAG_MASTER)
-			printf(" MASTER");
-
-		if(flg & FLAG_SIGNED)
-			printf(" SIGNED");
-
-		if(flg & FLAG_TAGGED)
-			printf(" TAGGED");
-
-		if(flg & FLAG_STRICT)
-			printf(" STRICT");
-
-		printf("\n");
-
-        printf("-----------------------------\n");
+	printf("-----------------------------\n");
 }
 
 void usage(char *prog)
@@ -134,7 +114,7 @@ int main(int argc, char *argv[])
 	int c, i, rtn;
 	char *fname;
 	FILE *fp = NULL;
-	int fout = 0,nout = 0,fmat = 0,vbose = 0,gen = 1,chk = 0;
+	int fout = 0,nout = 0,fmat = 0,vbose = 0,gen = 1;
 	int option_index;
 
 	while(1)
