@@ -8,7 +8,6 @@
 #include <sys/time.h>
 
 #include "util.h"
-//#include "../src/quid.h"
 
 int delay = GL_DELAY;
 static struct timeval t1,t2;
@@ -157,7 +156,8 @@ void usage(char *prog) {
 	printf("  --memory-seed=<cycles>   Reinitialize memory seed per <cycles>\n");
 	printf("  -V, --verbose            Output verbose information\n");
 	printf("  -v, --version            Show version\n");
-	printf("  -h, --help               Show this help\n");
+	printf("  -h, --help               Show this help\n\n");
+	printf("Report bugs to <tech@quenza.net>\n");
 }
 
 void print_version(void) {
