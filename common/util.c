@@ -19,6 +19,63 @@ void generate_verbose(void);
 void usage(char *);
 void print_version(void);
 int check_fname(const char *);
+void quid_print(cuuid_t, int);
+void quid_print_file(FILE *, cuuid_t, int);
+
+void quid_print(cuuid_t u, int format) {
+	quid_print_file(stdout, u, format);
+}
+
+/* print QUID to file*/
+void quid_print_file(FILE *fp, cuuid_t u, int format) {
+	if (format == 1) {
+		fprintf(fp, "%x", (unsigned int)u.time_low);
+		fprintf(fp, "%x", u.time_mid);
+		fprintf(fp, "%x", u.time_hi_and_version);
+		fprintf(fp, "%x", u.clock_seq_hi_and_reserved);
+		fprintf(fp, "%x", u.clock_seq_low);
+
+		fprintf(fp, "%x", u.node[0]);
+		fprintf(fp, "%x", u.node[1]);
+		fprintf(fp, "%x", u.node[2]);
+		fprintf(fp, "%x", u.node[3]);
+		fprintf(fp, "%x", u.node[4]);
+		fprintf(fp, "%x", u.node[5]);
+
+		fprintf(fp, "\n");
+	} else if(format == 2) {
+		fprintf(fp, "%ld", u.time_low);
+		fprintf(fp, "%d", u.time_mid);
+		fprintf(fp, "%d", u.time_hi_and_version);
+		fprintf(fp, "%d", u.clock_seq_hi_and_reserved);
+		fprintf(fp, "%d", u.clock_seq_low);
+
+		fprintf(fp, "%d", u.node[0]);
+		fprintf(fp, "%d", u.node[1]);
+		fprintf(fp, "%d", u.node[2]);
+		fprintf(fp, "%d", u.node[3]);
+		fprintf(fp, "%d", u.node[4]);
+		fprintf(fp, "%d", u.node[5]);
+
+		fprintf(fp, "\n");
+	} else {
+		fprintf(fp, "{%.8x-", (unsigned int)u.time_low);
+		fprintf(fp, "%.4x-", u.time_mid);
+		fprintf(fp, "%.4x-", u.time_hi_and_version);
+		fprintf(fp, "%x", u.clock_seq_hi_and_reserved);
+		fprintf(fp, "%.2x-", u.clock_seq_low);
+
+		fprintf(fp, "%.2x", u.node[0]);
+		fprintf(fp, "%.2x", u.node[1]);
+		fprintf(fp, "%.2x", u.node[2]);
+		fprintf(fp, "%.2x", u.node[3]);
+		fprintf(fp, "%.2x", u.node[4]);
+		fprintf(fp, "%.2x", u.node[5]);
+
+		fprintf(fp, "}\n");
+	}
+}
+
 
 void input_verbose(cuuid_t u) {
 	char sflag;

@@ -44,8 +44,6 @@ static double get_tick_count(void);
 static unsigned short true_random(void);
 int quid_create(cuuid_t *, char, char);
 int quid_get_uuid(char *, cuuid_t *);
-void quid_print(cuuid_t, int);
-void quid_print_file(FILE *, cuuid_t, int);
 void quid_set_rnd_seed(int);
 void quid_set_mem_seed(int);
 void set_flag(cuuid_t *, char);
