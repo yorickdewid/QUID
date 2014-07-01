@@ -9,6 +9,9 @@
 
 #include <quid.h>
 
+#define UTIL_VERSION "0.1"
+#define GL_DELAY 15
+
 int delay = GL_DELAY;
 static struct timeval t1,t2;
 clock_t ticks = 0;
@@ -161,7 +164,7 @@ void usage(char *prog) {
 }
 
 void print_version(void) {
-	printf("QUID Generator\n");
+	printf("QUID Generator %s\n", UTIL_VERSION);
 	printf("Copyright (C) 2014 Quenza, Inc.\n");
 	printf("Compiled %s\n", __DATE__);
 }
