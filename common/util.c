@@ -3,6 +3,8 @@
 #include <stdlib.h>
 #include <time.h>
 #include <signal.h>
+#include <unistd.h>
+#include <getopt.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/time.h>
