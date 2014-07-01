@@ -287,7 +287,7 @@ int main(int argc, char *argv[]) {
 		cuuid_t uuid;
 		while (optind < argc) {
 			printf("%s\t", argv[optind]);
-			if (quid_get_uuid(argv[optind], &uuid)) {
+			if (quid_get_uid(argv[optind], &uuid)) {
 				printf("VALID\n");
 				if(vbose)
 					input_verbose(uuid);
