@@ -7,7 +7,7 @@
 #include <sys/stat.h>
 #include <sys/time.h>
 
-#include "util.h"
+#include <quid.h>
 
 int delay = GL_DELAY;
 static struct timeval t1,t2;

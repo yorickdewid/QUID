@@ -1,12 +1,9 @@
 #include <unistd.h>
 #include <sys/time.h>
 #include <getopt.h>
-#ifdef DEBUG
-#include <valgrind/valgrind.h>
-#endif
 
-#ifndef __MAIN__
-#define __MAIN__
+#ifndef __QUID_H__
+#define __QUID_H__
 
 #define VERSION "0.1"
 #define GL_DELAY 15

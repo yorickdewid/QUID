@@ -3,16 +3,17 @@ CFLAGS=-Wall -Wmissing-prototypes -Wpointer-arith -Wdeclaration-after-statement 
 LIBCUR=$(shell pwd)
 LIBINC=$(shell dirname $(LIBCUR))/src
 LINK=-lrt
+INC=../include
 
 .PHONY: clean all util util-debug run
 
 all: util
 
 util:
-	gcc $(CFLAGS) util.c -L$(LIBINC) -lquid $(LINK) -o $(PROG)
+	gcc $(CFLAGS) -I$(INC) util.c -L$(LIBINC) -lquid $(LINK) -o $(PROG)
 
 util-debug:
-	gcc -g $(CFLAGS) -DDEBUG util.c -L$(LIBINC) -lquid $(LINK) -o $(PROG)
+	gcc -g $(CFLAGS) -I$(INC) -DDEBUG util.c -L$(LIBINC) -lquid $(LINK) -o $(PROG)
 
 run: all
 	valgrind ./$(PROG)
