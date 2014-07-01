@@ -2,17 +2,21 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <signal.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/time.h>
+
 #include "util.h"
+//#include "../src/quid.h"
 
 int delay = GL_DELAY;
 static struct timeval t1,t2;
 clock_t ticks = 0;
-int n = 1;
+unsigned int i;
 char flg = IDF_NULL;
 char cat = CLS_CMON;
+static int intflag = 0;
 
 void input_verbose(cuuid_t);
 void generate_verbose(void);
@@ -21,6 +25,11 @@ void print_version(void);
 int check_fname(const char *);
 void quid_print(cuuid_t, int);
 void quid_print_file(FILE *, cuuid_t, int);
+void set_signint(int);
+
+void set_signint(int s) {
+	intflag = 1;
+}
 
 void quid_print(cuuid_t u, int format) {
 	quid_print_file(stdout, u, format);
@@ -119,7 +128,7 @@ void generate_verbose(void) {
 	elapsedTime += (t2.tv_usec - t1.tv_usec) / 1000.0;
 	elapsedTime = (elapsedTime / 1000);
 
-	printf("Generated %d identifiers\n", n);
+	printf("Generated %d identifiers\n", i);
 	printf("Used %0.2f seconds of CPU time\n", (double)ticks/CLOCKS_PER_SEC);
 	printf("Finished in about %0.2f seconds\n", elapsedTime);
 	printf("Delayed %d miliseconds\n", delay);
@@ -130,7 +139,7 @@ void generate_verbose(void) {
 void usage(char *prog) {
 	printf("Usage: %s [options] identifier...\n", prog);
 	printf("Options:\n");
-	printf("  -c <count>               Generation cycles per <count>\n");
+	printf("  -c <count>               Generation cycles per <count>, 0 for infinity\n");
 	printf("  --category=<index>       Set identifier with category\n");
 	printf("  -d <ms>                  Delay between generation in miliseconds\n");
 	printf("  -o <file>                output to <file>\n");
@@ -168,10 +177,10 @@ int check_fname(const char *pathname) {
 		return 2;
 }
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
 	cuuid_t u;
-	int c, i, rtn;
+	int c, rtn;
+	unsigned int n = 1;
 	char *fname;
 	FILE *fp = NULL;
 	int fout = 0, nout = 0, fmat = 0, vbose = 0, gen = 1;
@@ -195,6 +204,8 @@ int main(int argc, char *argv[])
 		{0,                0,                 0,  0 }
 	};
 
+	signal(SIGINT, set_signint);
+
 	while (1) {
 		option_index = 0;
 
@@ -202,34 +213,33 @@ int main(int argc, char *argv[])
 		if(c == -1)
 			break;
 
-		switch(c)
-		{
+		switch (c) {
 			case 0:
-				if(!strcmp("rand-seed", long_options[option_index].name)){
+				if (!strcmp("rand-seed", long_options[option_index].name))
 					quid_set_rnd_seed(atoi(optarg));
-				}else if(!strcmp("memory-seed", long_options[option_index].name)){
+				else if (!strcmp("memory-seed", long_options[option_index].name))
 					quid_set_mem_seed(atoi(optarg));
-				}else if(!strcmp("list-categories", long_options[option_index].name)){
+				else if (!strcmp("list-categories", long_options[option_index].name)){
 					printf("%d) CLS_CMON\n", CLS_CMON);
 					printf("%d) CLS_INFO\n", CLS_INFO);
 					printf("%d) CLS_WARN\n", CLS_WARN);
 					printf("%d) CLS_ERROR\n", CLS_ERROR);
 					gen = 0;
-				}else if(!strcmp("set-safe", long_options[option_index].name)){
+				}else if (!strcmp("set-safe", long_options[option_index].name))
 					flg |= IDF_IDSAFE;
-				}else if(!strcmp("set-public", long_options[option_index].name)){
+				else if (!strcmp("set-public", long_options[option_index].name))
 					flg |= IDF_PUBLIC;
-				}else if(!strcmp("set-master", long_options[option_index].name)){
+				else if (!strcmp("set-master", long_options[option_index].name))
 					flg |= IDF_MASTER;
-				}else if(!strcmp("set-tag", long_options[option_index].name)){
+				else if (!strcmp("set-tag", long_options[option_index].name))
 					flg |= IDF_TAGGED;
-				}else if(!strcmp("set-strict", long_options[option_index].name)){
+				else if (!strcmp("set-strict", long_options[option_index].name))
 					flg |= IDF_STRICT;
-				}else if(!strcmp("set-sign", long_options[option_index].name)){
+				else if (!strcmp("set-sign", long_options[option_index].name))
 					flg |= IDF_SIGNED;
-				}else if(!strcmp("category", long_options[option_index].name)){
+				else if (!strcmp("category", long_options[option_index].name)){
 					cat = atoi(optarg);
-					if(cat > CLS_ERROR){
+					if (cat > CLS_ERROR) {
 						printf("unknown category %d\n", cat);
 						printf("see --help for more information\n");
 						cat = 0;
@@ -273,46 +283,43 @@ int main(int argc, char *argv[])
 		}
 	}
 
-	if(optind < argc){
+	if (optind < argc) {
 		cuuid_t uuid;
-		while(optind < argc){
+		while (optind < argc) {
 			printf("%s\t", argv[optind]);
-			if(quid_get_uuid(argv[optind], &uuid)){
+			if (quid_get_uuid(argv[optind], &uuid)) {
 				printf("VALID\n");
 				if(vbose)
 					input_verbose(uuid);
-			}else{
+			} else
 				printf("INVALID\n");
-			}
 			optind++;
 		}
 
 		return 0;
 	}
 
-	if(gen)
-	{
+	if (gen) {
 		gettimeofday(&t1, NULL);
 
-		if(fout)
-		{
+		if (fout) {
 			rtn = check_fname(fname);
 			if(!rtn)
 				fp = fopen(fname, "a");
-			else if(rtn==1){
+			else if(rtn == 1){
 				printf("%s is a directory\n", fname);
-
 				return 1;
-			}else if(rtn==2){
+			}else if(rtn == 2){
 				printf("%s already exists\n", fname);
-
 				return 1;
 			}
 		}
 
-		for(i=0; i<n; i++)
-		{
+		for (i=0; i<n; i++) {
 			quid_create(&u, flg, cat);
+
+			if(intflag)
+				break;
 
 			if(!fout){
 				if(!nout)
