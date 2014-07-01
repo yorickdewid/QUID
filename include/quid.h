@@ -1,12 +1,5 @@
-#include <unistd.h>
-#include <sys/time.h>
-#include <getopt.h>
-
 #ifndef __QUID_H__
 #define __QUID_H__
-
-#define VERSION "0.1"
-#define GL_DELAY 15
 
 #define FLAG_PUBLIC 1<<0
 #define FLAG_IDSAFE 1<<1
