@@ -1,15 +1,3 @@
-#ifdef __WIN32__
-#include <unistd.h>
-#include <winsock2.h>
-#else
-#include <unistd.h>
-#include <sys/time.h>
-#include <ctype.h>
-#endif
-#ifdef DEBUG
-#include <valgrind/valgrind.h>
-#endif
-
 #ifndef __QUID__
 #define __QUID__
 
@@ -19,6 +7,7 @@
 #define MEM_SEED_CYCLE 65536
 #define RND_SEED_CYCLE 4096
 #define QUID_STRLEN 32
+#define SEEDSZ 16
 
 typedef struct {
 	unsigned long time_low;

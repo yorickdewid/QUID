@@ -3,16 +3,25 @@
 #include <stdlib.h>
 #include <time.h>
 
+#ifdef __WIN32__
+#include <unistd.h>
+#include <winsock2.h>
+#else
+#include <unistd.h>
+#include <sys/time.h>
+#include <ctype.h>
+#endif
+
 #include "quid.h"
 
-int mem_seed = MEM_SEED_CYCLE;
-int rnd_seed = RND_SEED_CYCLE;
+static int mem_seed = MEM_SEED_CYCLE;
+static int rnd_seed = RND_SEED_CYCLE;
 
 /* read seed or create if not exist */
 void get_mem_seed(cuuid_node_t *node) {
 	static int mem_seed_count = 0;
 	static cuuid_node_t saved_node;
-	char seed[16];
+	char seed[SEEDSZ];
 	FILE *fp;
 
 	if (!mem_seed_count) {
