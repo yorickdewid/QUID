@@ -1,18 +1,7 @@
  TODO
 ============================================================
 
-* Improve performance
-	o Use macro's where possible
-	o Allow goto jumps from loop statements to skip unwanted
-	  compiler code.
-	o Move static variables into defines
-
-* Cleanup and rewrite
-	o Change indentation
-	o Rewrite style
-
 * Add autoconfig to project
-* Change lib responsebilities
 * Util for Windows, BSD, OS X
 * Substract datetime information from quid
 * Add comments for all funtions
