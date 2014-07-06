@@ -68,12 +68,12 @@
  * Identifier structure
  */
 typedef struct {
-	unsigned long   time_low;					/* Time lover half */
-	unsigned short  time_mid;					/* Time middle half */
+	unsigned long   time_low;			/* Time lover half */
+	unsigned short  time_mid;			/* Time middle half */
 	unsigned short  time_hi_and_version;		/* Time upper half and structure version */
 	unsigned char   clock_seq_hi_and_reserved;	/* Clock sequence */
-	unsigned char   clock_seq_low;				/* Clock sequence lower half */
-	unsigned char   node[6];					/* Node allocation, filled with random memory data */
+	unsigned char   clock_seq_low;			/* Clock sequence lower half */
+	unsigned char   node[6];			/* Node allocation, filled with random memory data */
 } cuuid_t;
 
 /*
