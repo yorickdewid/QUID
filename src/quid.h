@@ -30,24 +30,24 @@
 #ifndef __QUID__
 #define __QUID__
 
-#define UIDS_PER_TICK 1024			/* Generate identifiers per tick interval */
+#define UIDS_PER_TICK 1024		/* Generate identifiers per tick interval */
 #define EPOCH_DIFF 11644473600LL	/* Conversion needed for EPOCH to UTC */
-#define RANDFILE ".rnd"				/* File descriptor for random seed */
+#define RANDFILE ".rnd"			/* File descriptor for random seed */
 #define MEM_SEED_CYCLE 65536		/* Generate new memory seed after interval */
-#define RND_SEED_CYCLE 4096			/* Generate new random seed after interval */
-#define QUID_STRLEN 32				/* Default string lemgth for striped quid */
-#define SEEDSZ 16					/* Seed size */
+#define RND_SEED_CYCLE 4096		/* Generate new random seed after interval */
+#define QUID_STRLEN 32			/* Default string lemgth for striped quid */
+#define SEEDSZ 16			/* Seed size */
 
 /*
  * Identifier structure
  */
 typedef struct {
-	unsigned long time_low;						/* Time lover half */
-	unsigned short time_mid;					/* Time middle half */
-	unsigned short time_hi_and_version;			/* Time upper half and structure version */
+	unsigned long time_low;				/* Time lover half */
+	unsigned short time_mid;			/* Time middle half */
+	unsigned short time_hi_and_version;		/* Time upper half and structure version */
 	unsigned char clock_seq_hi_and_reserved;	/* Clock sequence */
-	unsigned char clock_seq_low;				/* Clock sequence lower half */
-	unsigned char node[6];						/* Node allocation, filled with random memory data */
+	unsigned char clock_seq_low;			/* Clock sequence lower half */
+	unsigned char node[6];				/* Node allocation, filled with random memory data */
 } cuuid_t;
 
 typedef unsigned long long cuuid_time_t;
