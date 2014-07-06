@@ -26,3 +26,5 @@ Makefile
 .libs/
 .deps/
 utils/quidsum
+config.status
+libtool
