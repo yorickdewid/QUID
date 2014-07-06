@@ -19,6 +19,8 @@ Makefile
 *.Plo
 *.in
 *.rnd
+*.log
+*.m4
 
 # Local excludes in root directory
 autom4te.cache/
