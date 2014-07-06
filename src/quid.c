@@ -78,6 +78,7 @@ void get_mem_seed(cuuid_node_t *node) {
 	*node = saved_node;
 }
 
+/* Retrieve system time */
 void get_system_time(cuuid_time_t *uid_time) {
 #ifdef __WIN32___
 	ULARGE_INTEGER time;
@@ -98,7 +99,7 @@ void get_system_time(cuuid_time_t *uid_time) {
 #endif
 }
 
-/* construct QUID */
+/* Construct QUID */
 int quid_create(cuuid_t *uid, char flag, char subc) {
 	cuuid_time_t timestamp;
 	unsigned short clockseq;
@@ -115,7 +116,10 @@ int quid_create(cuuid_t *uid, char flag, char subc) {
 	return 1;
 }
 
-/* make a QUID from the timestamp, clockseq, and node ID */
+/*
+ * Format QUID from the timestamp, clocksequence, and node ID
+ * Structure succeeds version 3
+ */
 void format_quid(cuuid_t* uid, unsigned short clock_seq, cuuid_time_t timestamp, cuuid_node_t node){
 	uid->time_low = (unsigned long)(timestamp & 0xffffffff);
 	uid->time_mid = (unsigned short)((timestamp >> 32) & 0xffff);
@@ -134,6 +138,7 @@ void format_quid(cuuid_t* uid, unsigned short clock_seq, cuuid_time_t timestamp,
 	uid->node[5] = (true_random() & 0xff);
 }
 
+/* Get current time including cpu clock */
 void get_current_time(cuuid_time_t *timestamp) {
 	static int inited = 0;
 	static cuuid_time_t time_last;
@@ -164,6 +169,7 @@ void get_current_time(cuuid_time_t *timestamp) {
 	*timestamp = time_now + ids_this_tick;
 }
 
+/* Get hardware tick count */
 double get_tick_count(void) {
 #ifdef __WIN32___
 	return GetTickCount();
@@ -177,6 +183,7 @@ double get_tick_count(void) {
 #endif
 }
 
+/* Create true random as prescribed by the IEEE */
 static unsigned short true_random(void) {
 	static int rnd_seed_count = 0;
 	cuuid_time_t time_now;
@@ -195,16 +202,17 @@ static unsigned short true_random(void) {
 	return (rand()+get_tick_count());
 }
 
-/* set memory seed cycle*/
+/* Set memory seed cycle */
 void quid_set_mem_seed(int cnt) {
 	mem_seed = cnt;
 }
 
-/* set rnd seed cycle */
+/* Set rnd seed cycle */
 void quid_set_rnd_seed(int cnt) {
 	rnd_seed = cnt;
 }
 
+/* Strip non hex characters from string */
 static void strip_quid_string(char *s) {
 	char *pr = s, *pw = s;
 
@@ -216,6 +224,7 @@ static void strip_quid_string(char *s) {
 	*pw = '\0';
 }
 
+/* Check if string validates as hex */
 static int check_ifhex(char *s) {
 	while (*s) {
 		if(!isxdigit(*s))
@@ -225,6 +234,7 @@ static int check_ifhex(char *s) {
 	return 1;
 }
 
+/* Try string on quid structure*/
 void strtouid(char *str, cuuid_t *u) {
 	char octet1[9];
 	char octet[5];
@@ -289,6 +299,7 @@ void strtouid(char *str, cuuid_t *u) {
 	u->node[5] = (char)strtol(node, NULL, 16);
 }
 
+/* Validate quid as genuine identifier */
 static int validate(cuuid_t u) {
 	if(u.node[1] < 0x10)
 		return 0;
@@ -299,6 +310,7 @@ static int validate(cuuid_t u) {
 	return 1;
 }
 
+/* Convert string to identifier */
 int quid_get_uid(char *quid, cuuid_t *uid) {
 	int len;
 	strip_quid_string(quid);
