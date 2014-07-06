@@ -1,7 +1,7 @@
  TODO
 ============================================================
 
-* Add autoconfig to project
 * Util for Windows, BSD, OS X
 * Substract datetime information from quid
-* Add comments for all funtions
+
+See https://github.com/yorickdewid/QUID/issues as well
