@@ -11264,10 +11264,8 @@ CC="$lt_save_CC"
 
 
 
+# Involve libtool
 
-
-# Optional arguments
-# AC_ARG_WITH(util, [  --with-util             also compile exmaple generator])
 
 # Checks for libraries.
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for clock_gettime in -lrt" >&5

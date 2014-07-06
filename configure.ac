@@ -3,17 +3,15 @@
 
 AC_PREREQ([2.69])
 AC_INIT(quid, 1.0, tech@quenza.net)
-AM_INIT_AUTOMAKE()
+AM_INIT_AUTOMAKE([1.9])
 AC_CONFIG_SRCDIR([src/quid.c])
 
 # Checks for programs.
 AC_PROG_CC
 AM_PROG_LIBTOOL
 
+# Involve libtool
 LT_INIT
-
-# Optional arguments
-# AC_ARG_WITH(util, [  --with-util             also compile exmaple generator])
 
 # Checks for libraries.
 AC_CHECK_LIB(rt, clock_gettime)

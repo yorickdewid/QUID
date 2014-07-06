@@ -11,8 +11,18 @@
 *.gcda
 *.gcov
 *.gcov.out
+*.la
+*.lo
 lcov.info
+Makefile
+*.Po
+*.Plo
+*.in
 *.rnd
 
 # Local excludes in root directory
-common/util
+autom4te.cache/
+Makefile
+.libs/
+.deps/
+utils/quidsum

@@ -332,63 +332,63 @@ configure:11201: checking whether to build shared libraries
 configure:11222: result: yes
 configure:11225: checking whether to build static libraries
 configure:11229: result: yes
-configure:11273: checking for clock_gettime in -lrt
-configure:11298: gcc -o conftest -g -O2   conftest.c -lrt   >&5
-configure:11298: $? = 0
-configure:11307: result: yes
-configure:11323: checking stdio.h usability
-configure:11323: gcc -c -g -O2  conftest.c >&5
-configure:11323: $? = 0
-configure:11323: result: yes
-configure:11323: checking stdio.h presence
-configure:11323: gcc -E  conftest.c
-configure:11323: $? = 0
-configure:11323: result: yes
-configure:11323: checking for stdio.h
-configure:11323: result: yes
-configure:11323: checking time.h usability
-configure:11323: gcc -c -g -O2  conftest.c >&5
-configure:11323: $? = 0
-configure:11323: result: yes
-configure:11323: checking time.h presence
-configure:11323: gcc -E  conftest.c
-configure:11323: $? = 0
-configure:11323: result: yes
-configure:11323: checking for time.h
-configure:11323: result: yes
-configure:11323: checking sys/time.h usability
-configure:11323: gcc -c -g -O2  conftest.c >&5
-configure:11323: $? = 0
-configure:11323: result: yes
-configure:11323: checking sys/time.h presence
-configure:11323: gcc -E  conftest.c
-configure:11323: $? = 0
-configure:11323: result: yes
-configure:11323: checking for sys/time.h
-configure:11323: result: yes
-configure:11323: checking ctype.h usability
-configure:11323: gcc -c -g -O2  conftest.c >&5
-configure:11323: $? = 0
-configure:11323: result: yes
-configure:11323: checking ctype.h presence
-configure:11323: gcc -E  conftest.c
-configure:11323: $? = 0
-configure:11323: result: yes
-configure:11323: checking for ctype.h
-configure:11323: result: yes
-configure:11338: checking for clock_gettime
-configure:11338: gcc -o conftest -g -O2   conftest.c -lrt  >&5
-configure:11338: $? = 0
-configure:11338: result: yes
-configure:11338: checking for gettimeofday
-configure:11338: gcc -o conftest -g -O2   conftest.c -lrt  >&5
-configure:11338: $? = 0
-configure:11338: result: yes
-configure:11338: checking for strtol
-configure:11338: gcc -o conftest -g -O2   conftest.c -lrt  >&5
-configure:11338: $? = 0
-configure:11338: result: yes
-configure:11518: creating ./config.status
+configure:11271: checking for clock_gettime in -lrt
+configure:11296: gcc -o conftest -g -O2   conftest.c -lrt   >&5
+configure:11296: $? = 0
+configure:11305: result: yes
+configure:11321: checking stdio.h usability
+configure:11321: gcc -c -g -O2  conftest.c >&5
+configure:11321: $? = 0
+configure:11321: result: yes
+configure:11321: checking stdio.h presence
+configure:11321: gcc -E  conftest.c
+configure:11321: $? = 0
+configure:11321: result: yes
+configure:11321: checking for stdio.h
+configure:11321: result: yes
+configure:11321: checking time.h usability
+configure:11321: gcc -c -g -O2  conftest.c >&5
+configure:11321: $? = 0
+configure:11321: result: yes
+configure:11321: checking time.h presence
+configure:11321: gcc -E  conftest.c
+configure:11321: $? = 0
+configure:11321: result: yes
+configure:11321: checking for time.h
+configure:11321: result: yes
+configure:11321: checking sys/time.h usability
+configure:11321: gcc -c -g -O2  conftest.c >&5
+configure:11321: $? = 0
+configure:11321: result: yes
+configure:11321: checking sys/time.h presence
+configure:11321: gcc -E  conftest.c
+configure:11321: $? = 0
+configure:11321: result: yes
+configure:11321: checking for sys/time.h
+configure:11321: result: yes
+configure:11321: checking ctype.h usability
+configure:11321: gcc -c -g -O2  conftest.c >&5
+configure:11321: $? = 0
+configure:11321: result: yes
+configure:11321: checking ctype.h presence
+configure:11321: gcc -E  conftest.c
+configure:11321: $? = 0
+configure:11321: result: yes
+configure:11321: checking for ctype.h
+configure:11321: result: yes
+configure:11336: checking for clock_gettime
+configure:11336: gcc -o conftest -g -O2   conftest.c -lrt  >&5
+configure:11336: $? = 0
+configure:11336: result: yes
+configure:11336: checking for gettimeofday
+configure:11336: gcc -o conftest -g -O2   conftest.c -lrt  >&5
+configure:11336: $? = 0
+configure:11336: result: yes
+configure:11336: checking for strtol
+configure:11336: gcc -o conftest -g -O2   conftest.c -lrt  >&5
+configure:11336: $? = 0
+configure:11336: result: yes
+configure:11516: creating ./config.status
 
 ## ---------------------- ##
 ## Running config.status. ##
