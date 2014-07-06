@@ -756,7 +756,6 @@ enable_fast_install
 with_gnu_ld
 with_sysroot
 enable_libtool_lock
-with_util
 '
       ac_precious_vars='build_alias
 host_alias
@@ -1401,7 +1400,6 @@ Optional Packages:
   --with-gnu-ld           assume the C compiler uses GNU ld [default=no]
   --with-sysroot=DIR Search for dependent libraries within DIR
                         (or the compiler's sysroot if not specified).
-  --with-util             also compile exmaple generator
 
 Some influential environment variables:
   CC          C compiler command
@@ -11268,18 +11266,10 @@ CC="$lt_save_CC"
 
 
 
-
-
 # Optional arguments
-
-# Check whether --with-util was given.
-if test "${with_util+set}" = set; then :
-  withval=$with_util;
-fi
-
+# AC_ARG_WITH(util, [  --with-util             also compile exmaple generator])
 
 # Checks for libraries.
-realtime=1
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for clock_gettime in -lrt" >&5
 $as_echo_n "checking for clock_gettime in -lrt... " >&6; }
 if ${ac_cv_lib_rt_clock_gettime+:} false; then :
@@ -11327,7 +11317,6 @@ fi
 
 
 # Checks for header files.
-std=1
 for ac_header in stdio.h time.h sys/time.h ctype.h
 do :
   as_ac_Header=`$as_echo "ac_cv_header_$ac_header" | $as_tr_sh`
@@ -11337,8 +11326,6 @@ if eval test \"x\$"$as_ac_Header"\" = x"yes"; then :
 #define `$as_echo "HAVE_$ac_header" | $as_tr_cpp` 1
 _ACEOF
 
-else
-  std=0
 fi
 
 done
@@ -11358,23 +11345,7 @@ fi
 done
 
 
-if test "$std" == 0
-then
-	{ $as_echo "$as_me:${as_lineno-$LINENO}: standard C headers are missing." >&5
-$as_echo "$as_me: standard C headers are missing." >&6;}
-fi
 
-if test "$crt" == 0
-then
-    { $as_echo "$as_me:${as_lineno-$LINENO}: librt.so is missing." >&5
-$as_echo "$as_me: librt.so is missing." >&6;}
-fi
-
-if test "$with_util" != ""
-then
-	{ $as_echo "$as_me:${as_lineno-$LINENO}: compiling example utils" >&5
-$as_echo "$as_me: compiling example utils" >&6;}
-fi
 
 ac_config_files="$ac_config_files Makefile src/Makefile include/Makefile utils/Makefile"
 
