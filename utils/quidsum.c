@@ -40,9 +40,10 @@
 
 #include <quid.h>
 
-#define UTIL_VERSION "0.1"
-#define GL_DELAY 15
+#define UTIL_VERSION "0.1"	/* Utility version */
+#define GL_DELAY 15			/* Default delay between identifier generations */
 
+/* Global variables */
 int delay = GL_DELAY;
 static struct timeval t1,t2;
 clock_t ticks = 0;
@@ -51,6 +52,7 @@ char flg = IDF_NULL;
 char cat = CLS_CMON;
 static int intflag = 0;
 
+/* Prototypes */
 void input_verbose(cuuid_t);
 void generate_verbose(void);
 void usage(char *);
@@ -60,15 +62,17 @@ void quid_print(cuuid_t, int);
 void quid_print_file(FILE *, cuuid_t, int);
 void set_signint(int);
 
+/* Set flag if program got terminated */
 void set_signint(int s) {
 	intflag = 1;
 }
 
+/* Print QUID on screen */
 void quid_print(cuuid_t u, int format) {
 	quid_print_file(stdout, u, format);
 }
 
-/* print QUID to file*/
+/* Print QUID to file */
 void quid_print_file(FILE *fp, cuuid_t u, int format) {
 	if (format == 1) {
 		fprintf(fp, "%x", (unsigned int)u.time_low);
@@ -118,7 +122,7 @@ void quid_print_file(FILE *fp, cuuid_t u, int format) {
 	}
 }
 
-
+/* */
 void input_verbose(cuuid_t u) {
 	char sflag;
 
@@ -152,6 +156,7 @@ void input_verbose(cuuid_t u) {
 	printf("-----------------------------\n");
 }
 
+/* Show verbose information on screen */
 void generate_verbose(void) {
 	double elapsedTime;
 
@@ -169,6 +174,7 @@ void generate_verbose(void) {
 	printf("-----------------------------\n");
 }
 
+/* Program usage */
 void usage(char *prog) {
 	printf("Usage: %s [options] identifier...\n", prog);
 	printf("Options:\n");
@@ -194,12 +200,14 @@ void usage(char *prog) {
 	printf("Report bugs to <tech@quenza.net>\n");
 }
 
+/* Print program version */
 void print_version(void) {
 	printf("QUID Generator %s\n", UTIL_VERSION);
 	printf("Copyright (C) 2014 Quenza, Inc.\n");
 	printf("Compiled %s\n", __DATE__);
 }
 
+/* Check filesystem for output file */
 int check_fname(const char *pathname) {
 	struct stat info;
 
@@ -211,6 +219,7 @@ int check_fname(const char *pathname) {
 		return 2;
 }
 
+/* Program main */
 int main(int argc, char *argv[]) {
 	cuuid_t u;
 	int c, rtn;
