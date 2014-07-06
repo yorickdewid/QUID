@@ -30,36 +30,55 @@
 #ifndef __QUID_H__
 #define __QUID_H__
 
-#define FLAG_PUBLIC 1<<0
-#define FLAG_IDSAFE 1<<1
-#define FLAG_MASTER 1<<2
-#define FLAG_SIGNED 1<<3
-#define FLAG_DMAGIC 1<<4
-#define FLAG_TAGGED 1<<5
-#define FLAG_STRICT 1<<6
+/*
+ * Flags for individual identifiers
+ * This provides extra informaton for the
+ * recipient.
+ *
+ * Test flags using bitshit operators
+ */
+#define FLAG_PUBLIC 1<<0	/* Check for public flag */
+#define FLAG_IDSAFE 1<<1	/* Check for safety flag */
+#define FLAG_MASTER 1<<2	/* Check for master flag */
+#define FLAG_SIGNED 1<<3	/* Check for signed flag */
+#define FLAG_DMAGIC 1<<4	/* Check for magic flag verification */
+#define FLAG_TAGGED 1<<5	/* Check for tagged flag */
+#define FLAG_STRICT 1<<6	/* Check for strict flag */
 
-#define IDF_NULL   0x00
-#define IDF_PUBLIC 0x01
-#define IDF_IDSAFE 0x02
-#define IDF_MASTER 0x04
-#define IDF_SIGNED 0x08
-#define IDF_TAGGED 0x20
-#define IDF_STRICT 0x40
+#define IDF_NULL   0x00		/* Set no flag */
+#define IDF_PUBLIC 0x01		/* Set flag to public */
+#define IDF_IDSAFE 0x02		/* Set flag to safe */
+#define IDF_MASTER 0x04		/* Set flag to master */
+#define IDF_SIGNED 0x08		/* Set flag as signed */
+#define IDF_TAGGED 0x20		/* Set flag as tag */
+#define IDF_STRICT 0x40		/* Set flag to strict mode */
 
-#define CLS_CMON 0x1
-#define CLS_INFO 0x2
-#define CLS_WARN 0x3
-#define CLS_ERROR 0x4
+/*
+ * Identifier classification
+ * This provides extra informaton for the
+ * recipient. Only one category can be of use
+ * at a time.
+ */
+#define CLS_CMON 0x1	/* Set default class */
+#define CLS_INFO 0x2	/* Set infomative class */
+#define CLS_WARN 0x3	/* Set warning class */
+#define CLS_ERROR 0x4	/* Set error class */
 
+/*
+ * Identifier structure
+ */
 typedef struct {
-	unsigned long   time_low;
-	unsigned short  time_mid;
-	unsigned short  time_hi_and_version;
-	unsigned char   clock_seq_hi_and_reserved;
-	unsigned char   clock_seq_low;
-	unsigned char   node[6];
+	unsigned long   time_low;					/* Time lover half */
+	unsigned short  time_mid;					/* Time middle half */
+	unsigned short  time_hi_and_version;		/* Time upper half and structure version */
+	unsigned char   clock_seq_hi_and_reserved;	/* Clock sequence */
+	unsigned char   clock_seq_low;				/* Clock sequence lower half */
+	unsigned char   node[6];					/* Node allocation, filled with random memory data */
 } cuuid_t;
 
+/*
+ * Prototypes to library functions
+ */
 extern int quid_create(cuuid_t *, char, char);
 extern int quid_get_uid(char *, cuuid_t *);
 extern void quid_print(cuuid_t, int);
