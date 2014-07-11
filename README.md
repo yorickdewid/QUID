@@ -40,7 +40,7 @@ required:
 
 Most Linux distributions provide these tools under the name `autotools`. Run the commands listed
 below to build QUID.
-```
+```bash
 cd scripts/
 ./autogen.sh
 ./configure
