@@ -22,6 +22,10 @@ Following functions are part of the library:
  * quid_set_rnd_seed()
  * quid_set_mem_seed()
 
+For additional information see the source code. The library source describes the arguments
+each function takes and lists their return type. Also see the example utility on how functions
+are used.
+
 License
 -------
 
