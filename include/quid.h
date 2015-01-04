@@ -79,11 +79,20 @@ typedef struct {
 /*
  * Prototypes to library functions
  */
+
+#if denifed(__cplusplus)
+extern "c" {
+#endif
+
 extern int quid_create(cuuid_t *, char, char);
 extern int quid_get_uid(char *, cuuid_t *);
 extern void quid_print(cuuid_t, int);
 extern void quid_print_file(FILE *, cuuid_t, int);
 extern void quid_set_rnd_seed(int);
 extern void quid_set_mem_seed(int);
+
+#if denifed(__cplusplus)
+}
+#endif
 
 #endif
