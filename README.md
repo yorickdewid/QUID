@@ -8,7 +8,7 @@ The identifiers are generated with additional information such as timestamps, su
 and flags. The Quenza unique identifier is part of the official Quenza project and lays
 the foundation for the [Valca](https://github.com/yorickdewid/Valca) database. Both the
 library and it's utilities can be used on the GNU Operating system without the need of
-additional Quenza software.
+additional Quenza software. This project is continued in the [Quantica project](https://github.com/yorickdewid/Quantica)
 
 Library methods
 ---------------
