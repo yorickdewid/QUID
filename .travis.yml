@@ -1,0 +1,19 @@
+language: c
+sudo: false
+
+compiler:
+  - clang
+  - gcc
+
+addons:
+  apt:
+    packages:
+    - autoconf
+    - libtool
+
+script:
+  - cd scripts/
+  - ./autogen.sh
+  - cd ..
+  - ./configure
+  - make
