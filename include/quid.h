@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2017, Yorick de Wid <tech at quenza dot net>
+ * Copyright (c) 2012-2017, Yorick de Wid <ydw at x3 dot quenza dot net>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,21 +37,21 @@
  *
  * Test flags using bitshit operators
  */
-#define FLAG_PUBLIC 1<<0	/* Check for public flag */
-#define FLAG_IDSAFE 1<<1	/* Check for safety flag */
-#define FLAG_MASTER 1<<2	/* Check for master flag */
-#define FLAG_SIGNED 1<<3	/* Check for signed flag */
-#define FLAG_DMAGIC 1<<4	/* Check for magic flag verification */
-#define FLAG_TAGGED 1<<5	/* Check for tagged flag */
-#define FLAG_STRICT 1<<6	/* Check for strict flag */
+#define FLAG_PUBLIC 1<<0    /* Check for public flag */
+#define FLAG_IDSAFE 1<<1    /* Check for safety flag */
+#define FLAG_MASTER 1<<2    /* Check for master flag */
+#define FLAG_SIGNED 1<<3    /* Check for signed flag */
+#define FLAG_DMAGIC 1<<4    /* Check for magic flag verification */
+#define FLAG_TAGGED 1<<5    /* Check for tagged flag */
+#define FLAG_STRICT 1<<6    /* Check for strict flag */
 
-#define IDF_NULL   0x00		/* Set no flag */
-#define IDF_PUBLIC 0x01		/* Set flag to public */
-#define IDF_IDSAFE 0x02		/* Set flag to safe */
-#define IDF_MASTER 0x04		/* Set flag to master */
-#define IDF_SIGNED 0x08		/* Set flag as signed */
-#define IDF_TAGGED 0x20		/* Set flag as tag */
-#define IDF_STRICT 0x40		/* Set flag to strict mode */
+#define IDF_NULL   0x00     /* Set no flag */
+#define IDF_PUBLIC 0x01     /* Set flag to public */
+#define IDF_IDSAFE 0x02     /* Set flag to safe */
+#define IDF_MASTER 0x04     /* Set flag to master */
+#define IDF_SIGNED 0x08     /* Set flag as signed */
+#define IDF_TAGGED 0x20     /* Set flag as tag */
+#define IDF_STRICT 0x40     /* Set flag to strict mode */
 
 /*
  * Identifier classification
@@ -59,28 +59,28 @@
  * recipient. Only one category can be of use
  * at a time.
  */
-#define CLS_CMON 0x1	/* Set default class */
-#define CLS_INFO 0x2	/* Set infomative class */
-#define CLS_WARN 0x3	/* Set warning class */
-#define CLS_ERROR 0x4	/* Set error class */
+#define CLS_CMON 0x1    /* Set default class */
+#define CLS_INFO 0x2    /* Set infomative class */
+#define CLS_WARN 0x3    /* Set warning class */
+#define CLS_ERROR 0x4   /* Set error class */
 
 /*
  * Identifier structure
  */
 typedef struct {
-	unsigned long   time_low;			/* Time lover half */
-	unsigned short  time_mid;			/* Time middle half */
-	unsigned short  time_hi_and_version;		/* Time upper half and structure version */
-	unsigned char   clock_seq_hi_and_reserved;	/* Clock sequence */
-	unsigned char   clock_seq_low;			/* Clock sequence lower half */
-	unsigned char   node[6];			/* Node allocation, filled with random memory data */
+    unsigned long   time_low;           /* Time lover half */
+    unsigned short  time_mid;           /* Time middle half */
+    unsigned short  time_hi_and_version;        /* Time upper half and structure version */
+    unsigned char   clock_seq_hi_and_reserved;  /* Clock sequence */
+    unsigned char   clock_seq_low;          /* Clock sequence lower half */
+    unsigned char   node[6];            /* Node allocation, filled with random memory data */
 } cuuid_t;
 
 /*
  * Prototypes to library functions
  */
 
-#if denifed(__cplusplus)
+#if defined(__cplusplus)
 extern "c" {
 #endif
 
@@ -91,7 +91,7 @@ extern void quid_print_file(FILE *, cuuid_t, int);
 extern void quid_set_rnd_seed(int);
 extern void quid_set_mem_seed(int);
 
-#if denifed(__cplusplus)
+#if defined(__cplusplus)
 }
 #endif
 
