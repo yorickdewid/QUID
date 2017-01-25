@@ -1,15 +1,10 @@
 language: c
 sudo: false
+dist: xenial
 
 compiler:
   - clang
   - gcc
-
-addons:
-  apt:
-    packages:
-    - autoconf
-    - libtool
 
 script:
   - cd scripts/
