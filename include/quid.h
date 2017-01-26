@@ -90,9 +90,10 @@ extern void quid_print(cuuid_t, int);
 extern void quid_print_file(FILE *, cuuid_t, int);
 extern void quid_set_rnd_seed(int);
 extern void quid_set_mem_seed(int);
+extern char *quid_libversion(void);
 
 #if defined(__cplusplus)
 }
 #endif
 
-#endif
+#endif // __QUID_H__

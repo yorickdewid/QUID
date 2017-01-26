@@ -40,7 +40,6 @@
 
 #include <quid.h>
 
-#define UTIL_VERSION "0.4"  /* Utility version */
 #define GL_DELAY 15         /* Default delay between identifier generations */
 
 /* Global variables */
@@ -197,14 +196,14 @@ void usage(char *prog) {
     printf("  -V, --verbose            Output verbose information\n");
     printf("  -v, --version            Show version\n");
     printf("  -h, --help               Show this help\n\n");
-    printf("Report bugs to <ydw@x3.uenza.net>\n");
+    printf("Report bugs to <" PACKAGE_BUGREPORT ">\n");
 }
 
 /* Print program version */
 void print_version(void) {
-    printf("QUID Generator %s\n", UTIL_VERSION);
+    printf("QUID Generator %s\n", PACKAGE_VERSION);
     printf("Copyright (C) 2017 Quenza, Inc.\n");
-    printf("Compiled %s\n", __DATE__);
+    printf("Report bugs to <" PACKAGE_BUGREPORT ">\n");
 }
 
 /* Check filesystem for output file */
@@ -313,16 +312,12 @@ int main(int argc, char *argv[]) {
                 break;
             case 'v':
                 print_version();
-                gen = 0;
-                break;
+                return 0;
             case 'h':
             case '?':
-                usage(argv[0]);
-                gen = 0;
-                break;
             default:
                 usage(argv[0]);
-                gen = 0;
+                return 0;
         }
     }
 
@@ -358,16 +353,16 @@ int main(int argc, char *argv[]) {
             }
         }
 
-        for (i=0; i<n; i++) {
+        for (i=0; i<n; ++i) {
             quid_create(&u, flg, cat);
 
-            if(intflag)
+            if (intflag)
                 break;
 
-            if(!fout){
+            if (!fout){
                 if(!nout)
                     quid_print(u, fmat);
-            }else
+            } else
                 quid_print_file(fp, u, fmat);
 
             if(delay)
@@ -376,13 +371,13 @@ int main(int argc, char *argv[]) {
             ticks = clock();
         }
 
-        if(fp)
+        if (fp)
             fclose(fp);
 
         gettimeofday(&t2, NULL);
     }
 
-    if (vbose && gen)
+    if (vbose && gen) 
         generate_verbose();
 
     return 0;
