@@ -27,8 +27,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef __CHACHA20__
-#define __CHACHA20__
+#ifndef __CHACHA__
+#define __CHACHA__
 
 #ifdef __cplusplus
 extern "C" {
@@ -42,11 +42,11 @@ typedef struct {
 } chacha_ctx;
 
 void chacha_init_ctx(chacha_ctx *, uint8_t);
-void chacha_init(chacha_ctx *, uint8_t *, uint32_t, uint8_t *);
+void chacha_init(chacha_ctx *, uint8_t *, uint32_t, uint8_t *, uint32_t);
 void chacha_next(chacha_ctx *, const uint8_t *, uint8_t *);
 
 #ifdef __cplusplus
 } /* extern "C" */
 #endif
 
-#endif // __CHACHA20__
+#endif // __CHACHA__

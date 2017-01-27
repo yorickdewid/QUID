@@ -12,3 +12,4 @@ script:
   - cd ..
   - ./configure
   - make
+  - make check

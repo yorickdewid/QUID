@@ -90,6 +90,8 @@ static unsigned short   true_random();
 static double           get_tick_count(void);
 static unsigned short   true_random(void);
 
+int quid_create_rev4(cuuid_t *uid, char flag, char subc);
+int quid_create_rev7(cuuid_t *uid, char flag, char subc);
 int quid_create(cuuid_t *, char, char);
 int quid_get_uid(char *, cuuid_t *);
 void quid_set_rnd_seed(int);

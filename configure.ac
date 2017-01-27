@@ -24,4 +24,4 @@ AC_CHECK_FUNCS([clock_gettime gettimeofday strtol])
 
 AC_PREFIX_DEFAULT(/usr)
 
-AC_OUTPUT(Makefile src/Makefile include/Makefile utils/Makefile)
+AC_OUTPUT(Makefile src/Makefile test/Makefile include/Makefile utils/Makefile)

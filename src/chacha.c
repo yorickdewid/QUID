@@ -28,23 +28,26 @@
  */
 
 #include <stdlib.h>
-#include "chacha20.h"
+#include <memory.h>
+
+#include "chacha.h"
 
 /* Basic 32-bit operators */
 #define ROTATE(v,c) ((uint32_t)((v) << (c)) | ((v) >> (32 - (c))))
 #define XOR(v,w) ((v) ^ (w))
-#define PLUS(v,w) ((uint32_t)((v) + (w)))
-#define PLUSONE(v) (PLUS((v), 1))
+#define ADDITION(v,w) ((uint32_t)((v) + (w)))
+#define PLUSONE(v) (ADDITION((v), 1))
 
 /* Little endian machine assumed (x86-64) */
 #define U32TO8_LITTLE(p, v) (((uint32_t*)(p))[0] = v)
 #define U8TO32_LITTLE(p) (((uint32_t*)(p))[0])
 
+/* ARX */
 #define QUARTERROUND(a, b, c, d) \
-    x[a] = PLUS(x[a],x[b]); x[d] = ROTATE(XOR(x[d],x[a]),16); \
-    x[c] = PLUS(x[c],x[d]); x[b] = ROTATE(XOR(x[b],x[c]),12); \
-    x[a] = PLUS(x[a],x[b]); x[d] = ROTATE(XOR(x[d],x[a]), 8); \
-    x[c] = PLUS(x[c],x[d]); x[b] = ROTATE(XOR(x[b],x[c]), 7);
+    x[a] = ADDITION(x[a],x[b]); x[d] = ROTATE(XOR(x[d],x[a]),16); \
+    x[c] = ADDITION(x[c],x[d]); x[b] = ROTATE(XOR(x[b],x[c]),12); \
+    x[a] = ADDITION(x[a],x[b]); x[d] = ROTATE(XOR(x[d],x[a]), 8); \
+    x[c] = ADDITION(x[c],x[d]); x[b] = ROTATE(XOR(x[b],x[c]), 7);
 
 static const uint8_t SIGMA[16] = "expand 32-byte k";
 static const uint8_t TAU[16]   = "expand 16-byte k";
@@ -53,70 +56,85 @@ static void doublerounds(uint8_t output[64], const uint32_t input[16], uint8_t r
     uint32_t x[16];
     int32_t i;
 
-    for (i = 0;i < 16;++i) {
+    /* Copy block */
+    for (i = 0; i < 16; ++i) {
         x[i] = input[i];
     }
 
+    /* Scramble that shit */
     for (i = rounds ; i > 0 ; i -= 2) {
+        /* Vertical vertices */
         QUARTERROUND( 0, 4, 8,12)
         QUARTERROUND( 1, 5, 9,13)
         QUARTERROUND( 2, 6,10,14)
         QUARTERROUND( 3, 7,11,15)
 
+        /* Diagonal vertices */
         QUARTERROUND( 0, 5,10,15)
         QUARTERROUND( 1, 6,11,12)
         QUARTERROUND( 2, 7, 8,13)
         QUARTERROUND( 3, 4, 9,14)
+
+#if defined(Y_EXT)
+        /* Horizontal vertices (extension) */
+        QUARTERROUND( 0, 1, 2, 3)
+        QUARTERROUND( 4, 5, 6, 7)
+        QUARTERROUND( 8, 9,10,11)
+        QUARTERROUND(12,13,14,15)
+#endif
     }
 
-    for (i = 0;i < 16;++i) {
-        x[i] = PLUS(x[i], input[i]);
+    /* Merge input with scramble to prevent unwinding */
+    for (i = 0; i < 16; ++i) {
+        x[i] = ADDITION(x[i], input[i]);
     }
 
-    for (i = 0;i < 16;++i) {
+    /* Copy to output */
+    for (i = 0; i < 16; ++i) {
         U32TO8_LITTLE(output + 4 * i, x[i]);
     }
 }
 
-void chacha_init(chacha_ctx *x, uint8_t *key, uint32_t keylen, uint8_t *iv) {
+void chacha_init(chacha_ctx *ctx, uint8_t *key, uint32_t keylen, uint8_t *iv, uint32_t counter) {
     switch (keylen) {
         case 256:
-            x->state[0]  = U8TO32_LITTLE(SIGMA + 0);
-            x->state[1]  = U8TO32_LITTLE(SIGMA + 4);
-            x->state[2]  = U8TO32_LITTLE(SIGMA + 8);
-            x->state[3]  = U8TO32_LITTLE(SIGMA + 12);
-            x->state[4]  = U8TO32_LITTLE(key + 0);
-            x->state[5]  = U8TO32_LITTLE(key + 4);
-            x->state[6]  = U8TO32_LITTLE(key + 8);
-            x->state[7]  = U8TO32_LITTLE(key + 12);
-            x->state[8]  = U8TO32_LITTLE(key + 16);
-            x->state[9]  = U8TO32_LITTLE(key + 20);
-            x->state[10] = U8TO32_LITTLE(key + 24);
-            x->state[11] = U8TO32_LITTLE(key + 28);
+            // ctx->state[0] = SIGMA[3]<<24 | SIGMA[2]<<16 | SIGMA[1]<<8 | SIGMA[0];
+            ctx->state[0]  = U8TO32_LITTLE(SIGMA + 0);
+            ctx->state[1]  = U8TO32_LITTLE(SIGMA + 4);
+            ctx->state[2]  = U8TO32_LITTLE(SIGMA + 8);
+            ctx->state[3]  = U8TO32_LITTLE(SIGMA + 12);
+            ctx->state[4]  = U8TO32_LITTLE(key + 0);
+            ctx->state[5]  = U8TO32_LITTLE(key + 4);
+            ctx->state[6]  = U8TO32_LITTLE(key + 8);
+            ctx->state[7]  = U8TO32_LITTLE(key + 12);
+            ctx->state[8]  = U8TO32_LITTLE(key + 16);
+            ctx->state[9]  = U8TO32_LITTLE(key + 20);
+            ctx->state[10] = U8TO32_LITTLE(key + 24);
+            ctx->state[11] = U8TO32_LITTLE(key + 28);
             break;
         case 128:
-            x->state[0]  = U8TO32_LITTLE(TAU + 0);
-            x->state[1]  = U8TO32_LITTLE(TAU + 4);
-            x->state[2]  = U8TO32_LITTLE(TAU + 8);
-            x->state[3]  = U8TO32_LITTLE(TAU + 12);
-            x->state[4]  = U8TO32_LITTLE(key + 0);
-            x->state[5]  = U8TO32_LITTLE(key + 4);
-            x->state[6]  = U8TO32_LITTLE(key + 8);
-            x->state[7]  = U8TO32_LITTLE(key + 12);
-            x->state[8]  = U8TO32_LITTLE(key + 0);
-            x->state[9]  = U8TO32_LITTLE(key + 4);
-            x->state[10] = U8TO32_LITTLE(key + 8);
-            x->state[11] = U8TO32_LITTLE(key + 12);
+            ctx->state[0]  = U8TO32_LITTLE(TAU + 0);
+            ctx->state[1]  = U8TO32_LITTLE(TAU + 4);
+            ctx->state[2]  = U8TO32_LITTLE(TAU + 8);
+            ctx->state[3]  = U8TO32_LITTLE(TAU + 12);
+            ctx->state[4]  = U8TO32_LITTLE(key + 0);
+            ctx->state[5]  = U8TO32_LITTLE(key + 4);
+            ctx->state[6]  = U8TO32_LITTLE(key + 8);
+            ctx->state[7]  = U8TO32_LITTLE(key + 12);
+            ctx->state[8]  = U8TO32_LITTLE(key + 0);
+            ctx->state[9]  = U8TO32_LITTLE(key + 4);
+            ctx->state[10] = U8TO32_LITTLE(key + 8);
+            ctx->state[11] = U8TO32_LITTLE(key + 12);
             break;
         default:
             abort();
     }
 
     /* Reset block counter and add IV to state */
-    x->state[12] = 0;
-    x->state[13] = 0;
-    x->state[14] = U8TO32_LITTLE(iv + 0);
-    x->state[15] = U8TO32_LITTLE(iv + 4);
+    ctx->state[12] = counter;
+    ctx->state[13] = 0;
+    ctx->state[14] = U8TO32_LITTLE(iv + 0);
+    ctx->state[15] = U8TO32_LITTLE(iv + 4);
 }
 
 void chacha_next(chacha_ctx *ctx, const uint8_t *m, uint8_t *c) {
@@ -138,13 +156,10 @@ void chacha_next(chacha_ctx *ctx, const uint8_t *m, uint8_t *c) {
 }
 
 void chacha_init_ctx(chacha_ctx *ctx, uint8_t rounds) {
-    uint8_t i;
+    /* Not too crazy */
+    if (rounds < 8)
+        abort();
 
-    for (i = 0 ; i < 16 ; i++) {
-        ctx->state[i] = 0;
-    }
-
-    // memset()
-
+    memset(ctx->state, '\0', 16);
     ctx->rounds = rounds;
 }
