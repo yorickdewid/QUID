@@ -45,6 +45,8 @@
 #include <ctype.h>
 #endif
 
+#include <quid.h>
+
 #include "chacha.h"
 
 #define UIDS_PER_TICK 1024          /* Generate identifiers per tick interval */
@@ -52,20 +54,7 @@
 #define RANDFILE ".rnd"             /* File descriptor for random seed */
 #define MEM_SEED_CYCLE 65536        /* Generate new memory seed after interval */
 #define RND_SEED_CYCLE 4096         /* Generate new random seed after interval */
-#define QUID_STRLEN 32              /* Default string lemgth for striped quid */
 #define SEEDSZ 16                   /* Seed size */
-
-/*
- * Identifier structure
- */
-typedef struct {
-    unsigned long time_low;                     /* Time lover half */
-    unsigned short time_mid;                    /* Time middle half */
-    unsigned short time_hi_and_version;         /* Time upper half and structure version */
-    unsigned char clock_seq_hi_and_reserved;    /* Clock sequence */
-    unsigned char clock_seq_low;                /* Clock sequence lower half */
-    unsigned char node[6];                      /* Node allocation, filled with random memory data */
-} cuuid_t;
 
 typedef unsigned long long cuuid_time_t;
 
@@ -88,17 +77,7 @@ enum {
 static void             format_quid_rev4(cuuid_t *, unsigned short, cuuid_time_t, cuuid_node_t);
 static void             format_quid_rev7(cuuid_t *, unsigned short, cuuid_time_t, cuuid_node_t);
 static void             get_current_time(cuuid_time_t *);
-static double           get_tick_count(void);
 static unsigned short   true_random(void);
-
-int quid_create_rev4(cuuid_t *uid, char flag, char subc);
-int quid_create_rev7(cuuid_t *uid, char flag, char subc);
-int quid_validate(cuuid_t *);
-int quid_create(cuuid_t *, char, char);
-int quid_parse(char *, cuuid_t *);
-void quid_set_rnd_seed(int);
-void quid_set_mem_seed(int);
-char *quid_libversion(void);
 
 static int max_mem_seed = MEM_SEED_CYCLE;
 static int max_rnd_seed = RND_SEED_CYCLE;
@@ -116,6 +95,42 @@ void quid_set_rnd_seed(int cnt) {
 /* Library version */
 char *quid_libversion(void) {
     return PACKAGE_VERSION;
+}
+
+/* Compare */
+int quid_cmp(const cuuid_t *s1, const cuuid_t *s2) {
+    return s1->time_low == s2->time_low
+        && s1->time_mid == s2->time_mid
+        && s1->time_hi_and_version == s2->time_hi_and_version
+        && s1->clock_seq_hi_and_reserved == s2->clock_seq_hi_and_reserved
+        && s1->clock_seq_low == s2->clock_seq_low
+        && s1->node[0] == s2->node[0]
+        && s1->node[1] == s2->node[1]
+        && s1->node[2] == s2->node[2]
+        && s1->node[3] == s2->node[3]
+        && s1->node[4] == s2->node[4]
+        && s1->node[5] == s2->node[5];
+}
+
+/* Retrieve system time */
+static void get_system_time(cuuid_time_t *uid_time) {
+#ifdef __WIN32___
+    ULARGE_INTEGER time;
+
+    GetSystemTimeAsFileTime((FILETIME *)&time);
+    time.QuadPart += (unsigned __int64) (1000*1000*10)
+                    * (unsigned __int64) (60 * 60 * 24)
+                    * (unsigned __int64) (17+30+31+365*18+5);
+    *uid_time = time.QuadPart;
+#else
+    struct timeval tv;
+    uint64_t result = EPOCH_DIFF;
+    gettimeofday(&tv, NULL);
+    result += tv.tv_sec;
+    result *= 10000000LL;
+    result += tv.tv_usec * 10;
+    *uid_time = result;
+#endif
 }
 
 /* Read seed or create if not exist */
@@ -150,27 +165,6 @@ static void get_memory_seed(cuuid_node_t *node) {
     *node = saved_node;
 }
 
-/* Retrieve system time */
-static void get_system_time(cuuid_time_t *uid_time) {
-#ifdef __WIN32___
-    ULARGE_INTEGER time;
-
-    GetSystemTimeAsFileTime((FILETIME *)&time);
-    time.QuadPart += (unsigned __int64) (1000*1000*10)
-                    * (unsigned __int64) (60 * 60 * 24)
-                    * (unsigned __int64) (17+30+31+365*18+5);
-    *uid_time = time.QuadPart;
-#else
-    struct timeval tv;
-    unsigned long long result = EPOCH_DIFF;
-    gettimeofday(&tv, NULL);
-    result += tv.tv_sec;
-    result *= 10000000LL;
-    result += tv.tv_usec * 10;
-    *uid_time = result;
-#endif
-}
-
 /* QUID REV4 */
 int quid_create_rev4(cuuid_t *uid, char flag, char subc) {
     cuuid_time_t    timestamp;
@@ -186,8 +180,7 @@ int quid_create_rev4(cuuid_t *uid, char flag, char subc) {
     uid->node[1] |= flag;
     uid->node[2] = subc;
 
-    /* QUID_OK */
-    return 1;
+    return QUID_OK;
 }
 
 /* QUID REV7 */
@@ -205,24 +198,27 @@ int quid_create_rev7(cuuid_t *uid, char flag, char subc) {
     uid->node[1] |= flag;
     uid->node[2] = subc;
 
-    /* QUID_OK */
-    return 1;
+    return QUID_OK;
 }
 
 /* Default constructor */
 int quid_create(cuuid_t *uid, char flag, char subc) {
+// #if defined(LEGACY)
     return quid_create_rev4(uid, flag, subc);
+// #else
+    // return quid_create_rev7(uid, flag, subc);
+// #endif
 }
 
 /*
  * Format QUID from the timestamp, clocksequence, and node ID
  * Structure succeeds version 3 (REV1)
  */
-void format_quid_rev4(cuuid_t* uid, unsigned short clock_seq, cuuid_time_t timestamp, cuuid_node_t node) {
-    uid->time_low = (unsigned long)(timestamp & 0xffffffff);
-    uid->time_mid = (unsigned short)((timestamp >> 32) & 0xffff);
+void format_quid_rev4(cuuid_t* uid, uint16_t clock_seq, cuuid_time_t timestamp, cuuid_node_t node) {
+    uid->time_low = (uint64_t)(timestamp & 0xffffffff);
+    uid->time_mid = (uint16_t)((timestamp >> 32) & 0xffff);
 
-    uid->time_hi_and_version = (unsigned short)((timestamp >> 48) & 0xFFF);
+    uid->time_hi_and_version = (uint16_t)((timestamp >> 48) & 0xFFF);
     uid->time_hi_and_version ^= 0x80;
     uid->time_hi_and_version |= 0xa000;
 
@@ -240,11 +236,11 @@ void format_quid_rev4(cuuid_t* uid, unsigned short clock_seq, cuuid_time_t times
  * Format QUID from the timestamp, clocksequence, and node ID
  * Structure succeeds version 3 (REV1)
  */
-void format_quid_rev7(cuuid_t* uid, unsigned short clock_seq, cuuid_time_t timestamp, cuuid_node_t node) {
-    uid->time_low = (unsigned long)(timestamp & 0xffffffff);
-    uid->time_mid = (unsigned short)((timestamp >> 32) & 0xffff);
+void format_quid_rev7(cuuid_t* uid, uint16_t clock_seq, cuuid_time_t timestamp, cuuid_node_t node) {
+    uid->time_low = (uint64_t)(timestamp & 0xffffffff);
+    uid->time_mid = (uint16_t)((timestamp >> 32) & 0xffff);
 
-    uid->time_hi_and_version = (unsigned short)((timestamp >> 48) & 0xFFF);
+    uid->time_hi_and_version = (uint16_t)((timestamp >> 48) & 0xFFF);
     uid->time_hi_and_version ^= 0x80;
     uid->time_hi_and_version |= 0xa000;
 
@@ -254,7 +250,7 @@ void format_quid_rev7(cuuid_t* uid, unsigned short clock_seq, cuuid_time_t times
 
     memcpy(&uid->node, &node, sizeof(uid->node));
     uid->node[0] = true_random();
-    uid->node[1] = QUID_REV4;
+    uid->node[1] = QUID_REV7;
     uid->node[3] = 0x17 ^ uid->node[0];
     uid->node[5] = (true_random() & 0xff);
 
@@ -265,7 +261,7 @@ void format_quid_rev7(cuuid_t* uid, unsigned short clock_seq, cuuid_time_t times
 void get_current_time(cuuid_time_t *timestamp) {
     static int              inited = 0;
     static cuuid_time_t     time_last;
-    static unsigned short   ids_this_tick;
+    static uint16_t         ids_this_tick;
     cuuid_time_t            time_now;
 
     if (!inited) {
@@ -293,7 +289,7 @@ void get_current_time(cuuid_time_t *timestamp) {
 }
 
 /* Get hardware tick count */
-double get_tick_count(void) {
+static double get_tick_count(void) {
 #ifdef __WIN32___
     return GetTickCount();
 #else
@@ -307,14 +303,14 @@ double get_tick_count(void) {
 }
 
 /* Create true random as prescribed by the IEEE */
-static unsigned short true_random(void) {
+static uint16_t true_random(void) {
     static int rnd_seed_count = 0;
     cuuid_time_t time_now;
 
     if (!rnd_seed_count) {
         get_system_time(&time_now);
         time_now = time_now / UIDS_PER_TICK;
-        srand((unsigned int)(((time_now >> 32) ^ time_now) & 0xffffffff));
+        srand((uint32_t)(((time_now >> 32) ^ time_now) & 0xffffffff));
     }
 
     /* Advance counters */
@@ -418,13 +414,12 @@ static void strtoquid(char *str, cuuid_t *u) {
 /* Validate quid as genuine identifier */
 int quid_validate(cuuid_t *u) {
     if (u->node[1] != QUID_REV4) //TODO: invalid
-        return 0;
+        return QUID_ERROR;
 
     if (!u->node[2])
-        return 0;
+        return QUID_ERROR;
 
-    /* QUID_OK */
-    return 1;
+    return QUID_OK;
 }
 
 /* Convert string to identifier */
@@ -436,17 +431,34 @@ int quid_parse(char *quid, cuuid_t *uuid) {
     len = strlen(quid);
 
     /* Fail if invalid length */
-    if (len != QUID_STRLEN)
-        return 0;
+    if (len != QUID_LEN)
+        return QUID_ERROR;
 
     /* Fail if not hex */
     if (!ishex(quid))
-        return 0;
+        return QUID_ERROR;
 
     strtoquid(quid, uuid);
     if (!quid_validate(uuid))
-       return 0;
+       return QUID_ERROR;
 
-    /* QUID_OK */
-    return 1;
+    return QUID_OK;
+}
+
+/* Convert quid to string */
+void quid_tostring(const cuuid_t *u, char str[QUID_FULLLEN + 1]) {
+    memset(str, '\0', QUID_FULLLEN + 1);
+    snprintf(str, QUID_FULLLEN,
+        "{%.8x-%.4x-%.4x-%x%.2x-%.2x%.2x%.2x%.2x%.2x%.2x}",
+        (unsigned int)u->time_low,
+        u->time_mid,
+        u->time_hi_and_version,
+        u->clock_seq_hi_and_reserved,
+        u->clock_seq_low,
+        u->node[0],
+        u->node[1],
+        u->node[2],
+        u->node[3],
+        u->node[4],
+        u->node[5]);
 }

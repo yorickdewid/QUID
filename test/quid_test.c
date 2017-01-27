@@ -55,15 +55,39 @@ int main(int argc, char *argv[]) {
     printf("=========================================\n\n");
 
     printf("TC1: General QUID.\n");
-    printf("-------------------------\n");
+    printf("----------------------------------------\n");
 
     cuuid_t tc_1u;
     assert(quid_create(&tc_1u, IDF_NULL, CLS_CMON) == QUID_OK);
+    assert(quid_validate(&tc_1u) == QUID_OK);
     quid_print(&tc_1u);
+    printf("\n");
 
-    printf("TC2: Single bit in key set. All zero IV.\n");
+    printf("TC2: Convert to string.\n");
     printf("----------------------------------------\n");
 
+    cuuid_t tc_2u;
+    char tc2_str[QUID_FULLLEN + 1];
+    assert(quid_create(&tc_2u, IDF_NULL, CLS_CMON) == QUID_OK);
+    assert(quid_validate(&tc_2u) == QUID_OK);
+    quid_tostring(&tc_2u, tc2_str);
+    assert(tc2_str[0] != 0);
+    puts(tc2_str);
+
+    printf("TC3: Convert to string.\n");
+    printf("----------------------------------------\n");
+
+    cuuid_t tc_3u, tc_3u_;
+    char tc_3str[QUID_FULLLEN + 1];
+    assert(quid_create(&tc_3u, IDF_NULL, CLS_CMON) == QUID_OK);
+    assert(quid_validate(&tc_3u) == QUID_OK);
+    quid_tostring(&tc_3u, tc_3str);
+    assert(tc_3str[0] != 0);
+    puts(tc_3str);
+    assert(quid_parse(tc_3str, &tc_3u_) == QUID_OK);
+    quid_print(&tc_3u);
+    quid_print(&tc_3u_);
+    assert(quid_cmp(&tc_3u, &tc_3u_));
 
     return 0;
 }

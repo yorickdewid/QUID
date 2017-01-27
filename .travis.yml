@@ -7,11 +7,8 @@ compiler:
   - gcc
   
 script:
-  - cd scripts/
-  - ./autogen.sh
-  - cd ..
+  - cd scripts/ && ./autogen.sh && cd ..
   - ./configure
   - make
   - make check
-  - cd test
-  - ./duplicate.sh
+  - cd test && ./duplicate.sh

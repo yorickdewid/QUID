@@ -30,6 +30,12 @@
 #ifndef __QUID_H__
 #define __QUID_H__
 
+#include <stdint.h>
+
+#if defined(__cplusplus)
+extern "c" {
+#endif
+
 /*
  * Flags for individual identifiers
  * This provides extra informaton for the
@@ -67,34 +73,43 @@
 /*
  * Identifier structure
  */
+#define QUID_LEN 32                     /* Default string length for striped quid */
+#define QUID_FULLLEN QUID_LEN+4+2       /* Full QUID length */
+
+/*
+ * Identifier structure
+ */
 typedef struct {
-    unsigned long   time_low;           /* Time lover half */
-    unsigned short  time_mid;           /* Time middle half */
-    unsigned short  time_hi_and_version;        /* Time upper half and structure version */
-    unsigned char   clock_seq_hi_and_reserved;  /* Clock sequence */
-    unsigned char   clock_seq_low;          /* Clock sequence lower half */
-    unsigned char   node[6];            /* Node allocation, filled with random memory data */
+    uint64_t  time_low;                   /* Time lover half */
+    uint16_t  time_mid;                   /* Time middle half */
+    uint16_t  time_hi_and_version;        /* Time upper half and structure version */
+    uint8_t   clock_seq_hi_and_reserved;  /* Clock sequence */
+    uint8_t   clock_seq_low;              /* Clock sequence lower half */
+    uint8_t   node[6];                    /* Node allocation, filled with random memory data */
 } cuuid_t;
 
 enum {
-	QUID_ERROR = 0,
-	QUID_OK = 1,
+    QUID_ERROR = 0,
+    QUID_OK = 1,
 };
 
 /*
  * Prototypes to library functions
  */
 
-#if defined(__cplusplus)
-extern "c" {
-#endif
+extern int      quid_create_rev4(cuuid_t *uid, char flag, char subc);
+extern int      quid_create_rev7(cuuid_t *uid, char flag, char subc);
+extern int      quid_create(cuuid_t *, char, char);
 
-extern int quid_create(cuuid_t *, char, char);
-extern int quid_validate(cuuid_t *);
-extern int quid_parse(char *, cuuid_t *);
-extern void quid_set_rnd_seed(int);
-extern void quid_set_mem_seed(int);
-extern char *quid_libversion(void);
+extern int      quid_validate(cuuid_t *);
+extern int      quid_parse(char *, cuuid_t *);
+extern void     quid_tostring(const cuuid_t *, char str[QUID_FULLLEN + 1]);
+
+extern void     quid_set_rnd_seed(int);
+extern void     quid_set_mem_seed(int);
+
+extern char    *quid_libversion(void);
+extern int      quid_cmp(const cuuid_t *, const cuuid_t *);
 
 #if defined(__cplusplus)
 }
