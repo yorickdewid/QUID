@@ -76,6 +76,11 @@ typedef struct {
     unsigned char   node[6];            /* Node allocation, filled with random memory data */
 } cuuid_t;
 
+enum {
+	QUID_ERROR = 0,
+	QUID_OK = 1,
+};
+
 /*
  * Prototypes to library functions
  */
@@ -85,9 +90,8 @@ extern "c" {
 #endif
 
 extern int quid_create(cuuid_t *, char, char);
-extern int quid_get_uid(char *, cuuid_t *);
-extern void quid_print(cuuid_t, int);
-extern void quid_print_file(FILE *, cuuid_t, int);
+extern int quid_validate(cuuid_t *);
+extern int quid_parse(char *, cuuid_t *);
 extern void quid_set_rnd_seed(int);
 extern void quid_set_mem_seed(int);
 extern char *quid_libversion(void);

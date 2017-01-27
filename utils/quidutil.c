@@ -54,7 +54,7 @@ static int intflag = 0;
 /* Prototypes */
 void input_verbose(cuuid_t);
 void generate_verbose(void);
-void usage(char *);
+void usage(void);
 void print_version(void);
 int check_fname(const char *);
 void quid_print(cuuid_t, int);
@@ -104,7 +104,9 @@ void quid_print_file(FILE *fp, cuuid_t u, int format) {
 
         fprintf(fp, "\n");
     } else {
-        fprintf(fp, "{%.8x-", (unsigned int)u.time_low);
+        fprintf(fp, "{");
+
+        fprintf(fp, "%.8x-", (unsigned int)u.time_low);
         fprintf(fp, "%.4x-", u.time_mid);
         fprintf(fp, "%.4x-", u.time_hi_and_version);
         fprintf(fp, "%x", u.clock_seq_hi_and_reserved);
@@ -132,22 +134,22 @@ void input_verbose(cuuid_t u) {
     sflag = (u.node[1] ^ IDF_NULL);
     printf("Flags");
 
-    if(sflag & FLAG_PUBLIC)
+    if (sflag & FLAG_PUBLIC)
         printf(" PUBLIC");
 
-    if(sflag & FLAG_IDSAFE)
+    if (sflag & FLAG_IDSAFE)
         printf(" IDSAFE");
 
-    if(sflag & FLAG_MASTER)
+    if (sflag & FLAG_MASTER)
         printf(" MASTER");
 
-    if(sflag & FLAG_SIGNED)
+    if (sflag & FLAG_SIGNED)
         printf(" SIGNED");
 
-    if(sflag & FLAG_TAGGED)
+    if (sflag & FLAG_TAGGED)
         printf(" TAGGED");
 
-    if(sflag & FLAG_STRICT)
+    if (sflag & FLAG_STRICT)
         printf(" STRICT");
 
     printf("\n");
@@ -174,25 +176,31 @@ void generate_verbose(void) {
 }
 
 /* Program usage */
-void usage(char *prog) {
-    printf("Usage: %s [options] identifier...\n", prog);
+void usage() {
+    printf("Usage: " PACKAGE_NAME " [OPTIONS] identifier...\n");
     printf("Options:\n");
-    printf("  -c <count>               Generation cycles per <count>, 0 for infinity\n");
-    printf("  --category=<index>       Set identifier with category\n");
+    printf("  -c <count>               Number of identifiers, 0 for infinite\n");
     printf("  -d <ms>                  Delay between generation in miliseconds\n");
-    printf("  -o <file>                output to <file>\n");
+    printf("  --rand-seek=<cycles>     Reinitialize rand seed per <cycles>\n");
+    printf("  --memory-seed=<cycles>   Reinitialize memory seed per <cycles>\n");
+
+    printf("\nGeneration:\n");
     printf("  --list-categories        Show all categories\n");
+    printf("  --category=<index>       Set identifier with category\n");
     printf("  --set-public             Set public flag\n");
     printf("  --set-safe               Set safety flag\n");
     printf("  --set-master             Set master flag\n");
     printf("  --set-sign               Set signed flag\n");
     printf("  --set-tag                Set tagging flag\n");
     printf("  --set-strict             Set strict data flag\n");
+
+    printf("\nOutput:\n");
+    printf("  -o <file>                Output to <file>\n");
     printf("  -x, --output-hex         Output identifier as hexadecimal\n");
     printf("  -i, --output-number      Output identifier as number\n");
     printf("  -q                       Silent, no output shown on screen\n");
-    printf("  --rand-seek=<cycles>     Reinitialize rand seed per <cycles>\n");
-    printf("  --memory-seed=<cycles>   Reinitialize memory seed per <cycles>\n");
+
+    printf("\n");
     printf("  -V, --verbose            Output verbose information\n");
     printf("  -v, --version            Show version\n");
     printf("  -h, --help               Show this help\n\n");
@@ -210,7 +218,7 @@ void print_version(void) {
 int check_fname(const char *pathname) {
     struct stat info;
 
-    if(stat(pathname, &info) != 0)
+    if (stat(pathname, &info) != 0)
         return 0;
     else if(info.st_mode & S_IFDIR)
         return 1;
@@ -316,7 +324,7 @@ int main(int argc, char *argv[]) {
             case 'h':
             case '?':
             default:
-                usage(argv[0]);
+                usage();
                 return 0;
         }
     }
@@ -325,9 +333,9 @@ int main(int argc, char *argv[]) {
         cuuid_t uuid;
         while (optind < argc) {
             printf("%s\t", argv[optind]);
-            if (quid_get_uid(argv[optind], &uuid)) {
+            if (quid_parse(argv[optind], &uuid)) {
                 printf("VALID\n");
-                if(vbose)
+                if (vbose)
                     input_verbose(uuid);
             } else
                 printf("INVALID\n");
@@ -360,12 +368,12 @@ int main(int argc, char *argv[]) {
                 break;
 
             if (!fout){
-                if(!nout)
+                if (!nout)
                     quid_print(u, fmat);
             } else
                 quid_print_file(fp, u, fmat);
 
-            if(delay)
+            if (delay)
                 usleep((delay * 1000));
 
             ticks = clock();

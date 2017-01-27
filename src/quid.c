@@ -45,6 +45,8 @@
 #include <ctype.h>
 #endif
 
+#include "chacha.h"
+
 #define UIDS_PER_TICK 1024          /* Generate identifiers per tick interval */
 #define EPOCH_DIFF 11644473600LL    /* Conversion needed for EPOCH to UTC */
 #define RANDFILE ".rnd"             /* File descriptor for random seed */
@@ -86,30 +88,29 @@ enum {
 static void             format_quid_rev4(cuuid_t *, unsigned short, cuuid_time_t, cuuid_node_t);
 static void             format_quid_rev7(cuuid_t *, unsigned short, cuuid_time_t, cuuid_node_t);
 static void             get_current_time(cuuid_time_t *);
-static unsigned short   true_random();
 static double           get_tick_count(void);
 static unsigned short   true_random(void);
 
 int quid_create_rev4(cuuid_t *uid, char flag, char subc);
 int quid_create_rev7(cuuid_t *uid, char flag, char subc);
+int quid_validate(cuuid_t *);
 int quid_create(cuuid_t *, char, char);
-int quid_get_uid(char *, cuuid_t *);
+int quid_parse(char *, cuuid_t *);
 void quid_set_rnd_seed(int);
 void quid_set_mem_seed(int);
 char *quid_libversion(void);
-void strtouid(char *, cuuid_t *);
 
-static int mem_seed = MEM_SEED_CYCLE;
-static int rnd_seed = RND_SEED_CYCLE;
+static int max_mem_seed = MEM_SEED_CYCLE;
+static int max_rnd_seed = RND_SEED_CYCLE;
 
 /* Set memory seed cycle */
 void quid_set_mem_seed(int cnt) {
-    mem_seed = cnt;
+    max_mem_seed = cnt;
 }
 
 /* Set rnd seed cycle */
 void quid_set_rnd_seed(int cnt) {
-    rnd_seed = cnt;
+    max_rnd_seed = cnt;
 }
 
 /* Library version */
@@ -144,10 +145,7 @@ static void get_memory_seed(cuuid_node_t *node) {
     }
 
     /* Advance counters */
-    if (mem_seed_count == mem_seed)
-        mem_seed_count = 0;
-    else
-        mem_seed_count++;
+    mem_seed_count = (mem_seed_count == max_mem_seed) ? 0 : mem_seed_count + 1;
 
     *node = saved_node;
 }
@@ -188,6 +186,7 @@ int quid_create_rev4(cuuid_t *uid, char flag, char subc) {
     uid->node[1] |= flag;
     uid->node[2] = subc;
 
+    /* QUID_OK */
     return 1;
 }
 
@@ -206,6 +205,7 @@ int quid_create_rev7(cuuid_t *uid, char flag, char subc) {
     uid->node[1] |= flag;
     uid->node[2] = subc;
 
+    /* QUID_OK */
     return 1;
 }
 
@@ -233,10 +233,7 @@ void format_quid_rev4(cuuid_t* uid, unsigned short clock_seq, cuuid_time_t times
     memcpy(&uid->node, &node, sizeof(uid->node));
     uid->node[0] = true_random();
     uid->node[1] = QUID_REV4;
-    uid->node[3] = 0x17 ^ uid->node[0];
     uid->node[5] = (true_random() & 0xff);
-
-    printf("%x\n", uid->node[1]);
 }
 
 /*
@@ -321,16 +318,13 @@ static unsigned short true_random(void) {
     }
 
     /* Advance counters */
-    if (rnd_seed_count == rnd_seed)
-        rnd_seed_count = 0;
-    else
-        rnd_seed_count++;
+    rnd_seed_count = (rnd_seed_count == max_rnd_seed) ? 0 : rnd_seed_count + 1;
 
     return (rand() + get_tick_count());
 }
 
-/* Strip non hex characters from string */
-static void strip_quid_string(char *s) {
+/* Strip special characters from string */
+static void strip_special_chars(char *s) {
     char *pr = s, *pw = s;
 
     while (*pr) {
@@ -346,17 +340,18 @@ static void strip_quid_string(char *s) {
 }
 
 /* Check if string validates as hex */
-static int check_ifhex(char *s) {
+static int ishex(char *s) {
     while (*s) {
         if (!isxdigit(*s))
             return 0;
         s++;
     }
+
     return 1;
 }
 
-/* Try string on quid structure*/
-void strtouid(char *str, cuuid_t *u) {
+/* Parse string into QUID */
+static void strtoquid(char *str, cuuid_t *u) {
     char octet1[9];
     char octet[5];
     char node[3];
@@ -421,32 +416,37 @@ void strtouid(char *str, cuuid_t *u) {
 }
 
 /* Validate quid as genuine identifier */
-static int validate(cuuid_t u) {
-    if (u.node[1] != QUID_REV4) //TODO: invalid
+int quid_validate(cuuid_t *u) {
+    if (u->node[1] != QUID_REV4) //TODO: invalid
         return 0;
 
-    if (!u.node[2])
+    if (!u->node[2])
         return 0;
 
+    /* QUID_OK */
     return 1;
 }
 
 /* Convert string to identifier */
-int quid_get_uid(char *quid, cuuid_t *uid) {
+int quid_parse(char *quid, cuuid_t *uuid) {
     int len;
-    strip_quid_string(quid);
+
+    /* Remove all special characters */
+    strip_special_chars(quid);
     len = strlen(quid);
 
-    if (len == QUID_STRLEN) {
-        if (check_ifhex(quid)) {
-            strtouid(quid, uid);
-            if (!validate(*uid))
-                return 0;
-        } else {
-            return 0;
-        }
-    } else
+    /* Fail if invalid length */
+    if (len != QUID_STRLEN)
         return 0;
 
+    /* Fail if not hex */
+    if (!ishex(quid))
+        return 0;
+
+    strtoquid(quid, uuid);
+    if (!quid_validate(uuid))
+       return 0;
+
+    /* QUID_OK */
     return 1;
 }

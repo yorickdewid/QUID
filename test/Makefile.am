@@ -1,19 +1,22 @@
 # Defines which program executables will be produced.
-bin_PROGRAMS = chacha
+bin_PROGRAMS = chacha quid
 
 # Defines which source files are used to produce the specificed
 # executable.
 chacha_SOURCES = chacha_test.c
+quid_SOURCES = quid_test.c
 
 # Defines flags for the C preprocessor *specific to ``hw``*.
-# quidsum_CPPLFAGS = 
+# chacha_CPPLFAGS = 
+# quid_CPPLFAGS = 
 
 # These are instead *default* flags, used by all the programs in
 # ``bin_PROGRAMS``.
-AM_CPPFLAGS = -DTEST
+AM_CPPFLAGS = -I$(top_srcdir)/include -DTEST
 
 # Extra options for the linker.
-# quidsum_LDFLAGS = 
+# chacha_LDFLAGS = 
+# quid_LDFLAGS = 
 
 # Default options for the linker OR for libtool (depending on what you
 # put in ``configure.ac``), used by all the programs in
@@ -25,5 +28,6 @@ AM_CPPFLAGS = -DTEST
 
 # Libraries the ``hw`` binary will be linked to.
 chacha_LDADD = $(top_srcdir)/src/libquid.la -L/usr/local/lib
+quid_LDADD = $(top_srcdir)/src/libquid.la -L/usr/local/lib
 
-TESTS = chacha
+TESTS = chacha quid
