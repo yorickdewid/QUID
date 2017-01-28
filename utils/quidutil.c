@@ -131,6 +131,7 @@ void input_verbose(cuuid_t u) {
 
     printf("Category index %d\n", u.node[2]);
 
+    /* Remove NULL */
     sflag = (u.node[1] ^ IDF_NULL);
     printf("Flags");
 
@@ -157,7 +158,7 @@ void input_verbose(cuuid_t u) {
     printf("-----------------------------\n");
 }
 
-/* Show verbose information on screen */
+/* Show verbose generation information */
 void generate_verbose(void) {
     double elapsedTime;
 

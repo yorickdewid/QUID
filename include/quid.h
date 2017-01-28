@@ -31,6 +31,7 @@
 #define __QUID_H__
 
 #include <stdint.h>
+#include <time.h>
 
 #if defined(__cplusplus)
 extern "c" {
@@ -97,19 +98,20 @@ enum {
  * Prototypes to library functions
  */
 
-extern int      quid_create_rev4(cuuid_t *uid, char flag, char subc);
-extern int      quid_create_rev7(cuuid_t *uid, char flag, char subc);
-extern int      quid_create(cuuid_t *, char, char);
+extern int          quid_create_rev4(cuuid_t *uid, char flag, char subc);
+extern int          quid_create_rev7(cuuid_t *uid, char flag, char subc);
+extern int          quid_create(cuuid_t *, char, char);
 
-extern int      quid_validate(cuuid_t *);
-extern int      quid_parse(char *, cuuid_t *);
-extern void     quid_tostring(const cuuid_t *, char str[QUID_FULLLEN + 1]);
+extern int          quid_validate(cuuid_t *);
+extern int          quid_parse(char *, cuuid_t *);
+extern void         quid_tostring(const cuuid_t *, char str[QUID_FULLLEN + 1]);
 
-extern void     quid_set_rnd_seed(int);
-extern void     quid_set_mem_seed(int);
+extern void         quid_set_rnd_seed(int);
+extern void         quid_set_mem_seed(int);
 
-extern char    *quid_libversion(void);
-extern int      quid_cmp(const cuuid_t *, const cuuid_t *);
+extern char        *quid_libversion(void);
+extern int          quid_cmp(const cuuid_t *, const cuuid_t *);
+extern struct tm   *quid_timestamp(cuuid_t *);
 
 #if defined(__cplusplus)
 }

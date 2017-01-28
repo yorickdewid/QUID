@@ -34,7 +34,6 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <time.h>
 
 #ifdef __WIN32__
 #include <unistd.h>
@@ -56,6 +55,9 @@
 #define RND_SEED_CYCLE 4096         /* Generate new random seed after interval */
 #define SEEDSZ 16                   /* Seed size */
 
+#define VERSION_REV4    0xa000
+#define VERSION_REV7    0xb000
+
 typedef unsigned long long cuuid_time_t;
 
 /*
@@ -75,12 +77,14 @@ enum {
  * Prototypes
  */
 static void             format_quid_rev4(cuuid_t *, unsigned short, cuuid_time_t, cuuid_node_t);
-static void             format_quid_rev7(cuuid_t *, unsigned short, cuuid_time_t, cuuid_node_t);
+static void             format_quid_rev7(cuuid_t *, unsigned short, cuuid_time_t);
 static void             get_current_time(cuuid_time_t *);
 static unsigned short   true_random(void);
 
 static int max_mem_seed = MEM_SEED_CYCLE;
 static int max_rnd_seed = RND_SEED_CYCLE;
+
+static const uint8_t padding[3] = {0x12, 0x82, 0x7b};
 
 /* Set memory seed cycle */
 void quid_set_mem_seed(int cnt) {
@@ -133,6 +137,28 @@ static void get_system_time(cuuid_time_t *uid_time) {
 #endif
 }
 
+static struct tm *quid_localtime(cuuid_time_t cuuid_time) {
+    struct timeval tv;
+    long int usec = (cuuid_time/10) % 1000000LL;
+    time_t sec = (((cuuid_time/10) - usec)/1000000LL) - EPOCH_DIFF;
+
+    tv.tv_sec = sec;
+    tv.tv_usec = usec;
+
+    /* Localtime */
+    return localtime(&tv.tv_sec);
+}
+
+//TODO: different version
+struct tm *quid_timestamp(cuuid_t *uid) {
+    cuuid_time_t cuuid_time = (uint64_t)uid->time_low | 
+    (uint64_t)uid->time_mid << 32 | 
+    (uint64_t)((uid->time_hi_and_version ^ 0x80) - VERSION_REV7) << 48;
+
+    return quid_localtime(cuuid_time);
+}
+
+
 /* Read seed or create if not exist */
 static void get_memory_seed(cuuid_node_t *node) {
     static int mem_seed_count = 0;
@@ -165,6 +191,50 @@ static void get_memory_seed(cuuid_node_t *node) {
     *node = saved_node;
 }
 
+/*  */
+static void encrypt_node(uint64_t prekey, uint8_t preiv1, uint8_t preiv2, cuuid_node_t *node) {
+    chacha_ctx ctx;
+    uint8_t key[16];
+    uint8_t iv[8];
+
+    /* Weak key stretching */
+    key[0] = 0x0;
+    key[1] = (uint8_t)prekey | (uint8_t)(prekey >> 16);
+    key[2] = (uint8_t)prekey ^ (uint8_t)(prekey >> 8);
+    key[3] = (uint8_t)prekey;
+    
+    key[4] = 0x1;
+    key[5] = (uint8_t)(prekey >> 8) | (uint8_t)(prekey >> 24);
+    key[6] = (uint8_t)(prekey >> 8) ^ (uint8_t)(prekey >> 16);
+    key[7] = (uint8_t)(prekey >> 8);
+    
+    key[8] = 0x2;
+    key[9] = (uint8_t)(prekey >> 16) | (uint8_t)prekey;
+    key[10] = (uint8_t)(prekey >> 16) ^ (uint8_t)(prekey >> 24);
+    key[11] = (uint8_t)(prekey >> 16);
+    
+    key[12] = 0x3;
+    key[13] = (uint8_t)(prekey >> 24) | (uint8_t)(prekey >> 8);
+    key[14] = (uint8_t)(prekey >> 24) ^ (uint8_t)prekey;
+    key[15] = (uint8_t)(prekey >> 24);
+
+    /* IV derivation */
+    iv[0] = 0x0;
+    iv[1] = 0x1;
+    iv[2] = preiv1 ^ preiv2;
+    iv[3] = preiv1;
+
+    iv[4] = 0x4;
+    iv[5] = 0x5;
+    iv[6] = preiv2 & preiv1;
+    iv[7] = preiv2;
+
+    chacha_init_ctx(&ctx, 4);
+    chacha_init(&ctx, key, 128, iv, 0);
+
+    chacha_xor(&ctx, (uint8_t *)node, sizeof(cuuid_node_t));
+}
+
 /* QUID REV4 */
 int quid_create_rev4(cuuid_t *uid, char flag, char subc) {
     cuuid_time_t    timestamp;
@@ -177,7 +247,8 @@ int quid_create_rev4(cuuid_t *uid, char flag, char subc) {
 
     format_quid_rev4(uid, clockseq, timestamp, node);
 
-    uid->node[1] |= flag;
+    /* Set flags and subclasses */
+    uid->node[1] = flag;
     uid->node[2] = subc;
 
     return QUID_OK;
@@ -190,13 +261,20 @@ int quid_create_rev7(cuuid_t *uid, char flag, char subc) {
     cuuid_node_t    node;
 
     get_current_time(&timestamp);
-    get_memory_seed(&node);
     clockseq = true_random();
 
-    format_quid_rev7(uid, clockseq, timestamp, node);
+    format_quid_rev7(uid, clockseq, timestamp);
 
-    uid->node[1] |= flag;
-    uid->node[2] = subc;
+    /* Prepare nodes */
+    node.nodeID[0] = (char)QUID_REV7;
+    node.nodeID[1] = (char)flag;
+    node.nodeID[2] = (char)subc;
+    node.nodeID[3] = (char)padding[0];
+    node.nodeID[4] = (char)padding[1];
+    node.nodeID[5] = (char)padding[2];
+
+    encrypt_node(uid->time_low, uid->clock_seq_hi_and_reserved, uid->clock_seq_low, &node);
+    memcpy(&uid->node, &node, sizeof(uid->node));
 
     return QUID_OK;
 }
@@ -204,9 +282,9 @@ int quid_create_rev7(cuuid_t *uid, char flag, char subc) {
 /* Default constructor */
 int quid_create(cuuid_t *uid, char flag, char subc) {
 // #if defined(LEGACY)
-    return quid_create_rev4(uid, flag, subc);
+    // return quid_create_rev4(uid, flag, subc);
 // #else
-    // return quid_create_rev7(uid, flag, subc);
+    return quid_create_rev7(uid, flag, subc);
 // #endif
 }
 
@@ -220,7 +298,7 @@ void format_quid_rev4(cuuid_t* uid, uint16_t clock_seq, cuuid_time_t timestamp, 
 
     uid->time_hi_and_version = (uint16_t)((timestamp >> 48) & 0xFFF);
     uid->time_hi_and_version ^= 0x80;
-    uid->time_hi_and_version |= 0xa000;
+    uid->time_hi_and_version |= VERSION_REV4;
 
     uid->clock_seq_low = (clock_seq & 0xff);
     uid->clock_seq_hi_and_reserved = (clock_seq & 0x3f00) >> 8;
@@ -234,27 +312,19 @@ void format_quid_rev4(cuuid_t* uid, uint16_t clock_seq, cuuid_time_t timestamp, 
 
 /*
  * Format QUID from the timestamp, clocksequence, and node ID
- * Structure succeeds version 3 (REV1)
+ * Structure succeeds version 7 (REV7)
  */
-void format_quid_rev7(cuuid_t* uid, uint16_t clock_seq, cuuid_time_t timestamp, cuuid_node_t node) {
+void format_quid_rev7(cuuid_t* uid, uint16_t clock_seq, cuuid_time_t timestamp) {
     uid->time_low = (uint64_t)(timestamp & 0xffffffff);
     uid->time_mid = (uint16_t)((timestamp >> 32) & 0xffff);
 
-    uid->time_hi_and_version = (uint16_t)((timestamp >> 48) & 0xFFF);
+    uid->time_hi_and_version = (uint16_t)((timestamp >> 48) & 0xfff);
     uid->time_hi_and_version ^= 0x80;
-    uid->time_hi_and_version |= 0xa000;
+    uid->time_hi_and_version |= VERSION_REV7;
 
     uid->clock_seq_low = (clock_seq & 0xff);
     uid->clock_seq_hi_and_reserved = (clock_seq & 0x3f00) >> 8;
     uid->clock_seq_hi_and_reserved |= 0x80;
-
-    memcpy(&uid->node, &node, sizeof(uid->node));
-    uid->node[0] = true_random();
-    uid->node[1] = QUID_REV7;
-    uid->node[3] = 0x17 ^ uid->node[0];
-    uid->node[5] = (true_random() & 0xff);
-
-    printf("%x\n", uid->node[1]);
 }
 
 /* Get current time including cpu clock */
@@ -413,8 +483,15 @@ static void strtoquid(char *str, cuuid_t *u) {
 
 /* Validate quid as genuine identifier */
 int quid_validate(cuuid_t *u) {
-    if (u->node[1] != QUID_REV4) //TODO: invalid
+    if ((u->time_hi_and_version & VERSION_REV7) == VERSION_REV7)
+        puts("v7");
+    else if ((u->time_hi_and_version & VERSION_REV4) == VERSION_REV4)
+        puts("v4");
+    else
         return QUID_ERROR;
+
+    // if (u->node[1] != QUID_REV4) //TODO: invalid
+        // return QUID_ERROR;
 
     if (!u->node[2])
         return QUID_ERROR;
@@ -447,10 +524,10 @@ int quid_parse(char *quid, cuuid_t *uuid) {
 
 /* Convert quid to string */
 void quid_tostring(const cuuid_t *u, char str[QUID_FULLLEN + 1]) {
-    memset(str, '\0', QUID_FULLLEN + 1);
+    str[QUID_FULLLEN] = '\0';
     snprintf(str, QUID_FULLLEN,
-        "{%.8x-%.4x-%.4x-%x%.2x-%.2x%.2x%.2x%.2x%.2x%.2x}",
-        (unsigned int)u->time_low,
+        "{%.8lx-%.4x-%.4x-%.2x%.2x-%.2x%.2x%.2x%.2x%.2x%.2x}",
+        u->time_low,
         u->time_mid,
         u->time_hi_and_version,
         u->clock_seq_hi_and_reserved,

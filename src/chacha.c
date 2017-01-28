@@ -98,7 +98,6 @@ static void doublerounds(uint8_t output[64], const uint32_t input[16], uint8_t r
 void chacha_init(chacha_ctx *ctx, uint8_t *key, uint32_t keylen, uint8_t *iv, uint32_t counter) {
     switch (keylen) {
         case 256:
-            // ctx->state[0] = SIGMA[3]<<24 | SIGMA[2]<<16 | SIGMA[1]<<8 | SIGMA[0];
             ctx->state[0]  = U8TO32_LITTLE(SIGMA + 0);
             ctx->state[1]  = U8TO32_LITTLE(SIGMA + 4);
             ctx->state[2]  = U8TO32_LITTLE(SIGMA + 8);
@@ -137,27 +136,40 @@ void chacha_init(chacha_ctx *ctx, uint8_t *key, uint32_t keylen, uint8_t *iv, ui
     ctx->state[15] = U8TO32_LITTLE(iv + 4);
 }
 
-void chacha_next(chacha_ctx *ctx, const uint8_t *m, uint8_t *c) {
+/* Operate like a block cipher, used for testing */
+void chacha_next(chacha_ctx *ctx, const uint8_t m[64], uint8_t c[64]) {
     uint8_t x[64];
-    uint8_t i;
+    unsigned int i;
 
     /* Update the internal state and increase the block counter */
     doublerounds(x, ctx->state, ctx->rounds);
     ctx->state[12] = PLUSONE(ctx->state[12]);
-    if (!ctx->state[12]) {
+    if (!ctx->state[12])
         ctx->state[13] = PLUSONE(ctx->state[13]);
-    }
 
     /* XOR the input block with the new temporal state to
      * create the transformed block */
-    for (i = 0 ; i < 64 ; ++i) {
+    for (i = 0; i < 64; ++i)
         c[i] = m[i] ^ x[i];
-    }
+}
+
+void chacha_xor(chacha_ctx *ctx, uint8_t *input, size_t len) {
+    uint8_t block[64];
+    unsigned int i;
+
+    /* Update the internal state and increase the block counter */
+    doublerounds(block, ctx->state, ctx->rounds);
+    ctx->state[12] = PLUSONE(ctx->state[12]);
+    if (!ctx->state[12])
+        ctx->state[13] = PLUSONE(ctx->state[13]);
+
+    for (i = 0; i < len; ++i)
+        input[i] = input[i] ^ block[i];
 }
 
 void chacha_init_ctx(chacha_ctx *ctx, uint8_t rounds) {
     /* Not too crazy */
-    if (rounds < 8)
+    if (rounds < 2)
         abort();
 
     memset(ctx->state, '\0', 16);

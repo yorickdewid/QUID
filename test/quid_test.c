@@ -37,7 +37,7 @@ void quid_print(const cuuid_t *u) {
     printf("%.8x-", (unsigned int)u->time_low);
     printf("%.4x-", u->time_mid);
     printf("%.4x-", u->time_hi_and_version);
-    printf("%x", u->clock_seq_hi_and_reserved);
+    printf("%.2x",  u->clock_seq_hi_and_reserved);
     printf("%.2x-", u->clock_seq_low);
 
     printf("%.2x", u->node[0]);
