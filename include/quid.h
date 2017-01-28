@@ -121,6 +121,7 @@ extern void         quid_set_mem_seed(int);
 extern const char  *quid_libversion(void);
 extern int          quid_cmp(const cuuid_t *, const cuuid_t *);
 extern struct tm   *quid_timestamp(cuuid_t *);
+extern long         quid_microtime(cuuid_t *);
 
 #if defined(__cplusplus)
 }

@@ -146,25 +146,52 @@ static void get_system_time(cuuid_time_t *cuuid_time) {
 }
 
 /* Retrieve timestamp from QUID */
-static struct tm *quid_localtime(cuuid_time_t cuuid_time) {
-    struct timeval tv;
-    long int usec = (cuuid_time/10) % 1000000LL;
-    time_t sec = (((cuuid_time/10) - usec)/1000000LL) - EPOCH_DIFF;
+static void quid_timeval(cuuid_t *cuuid, struct timeval *tv) {
+    cuuid_time_t cuuid_time;
+    uint16_t versubtr = 0;
+    long int usec;
+    time_t sec;
 
-    tv.tv_sec = sec;
-    tv.tv_usec = usec;
+    /* Determine version substraction */
+    switch (cuuid->version) {
+        case QUID_REV4:
+            versubtr = VERSION_REV4;
+            break;
+        case QUID_REV7:
+            versubtr = VERSION_REV7;
+            break;
+    }
+
+    /* Reconstruct timestamp */
+    cuuid_time = (uint64_t)cuuid->time_low | (uint64_t)cuuid->time_mid << 32 | 
+    (uint64_t)((cuuid->time_hi_and_version ^ QUIDMAGIC) - versubtr) << 48;
+
+    /* Timestamp to timeval */
+    usec = (cuuid_time/10) % 1000000LL;
+    sec = (((cuuid_time/10) - usec)/1000000LL) - EPOCH_DIFF;
+
+    tv->tv_sec = sec;
+    tv->tv_usec = usec;
+}
+
+/* Retrieve timestamp */
+struct tm *quid_timestamp(cuuid_t *cuuid) {
+    struct timeval tv;
+
+    quid_timeval(cuuid, &tv);
 
     /* Localtime */
     return localtime(&tv.tv_sec);
 }
 
-//TODO: different version
-struct tm *quid_timestamp(cuuid_t *cuuid) {
-    cuuid_time_t cuuid_time = (uint64_t)cuuid->time_low | 
-    (uint64_t)cuuid->time_mid << 32 | 
-    (uint64_t)((cuuid->time_hi_and_version ^ 0x80) - VERSION_REV7) << 48;
+/* Retrieve microtime */
+long quid_microtime(cuuid_t *cuuid) {
+    struct timeval tv;
 
-    return quid_localtime(cuuid_time);
+    quid_timeval(cuuid, &tv);
+
+    /* Microseconds */
+    return tv.tv_usec;
 }
 
 /*
