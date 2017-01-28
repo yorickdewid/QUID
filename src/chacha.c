@@ -157,6 +157,10 @@ void chacha_xor(chacha_ctx *ctx, uint8_t *input, size_t len) {
     uint8_t block[64];
     unsigned int i;
 
+    /* Upper block limit */
+    if (len > 64)
+        abort();
+
     /* Update the internal state and increase the block counter */
     doublerounds(block, ctx->state, ctx->rounds);
     ctx->state[12] = PLUSONE(ctx->state[12]);

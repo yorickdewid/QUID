@@ -78,6 +78,14 @@ extern "c" {
 #define QUID_FULLLEN QUID_LEN+4+2       /* Full QUID length */
 
 /*
+ * QUID versions
+ */
+enum {
+    QUID_REV4 = 0x10,
+    QUID_REV7 = 0x12,
+};
+
+/*
  * Identifier structure
  */
 typedef struct {
@@ -87,6 +95,7 @@ typedef struct {
     uint8_t   clock_seq_hi_and_reserved;  /* Clock sequence */
     uint8_t   clock_seq_low;              /* Clock sequence lower half */
     uint8_t   node[6];                    /* Node allocation, filled with random memory data */
+    uint8_t   version;                    /* Internal version */
 } cuuid_t;
 
 enum {
@@ -109,7 +118,7 @@ extern void         quid_tostring(const cuuid_t *, char str[QUID_FULLLEN + 1]);
 extern void         quid_set_rnd_seed(int);
 extern void         quid_set_mem_seed(int);
 
-extern char        *quid_libversion(void);
+extern const char  *quid_libversion(void);
 extern int          quid_cmp(const cuuid_t *, const cuuid_t *);
 extern struct tm   *quid_timestamp(cuuid_t *);
 
