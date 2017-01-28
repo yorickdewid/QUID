@@ -40,11 +40,9 @@
 
 #include <quid.h>
 
-#define GL_DELAY 15         /* Default delay between identifier generations */
-
 /* Global variables */
-int delay = GL_DELAY;
-static struct timeval t1,t2;
+int delay = 0;
+static struct timeval t1, t2;
 clock_t ticks = 0;
 unsigned int i;
 char flg = IDF_NULL;
@@ -60,6 +58,7 @@ int check_fname(const char *);
 void quid_print(cuuid_t, int);
 void quid_print_file(FILE *, cuuid_t, int);
 void set_signint(int);
+const char *category_name(uint8_t cat);
 
 /* Set flag if program got terminated */
 void set_signint(int s) {
@@ -126,36 +125,52 @@ void quid_print_file(FILE *fp, cuuid_t u, int format) {
 /* */
 void input_verbose(cuuid_t u) {
     char sflag;
+    int version = 0;
+    char structure[32];
 
-    printf("-----------------------------\n");
+    switch (u.version) {
+        case QUID_REV4:
+            version = 4;
+            strcpy(structure, "memgrep");
+            break;
+        case QUID_REV7:
+            version = 7;
+            strcpy(structure, "ChaCha/4");
+            break;
+    }
 
-    printf("Category index %d\n", u.node[2]);
+    printf("---------------------------------------------\n");
+    printf("Health          : %s\n", quid_validate(&u) ? "OK" : "INVALID");
+    printf("Timestamp       : %s", asctime(quid_timestamp(&u)));
+    printf("Microtime       : %fms\n", quid_microtime(&u)/1000.0);
+    printf("Structure       : %s\n", structure);
+    printf("Cuuid version   : %d\n", version);
+    printf("Tag             : %s\n", "3-Padding");
+    printf("Category        : %s\n", category_name(u.node[2]));
 
     /* Remove NULL */
     sflag = (u.node[1] ^ IDF_NULL);
-    printf("Flags");
+    printf("Flags           :\n");
 
     if (sflag & FLAG_PUBLIC)
-        printf(" PUBLIC");
+        printf(" * Public\n");
 
     if (sflag & FLAG_IDSAFE)
-        printf(" IDSAFE");
+        printf(" * Safe\n");
 
     if (sflag & FLAG_MASTER)
-        printf(" MASTER");
+        printf(" * master\n");
 
     if (sflag & FLAG_SIGNED)
-        printf(" SIGNED");
+        printf(" * Signed\n");
 
     if (sflag & FLAG_TAGGED)
-        printf(" TAGGED");
+        printf(" * Tagged\n");
 
     if (sflag & FLAG_STRICT)
-        printf(" STRICT");
+        printf(" * Strict\n");
 
-    printf("\n");
-
-    printf("-----------------------------\n");
+    printf("---------------------------------------------\n");
 }
 
 /* Show verbose generation information */
@@ -177,7 +192,7 @@ void generate_verbose(void) {
 }
 
 /* Program usage */
-void usage() {
+void usage(void) {
     printf("Usage: " PACKAGE_NAME " [OPTIONS] identifier...\n");
     printf("Options:\n");
     printf("  -c <count>               Number of identifiers, 0 for infinite\n");
@@ -186,7 +201,9 @@ void usage() {
     printf("  --memory-seed=<cycles>   Reinitialize memory seed per <cycles>\n");
 
     printf("\nGeneration:\n");
+    printf("  --rev=<version>          Select identifier version\n");
     printf("  --list-categories        Show all categories\n");
+    printf("  --tag=<tag>              Set tag\n");
     printf("  --category=<index>       Set identifier with category\n");
     printf("  --set-public             Set public flag\n");
     printf("  --set-safe               Set safety flag\n");
@@ -227,9 +244,24 @@ int check_fname(const char *pathname) {
         return 2;
 }
 
+const char *category_name(uint8_t cat) {
+    switch (cat) {
+        case CLS_CMON:
+            return "Common";
+        case CLS_INFO:
+            return "Info";
+        case CLS_WARN:
+            return "Warning";
+        case CLS_ERROR:
+            return "Error";
+        default:
+            return "Unknown";
+    }
+}
+
 /* Program main */
 int main(int argc, char *argv[]) {
-    cuuid_t u;
+    cuuid_t cuuid;
     int c, rtn;
     unsigned int n = 1;
     char *fname;
@@ -245,6 +277,7 @@ int main(int argc, char *argv[]) {
         {"set-tag",        no_argument,       0, 0},
         {"set-strict",     no_argument,       0, 0},
         {"list-categories",no_argument,       0, 0},
+        {"rev",            required_argument, 0, 0},
         {"rand-seed",      required_argument, 0, 0},
         {"memory-seed",    required_argument, 0, 0},
         {"output-hex",     no_argument,       0, 'x'},
@@ -270,11 +303,21 @@ int main(int argc, char *argv[]) {
                     quid_set_rnd_seed(atoi(optarg));
                 else if (!strcmp("memory-seed", long_options[option_index].name))
                     quid_set_mem_seed(atoi(optarg));
+                else if (!strcmp("rev", long_options[option_index].name))
+                    switch (atoi(optarg)) {
+                        case 4:
+                            cuuid.version = QUID_REV4;
+                            break;
+                        case 7:
+                        default:
+                            cuuid.version = QUID_REV7;
+                            break;
+                    }
                 else if (!strcmp("list-categories", long_options[option_index].name)){
-                    printf("%d) CLS_CMON\n", CLS_CMON);
-                    printf("%d) CLS_INFO\n", CLS_INFO);
-                    printf("%d) CLS_WARN\n", CLS_WARN);
-                    printf("%d) CLS_ERROR\n", CLS_ERROR);
+                    printf("%d) %s\n", CLS_CMON, category_name(CLS_CMON));
+                    printf("%d) %s\n", CLS_INFO, category_name(CLS_INFO));
+                    printf("%d) %s\n", CLS_WARN, category_name(CLS_WARN));
+                    printf("%d) %s\n", CLS_ERROR, category_name(CLS_ERROR));
                     gen = 0;
                 }else if (!strcmp("set-safe", long_options[option_index].name))
                     flg |= IDF_IDSAFE;
@@ -330,6 +373,7 @@ int main(int argc, char *argv[]) {
         }
     }
 
+    /* Identifier as positional argument */
     if (optind < argc) {
         cuuid_t uuid;
         while (optind < argc) {
@@ -346,36 +390,38 @@ int main(int argc, char *argv[]) {
         return 0;
     }
 
+    /* Output new identifiers */
     if (gen) {
         gettimeofday(&t1, NULL);
 
+        /* File output */
         if (fout) {
             rtn = check_fname(fname);
-            if(!rtn)
+            if (!rtn) {
                 fp = fopen(fname, "a");
-            else if(rtn == 1){
+            } else if (rtn == 1) {
                 printf("%s is a directory\n", fname);
                 return 1;
-            }else if(rtn == 2){
+            } else if (rtn == 2){
                 printf("%s already exists\n", fname);
                 return 1;
             }
         }
 
         for (i=0; i<n; ++i) {
-            quid_create(&u, flg, cat);
+            quid_create(&cuuid, flg, cat);
 
             if (intflag)
                 break;
 
             if (!fout){
                 if (!nout)
-                    quid_print(u, fmat);
+                    quid_print(cuuid, fmat);
             } else
-                quid_print_file(fp, u, fmat);
+                quid_print_file(fp, cuuid, fmat);
 
             if (delay)
-                usleep((delay * 1000));
+                usleep(delay * 1000);
 
             ticks = clock();
         }
