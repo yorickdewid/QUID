@@ -1,5 +1,6 @@
 QUID
 ====
+[![Build Status](https://travis-ci.org/yorickdewid/QUID.svg?branch=master)](https://travis-ci.org/yorickdewid/QUID)
 
 QUID or fully Quenza unique identifier is a globally unique number representing an object
 or subject. The QUID is based on the OSF UUID version 4, but exceeds in many ways.
