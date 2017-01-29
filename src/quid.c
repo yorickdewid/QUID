@@ -33,11 +33,12 @@
  *          - QUID version 7
  *          - Fix string functions
  *          - Testcases
+ * 2017-01: Version 1.4
+ *          - User defined tags
  *
  * TODO:
  * - Last digit in timestamp
  * - Move randon cipher counter
- * - Implement TAGs
  */
 
 #ifdef HAVE_CLOCK_GETTIME
@@ -61,13 +62,13 @@
 
 #include "chacha.h"
 
-#define UIDS_PER_TICK 1024          /* Generate identifiers per tick interval */
-#define EPOCH_DIFF 11644473600LL    /* Conversion needed for EPOCH to UTC */
-#define RANDFILE ".rnd"             /* File descriptor for random seed */
-#define MEM_SEED_CYCLE 65536        /* Generate new memory seed after interval */
-#define RND_SEED_CYCLE 4096         /* Generate new random seed after interval */
-#define SEEDSZ 16                   /* Seed size */
-#define QUIDMAGIC   0x80            /* QUID Timestamp magic */
+#define UIDS_PER_TICK   1024             /* Generate identifiers per tick interval */
+#define EPOCH_DIFF      11644473600LL    /* Conversion needed for EPOCH to UTC */
+#define RANDFILE        ".rnd"           /* File descriptor for random seed */
+#define MEM_SEED_CYCLE  65536            /* Generate new memory seed after interval */
+#define RND_SEED_CYCLE  4096             /* Generate new random seed after interval */
+#define SEEDSZ          16               /* Seed size */
+#define QUIDMAGIC       0x80             /* QUID Timestamp magic */
 
 #define VERSION_REV4    0xa000
 #define VERSION_REV7    0xb000
@@ -78,7 +79,7 @@ typedef unsigned long long cuuid_time_t;
  * Temporary node structure
  */
 typedef struct {
-    char node[6];     /* Allocate 6 nodes */
+    uint8_t node[6];     /* Allocate 6 nodes */
 } cuuid_node_t;
 
 /*
@@ -212,9 +213,9 @@ const char *quid_tag(cuuid_t *cuuid) {
         return "Invalid";
 
     /* Check for padding */
-    if (node.node[3] == (char)padding[0] &&
-        node.node[4] == (char)padding[1] &&
-        node.node[5] == (char)padding[2])
+    if (node.node[3] == padding[0] &&
+        node.node[4] == padding[1] &&
+        node.node[5] == padding[2])
         return "None";
 
     tag[0] = node.node[3];
@@ -271,7 +272,7 @@ uint8_t quid_flag(cuuid_t *cuuid) {
 static void get_memory_seed(cuuid_node_t *node) {
     static int mem_seed_count = 0;
     static cuuid_node_t saved_node;
-    char seed[SEEDSZ];
+    uint8_t seed[SEEDSZ];
     FILE *fp;
 
     if (!mem_seed_count) {
@@ -350,7 +351,7 @@ void encrypt_node(uint64_t prekey, uint8_t preiv1, uint8_t preiv2, cuuid_node_t 
 }
 
 /* QUID format REV4 */
-int quid_create_rev4(cuuid_t *uid, char flag, char subc) {
+int quid_create_rev4(cuuid_t *uid, uint8_t flag, uint8_t subc) {
     cuuid_time_t    timestamp;
     unsigned short  clockseq;
     cuuid_node_t    node;
@@ -370,7 +371,7 @@ int quid_create_rev4(cuuid_t *uid, char flag, char subc) {
 }
 
 /* QUID format REV7 */
-int quid_create_rev7(cuuid_t *uid, char flag, char subc, char tag[3]) {
+int quid_create_rev7(cuuid_t *uid, uint8_t flag, uint8_t subc, char tag[3]) {
     cuuid_time_t    timestamp;
     unsigned short  clockseq;
     cuuid_node_t    node;
@@ -382,12 +383,12 @@ int quid_create_rev7(cuuid_t *uid, char flag, char subc, char tag[3]) {
     format_quid_rev7(uid, clockseq, timestamp);
 
     /* Prepare nodes */
-    node.node[0] = (char)QUID_REV7;
-    node.node[1] = (char)flag;
-    node.node[2] = (char)subc;
-    node.node[3] = (char)padding[0];
-    node.node[4] = (char)padding[1];
-    node.node[5] = (char)padding[2];
+    node.node[0] = QUID_REV7;
+    node.node[1] = flag;
+    node.node[2] = subc;
+    node.node[3] = padding[0];
+    node.node[4] = padding[1];
+    node.node[5] = padding[2];
 
     /* Set tag if passed */
     if (tag &&
@@ -407,7 +408,7 @@ int quid_create_rev7(cuuid_t *uid, char flag, char subc, char tag[3]) {
 }
 
 /* Default constructor */
-int quid_create(cuuid_t *cuuid, char flag, char subc, char tag[3]) {
+int quid_create(cuuid_t *cuuid, uint8_t flag, uint8_t subc, char tag[3]) {
     if (cuuid->version == QUID_REV4)
         return quid_create_rev4(cuuid, flag, subc);
 

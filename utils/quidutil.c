@@ -122,7 +122,7 @@ void quid_print_file(FILE *fp, cuuid_t u, int format) {
     }
 }
 
-/* */
+/* Report versbose identifier info */
 void input_verbose(cuuid_t u) {
     char sflag;
     int version = 0;
@@ -298,16 +298,16 @@ int main(int argc, char *argv[]) {
         option_index = 0;
 
         c = getopt_long(argc, argv, "c:d:o:qxivVh", long_options, &option_index);
-        if(c == -1)
+        if (c == -1)
             break;
 
         switch (c) {
             case 0:
-                if (!strcmp("rand-seed", long_options[option_index].name))
+                if (!strcmp("rand-seed", long_options[option_index].name)) {
                     quid_set_rnd_seed(atoi(optarg));
-                else if (!strcmp("memory-seed", long_options[option_index].name))
+                } else if (!strcmp("memory-seed", long_options[option_index].name)) {
                     quid_set_mem_seed(atoi(optarg));
-                else if (!strcmp("rev", long_options[option_index].name))
+                } else if (!strcmp("rev", long_options[option_index].name)) {
                     switch (atoi(optarg)) {
                         case 4:
                             cuuid.version = QUID_REV4;
@@ -317,7 +317,7 @@ int main(int argc, char *argv[]) {
                             cuuid.version = QUID_REV7;
                             break;
                     }
-                else if (!strcmp("tag", long_options[option_index].name)) {
+                } else if (!strcmp("tag", long_options[option_index].name)) {
                     if (strlen(optarg) != 3) {
                         printf("tag must be 3 characters\n");
                         printf("see --help for more information\n");
@@ -332,24 +332,30 @@ int main(int argc, char *argv[]) {
                     printf("%d) %s\n", CLS_WARN, category_name(CLS_WARN));
                     printf("%d) %s\n", CLS_ERROR, category_name(CLS_ERROR));
                     gen = 0;
-                } else if (!strcmp("set-safe", long_options[option_index].name))
+                } else if (!strcmp("set-safe", long_options[option_index].name)) {
                     flg |= IDF_IDSAFE;
-                else if (!strcmp("set-public", long_options[option_index].name))
+                } else if (!strcmp("set-public", long_options[option_index].name)) {
                     flg |= IDF_PUBLIC;
-                else if (!strcmp("set-master", long_options[option_index].name))
+                } else if (!strcmp("set-master", long_options[option_index].name)) {
                     flg |= IDF_MASTER;
-                else if (!strcmp("set-tag", long_options[option_index].name))
+                } else if (!strcmp("set-tag", long_options[option_index].name)) {
                     flg |= IDF_TAGGED;
-                else if (!strcmp("set-strict", long_options[option_index].name))
+                } else if (!strcmp("set-strict", long_options[option_index].name)) {
                     flg |= IDF_STRICT;
-                else if (!strcmp("set-sign", long_options[option_index].name))
+                } else if (!strcmp("set-sign", long_options[option_index].name)) {
                     flg |= IDF_SIGNED;
-                else if (!strcmp("category", long_options[option_index].name)){
+                } else if (!strcmp("category", long_options[option_index].name)) {
                     cat = atoi(optarg);
-                    if (cat > CLS_ERROR) {
-                        printf("unknown category %d\n", cat);
-                        printf("see --help for more information\n");
-                        return 1;
+                    switch (cat) {
+                        case CLS_CMON:
+                        case CLS_INFO:
+                        case CLS_WARN:
+                        case CLS_ERROR:
+                            break;
+                        default:
+                            printf("unknown category %d\n", cat);
+                            printf("see --help for more information\n");
+                            return 1;
                     }
                 }
                 break;
@@ -445,6 +451,7 @@ int main(int argc, char *argv[]) {
         gettimeofday(&t2, NULL);
     }
 
+    /* Show counters */
     if (vbose && gen) 
         generate_verbose();
 

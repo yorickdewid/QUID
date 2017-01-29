@@ -72,6 +72,7 @@ int main(int argc, char *argv[]) {
     quid_tostring(&tc_2u, tc2_str);
     assert(tc2_str[0] != 0);
     puts(tc2_str);
+    printf("\n");
 
     printf("TC3: Convert to string and back.\n");
     printf("----------------------------------------\n");
@@ -86,6 +87,58 @@ int main(int argc, char *argv[]) {
     quid_print(&tc_3u);
     quid_print(&tc_3u_);
     assert(quid_cmp(&tc_3u, &tc_3u_));
+    printf("\n");
+
+    printf("TC4: Legacy version to string and back.\n");
+    printf("----------------------------------------\n");
+
+    cuuid_t tc_4u, tc_4u_;
+    tc_4u.version = QUID_REV4;
+    char tc_4str[QUID_FULLLEN + 1];
+    assert(quid_create_simple(&tc_4u) == QUID_OK);
+    quid_tostring(&tc_4u, tc_4str);
+    assert(tc_4str[0] != 0);
+    puts(tc_4str);
+    assert(quid_parse(tc_4str, &tc_4u_) == QUID_OK);
+    quid_print(&tc_4u);
+    quid_print(&tc_4u_);
+    assert(quid_cmp(&tc_4u, &tc_4u_));
+    printf("\n");
+
+    printf("TC5: Check category and flags.\n");
+    printf("----------------------------------------\n");
+
+    cuuid_t tc_5u;
+    assert(quid_create(&tc_5u, IDF_MASTER | IDF_STRICT, CLS_WARN, NULL) == QUID_OK);
+    quid_print(&tc_5u);
+    assert(quid_flag(&tc_5u) & FLAG_MASTER);
+    assert(quid_flag(&tc_5u) & FLAG_STRICT);
+    assert(quid_category(&tc_5u) == CLS_WARN);
+    printf("\n");
+
+    printf("TC6: Check legacy category and flags.\n");
+    printf("----------------------------------------\n");
+
+    cuuid_t tc_6u;
+    tc_6u.version = QUID_REV4;
+    assert(quid_create(&tc_6u, IDF_MASTER | IDF_STRICT, CLS_WARN, NULL) == QUID_OK);
+    quid_print(&tc_6u);
+    assert(quid_flag(&tc_6u) & FLAG_MASTER);
+    assert(quid_flag(&tc_6u) & FLAG_STRICT);
+    assert(quid_category(&tc_6u) == CLS_WARN);
+    printf("\n");
+
+    printf("TC7: Check tag.\n");
+    printf("----------------------------------------\n");
+
+    cuuid_t tc_7u;
+    assert(quid_create(&tc_7u, IDF_SIGNED | IDF_PUBLIC, CLS_ERROR, "CHK") == QUID_OK);
+    quid_print(&tc_7u);
+    assert(quid_flag(&tc_7u) & IDF_SIGNED);
+    assert(quid_flag(&tc_7u) & IDF_PUBLIC);
+    assert(quid_category(&tc_7u) == CLS_ERROR);
+    assert(!strncmp(quid_tag(&tc_7u), "CHK", 3));
+    printf("\n");
 
     return 0;
 }

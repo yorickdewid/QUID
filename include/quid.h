@@ -113,9 +113,9 @@ enum {
 /*
  * Prototypes to library functions
  */
-extern int          quid_create_rev4(cuuid_t *, char, char);
-extern int          quid_create_rev7(cuuid_t *, char, char, char tag[3]);
-extern int          quid_create(cuuid_t *, char, char, char tag[3]);
+extern int          quid_create_rev4(cuuid_t *, uint8_t, uint8_t);
+extern int          quid_create_rev7(cuuid_t *, uint8_t, uint8_t, char tag[3]);
+extern int          quid_create(cuuid_t *, uint8_t, uint8_t, char tag[3]);
 
 extern int          quid_validate(cuuid_t *);
 extern int          quid_parse(char *, cuuid_t *);
