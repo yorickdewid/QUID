@@ -86,6 +86,7 @@ typedef struct {
  */
 static void             format_quid_rev4(cuuid_t *, unsigned short, cuuid_time_t, cuuid_node_t);
 static void             format_quid_rev7(cuuid_t *, unsigned short, cuuid_time_t);
+static void             encrypt_node(uint64_t, uint8_t, uint8_t, cuuid_node_t *);
 static void             get_current_time(cuuid_time_t *);
 static unsigned short   true_random(void);
 
@@ -194,6 +195,43 @@ long quid_microtime(cuuid_t *cuuid) {
     return tv.tv_usec;
 }
 
+/* Retrieve user tag */
+const char *quid_tag(cuuid_t *cuuid) {
+    cuuid_node_t node;
+    static char tag[3];
+
+    /* Skip older formats */
+    if (cuuid->version != QUID_REV7)
+        return "Not implemented";
+
+    memcpy(&node, &cuuid->node, sizeof(cuuid_node_t));
+    encrypt_node(cuuid->time_low, cuuid->clock_seq_hi_and_reserved, cuuid->clock_seq_low, &node);
+
+    /* Must match version */
+    if (node.node[0] != QUID_REV7)
+        return "Invalid";
+
+    // printf("%.2x %.2x %.2x %.2x %.2x %.2x\n",
+    //     node.node[0],
+    //     node.node[1],
+    //     node.node[2],
+    //     node.node[3],
+    //     node.node[4],
+    //     node.node[5]);
+
+    /* Check for padding */
+    if (node.node[3] == (char)padding[0] &&
+        node.node[4] == (char)padding[1] &&
+        node.node[5] == (char)padding[2])
+        return "None";
+
+    tag[0] = node.node[3];
+    tag[1] = node.node[4];
+    tag[2] = node.node[5];
+
+    return tag;
+}
+
 /*
  * Read seed or create if not exist (Obsolete)
  * Compilers and flatforms may zero stack
@@ -237,7 +275,7 @@ static void get_memory_seed(cuuid_node_t *node) {
  * are by no means secure and are only applied to increase diffusion. The stream
  * cipher may use low rounds as the primary goal is entropy, not privacy.
  */
-static void encrypt_node(uint64_t prekey, uint8_t preiv1, uint8_t preiv2, cuuid_node_t *node) {
+void encrypt_node(uint64_t prekey, uint8_t preiv1, uint8_t preiv2, cuuid_node_t *node) {
     chacha_ctx ctx;
     uint8_t key[16];
     uint8_t iv[8];
@@ -291,6 +329,7 @@ int quid_create_rev4(cuuid_t *uid, char flag, char subc) {
     get_memory_seed(&node);
     clockseq = true_random();
 
+    /* Format QUID */
     format_quid_rev4(uid, clockseq, timestamp, node);
 
     /* Set flags and subclasses */
@@ -301,7 +340,7 @@ int quid_create_rev4(cuuid_t *uid, char flag, char subc) {
 }
 
 /* QUID format REV7 */
-int quid_create_rev7(cuuid_t *uid, char flag, char subc) {
+int quid_create_rev7(cuuid_t *uid, char flag, char subc, char tag[3]) {
     cuuid_time_t    timestamp;
     unsigned short  clockseq;
     cuuid_node_t    node;
@@ -309,6 +348,7 @@ int quid_create_rev7(cuuid_t *uid, char flag, char subc) {
     get_current_time(&timestamp);
     clockseq = true_random();
 
+    /* Format QUID */
     format_quid_rev7(uid, clockseq, timestamp);
 
     /* Prepare nodes */
@@ -319,6 +359,21 @@ int quid_create_rev7(cuuid_t *uid, char flag, char subc) {
     node.node[4] = (char)padding[1];
     node.node[5] = (char)padding[2];
 
+    /* Set tag if passed */
+    if (tag) {
+        node.node[3] = tag[0];
+        node.node[4] = tag[1];
+        node.node[5] = tag[2];
+    }
+
+    // printf("%.2x %.2x %.2x %.2x %.2x %.2x\n",
+    //     node.node[0],
+    //     node.node[1],
+    //     node.node[2],
+    //     node.node[3],
+    //     node.node[4],
+    //     node.node[5]);
+
     /* Encrypt nodes */
     encrypt_node(uid->time_low, uid->clock_seq_hi_and_reserved, uid->clock_seq_low, &node);
     memcpy(&uid->node, &node, sizeof(uid->node));
@@ -327,13 +382,13 @@ int quid_create_rev7(cuuid_t *uid, char flag, char subc) {
 }
 
 /* Default constructor */
-int quid_create(cuuid_t *cuuid, char flag, char subc) {
+int quid_create(cuuid_t *cuuid, char flag, char subc, char tag[3]) {
     if (cuuid->version == QUID_REV4)
         return quid_create_rev4(cuuid, flag, subc);
 
     /* Default to latest */
     cuuid->version = QUID_REV7;
-    return quid_create_rev7(cuuid, flag, subc);
+    return quid_create_rev7(cuuid, flag, subc, tag);
 }
 
 /*

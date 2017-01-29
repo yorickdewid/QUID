@@ -145,7 +145,7 @@ void input_verbose(cuuid_t u) {
     printf("Microtime       : %fms\n", quid_microtime(&u)/1000.0);
     printf("Structure       : %s\n", structure);
     printf("Cuuid version   : %d\n", version);
-    printf("Tag             : %s\n", "3-Padding");
+    printf("Tag             : %s\n", quid_tag(&u));
     printf("Category        : %s\n", category_name(u.node[2]));
 
     /* Remove NULL */
@@ -409,7 +409,7 @@ int main(int argc, char *argv[]) {
         }
 
         for (i=0; i<n; ++i) {
-            quid_create(&cuuid, flg, cat);
+            quid_create(&cuuid, flg, cat, "KAS");
 
             if (intflag)
                 break;

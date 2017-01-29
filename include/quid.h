@@ -75,7 +75,7 @@ extern "c" {
  * Identifier structure
  */
 #define QUID_LEN 32                     /* Default string length for striped quid */
-#define QUID_FULLLEN QUID_LEN+4+2       /* Full QUID length */
+#define QUID_FULLLEN QUID_LEN + 4 + 2   /* Full QUID length */
 
 /*
  * QUID versions
@@ -95,6 +95,7 @@ typedef struct {
     uint8_t   clock_seq_hi_and_reserved;  /* Clock sequence */
     uint8_t   clock_seq_low;              /* Clock sequence lower half */
     uint8_t   node[6];                    /* Node allocation, filled with random memory data */
+    uint8_t   tag[3];                     /* User defined tag */
     uint8_t   version;                    /* Internal version */
 } cuuid_t;
 
@@ -107,9 +108,9 @@ enum {
  * Prototypes to library functions
  */
 
-extern int          quid_create_rev4(cuuid_t *uid, char flag, char subc);
-extern int          quid_create_rev7(cuuid_t *uid, char flag, char subc);
-extern int          quid_create(cuuid_t *, char, char);
+extern int          quid_create_rev4(cuuid_t *, char, char);
+extern int          quid_create_rev7(cuuid_t *, char, char, char tag[3]);
+extern int          quid_create(cuuid_t *, char, char, char tag[3]);
 
 extern int          quid_validate(cuuid_t *);
 extern int          quid_parse(char *, cuuid_t *);
@@ -122,6 +123,7 @@ extern const char  *quid_libversion(void);
 extern int          quid_cmp(const cuuid_t *, const cuuid_t *);
 extern struct tm   *quid_timestamp(cuuid_t *);
 extern long         quid_microtime(cuuid_t *);
+extern const char  *quid_tag(cuuid_t *);
 
 #if defined(__cplusplus)
 }

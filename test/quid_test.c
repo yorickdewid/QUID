@@ -58,7 +58,7 @@ int main(int argc, char *argv[]) {
     printf("----------------------------------------\n");
 
     cuuid_t tc_1u;
-    assert(quid_create(&tc_1u, IDF_NULL, CLS_CMON) == QUID_OK);
+    assert(quid_create(&tc_1u, IDF_NULL, CLS_CMON, NULL) == QUID_OK);
     assert(quid_validate(&tc_1u) == QUID_OK);
     quid_print(&tc_1u);
     printf("\n");
@@ -68,7 +68,7 @@ int main(int argc, char *argv[]) {
 
     cuuid_t tc_2u;
     char tc2_str[QUID_FULLLEN + 1];
-    assert(quid_create(&tc_2u, IDF_NULL, CLS_CMON) == QUID_OK);
+    assert(quid_create(&tc_2u, IDF_NULL, CLS_CMON, NULL) == QUID_OK);
     assert(quid_validate(&tc_2u) == QUID_OK);
     quid_tostring(&tc_2u, tc2_str);
     assert(tc2_str[0] != 0);
@@ -79,7 +79,7 @@ int main(int argc, char *argv[]) {
 
     cuuid_t tc_3u, tc_3u_;
     char tc_3str[QUID_FULLLEN + 1];
-    assert(quid_create(&tc_3u, IDF_NULL, CLS_CMON) == QUID_OK);
+    assert(quid_create(&tc_3u, IDF_NULL, CLS_CMON, NULL) == QUID_OK);
     assert(quid_validate(&tc_3u) == QUID_OK);
     quid_tostring(&tc_3u, tc_3str);
     assert(tc_3str[0] != 0);
