@@ -146,10 +146,10 @@ void input_verbose(cuuid_t u) {
     printf("Structure       : %s\n", structure);
     printf("Cuuid version   : %d\n", version);
     printf("Tag             : %s\n", quid_tag(&u));
-    printf("Category        : %s\n", category_name(u.node[2]));
+    printf("Category        : %s\n", category_name(quid_category(&u)));
 
     /* Remove NULL */
-    sflag = (u.node[1] ^ IDF_NULL);
+    sflag = (quid_flag(&u) ^ IDF_NULL);
     printf("Flags           :\n");
 
     if (sflag & FLAG_PUBLIC)
@@ -268,6 +268,8 @@ int main(int argc, char *argv[]) {
     FILE *fp = NULL;
     int fout = 0, nout = 0, fmat = 0, vbose = 0, gen = 1;
     int option_index;
+    char tag[3] = {0x0, 0x0, 0x0};
+
     static struct option long_options[] = {
         {"category",       required_argument, 0, 0},
         {"set-safe",       no_argument,       0, 0},
@@ -278,6 +280,7 @@ int main(int argc, char *argv[]) {
         {"set-strict",     no_argument,       0, 0},
         {"list-categories",no_argument,       0, 0},
         {"rev",            required_argument, 0, 0},
+        {"tag",            required_argument, 0, 0},
         {"rand-seed",      required_argument, 0, 0},
         {"memory-seed",    required_argument, 0, 0},
         {"output-hex",     no_argument,       0, 'x'},
@@ -288,6 +291,7 @@ int main(int argc, char *argv[]) {
         {0,                0,                 0,  0 }
     };
 
+    /* Register interrupt handler */
     signal(SIGINT, set_signint);
 
     while (1) {
@@ -313,13 +317,22 @@ int main(int argc, char *argv[]) {
                             cuuid.version = QUID_REV7;
                             break;
                     }
-                else if (!strcmp("list-categories", long_options[option_index].name)){
+                else if (!strcmp("tag", long_options[option_index].name)) {
+                    if (strlen(optarg) != 3) {
+                        printf("tag must be 3 characters\n");
+                        printf("see --help for more information\n");
+                        return 1;
+                    }
+                    tag[0] = optarg[0];
+                    tag[1] = optarg[1];
+                    tag[2] = optarg[2];
+                } else if (!strcmp("list-categories", long_options[option_index].name)) {
                     printf("%d) %s\n", CLS_CMON, category_name(CLS_CMON));
                     printf("%d) %s\n", CLS_INFO, category_name(CLS_INFO));
                     printf("%d) %s\n", CLS_WARN, category_name(CLS_WARN));
                     printf("%d) %s\n", CLS_ERROR, category_name(CLS_ERROR));
                     gen = 0;
-                }else if (!strcmp("set-safe", long_options[option_index].name))
+                } else if (!strcmp("set-safe", long_options[option_index].name))
                     flg |= IDF_IDSAFE;
                 else if (!strcmp("set-public", long_options[option_index].name))
                     flg |= IDF_PUBLIC;
@@ -336,7 +349,7 @@ int main(int argc, char *argv[]) {
                     if (cat > CLS_ERROR) {
                         printf("unknown category %d\n", cat);
                         printf("see --help for more information\n");
-                        cat = 0;
+                        return 1;
                     }
                 }
                 break;
@@ -409,7 +422,7 @@ int main(int argc, char *argv[]) {
         }
 
         for (i=0; i<n; ++i) {
-            quid_create(&cuuid, flg, cat, "KAS");
+            quid_create(&cuuid, flg, cat, tag);
 
             if (intflag)
                 break;

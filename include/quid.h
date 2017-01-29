@@ -105,9 +105,14 @@ enum {
 };
 
 /*
+ * Helper
+ */
+#define quid_create_simple(c) \
+    quid_create(c, IDF_NULL, CLS_CMON, NULL)
+
+/*
  * Prototypes to library functions
  */
-
 extern int          quid_create_rev4(cuuid_t *, char, char);
 extern int          quid_create_rev7(cuuid_t *, char, char, char tag[3]);
 extern int          quid_create(cuuid_t *, char, char, char tag[3]);
@@ -124,6 +129,8 @@ extern int          quid_cmp(const cuuid_t *, const cuuid_t *);
 extern struct tm   *quid_timestamp(cuuid_t *);
 extern long         quid_microtime(cuuid_t *);
 extern const char  *quid_tag(cuuid_t *);
+extern uint8_t      quid_category(cuuid_t *);
+extern uint8_t      quid_flag(cuuid_t *);
 
 #if defined(__cplusplus)
 }

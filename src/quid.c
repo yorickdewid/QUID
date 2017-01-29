@@ -211,14 +211,6 @@ const char *quid_tag(cuuid_t *cuuid) {
     if (node.node[0] != QUID_REV7)
         return "Invalid";
 
-    // printf("%.2x %.2x %.2x %.2x %.2x %.2x\n",
-    //     node.node[0],
-    //     node.node[1],
-    //     node.node[2],
-    //     node.node[3],
-    //     node.node[4],
-    //     node.node[5]);
-
     /* Check for padding */
     if (node.node[3] == (char)padding[0] &&
         node.node[4] == (char)padding[1] &&
@@ -230,6 +222,44 @@ const char *quid_tag(cuuid_t *cuuid) {
     tag[2] = node.node[5];
 
     return tag;
+}
+
+/* Retrieve category */
+uint8_t quid_category(cuuid_t *cuuid) {
+    cuuid_node_t node;
+
+    /* Determine category per version */
+    switch (cuuid->version) {
+        case QUID_REV4:
+            return cuuid->node[2];
+        case QUID_REV7: {
+            memcpy(&node, &cuuid->node, sizeof(cuuid_node_t));
+            encrypt_node(cuuid->time_low, cuuid->clock_seq_hi_and_reserved, cuuid->clock_seq_low, &node);
+            return node.node[2];
+        }
+    }
+
+    /* Invalid */
+    return 0x0;
+}
+
+/* Retrieve flag if any */
+uint8_t quid_flag(cuuid_t *cuuid) {
+    cuuid_node_t node;
+
+    /* Determine category per version */
+    switch (cuuid->version) {
+        case QUID_REV4:
+            return cuuid->node[1];
+        case QUID_REV7: {
+            memcpy(&node, &cuuid->node, sizeof(cuuid_node_t));
+            encrypt_node(cuuid->time_low, cuuid->clock_seq_hi_and_reserved, cuuid->clock_seq_low, &node);
+            return node.node[1];
+        }
+    }
+
+    /* Invalid */
+    return 0x0;
 }
 
 /*
@@ -360,19 +390,14 @@ int quid_create_rev7(cuuid_t *uid, char flag, char subc, char tag[3]) {
     node.node[5] = (char)padding[2];
 
     /* Set tag if passed */
-    if (tag) {
+    if (tag &&
+        tag[0] != 0x0 &&
+        tag[1] != 0x0 &&
+        tag[2] != 0x0) {
         node.node[3] = tag[0];
         node.node[4] = tag[1];
         node.node[5] = tag[2];
     }
-
-    // printf("%.2x %.2x %.2x %.2x %.2x %.2x\n",
-    //     node.node[0],
-    //     node.node[1],
-    //     node.node[2],
-    //     node.node[3],
-    //     node.node[4],
-    //     node.node[5]);
 
     /* Encrypt nodes */
     encrypt_node(uid->time_low, uid->clock_seq_hi_and_reserved, uid->clock_seq_low, &node);
