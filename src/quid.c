@@ -409,6 +409,7 @@ int quid_create_rev7(cuuid_t *uid, uint8_t flag, uint8_t subc, char tag[3]) {
 
 /* Default constructor */
 int quid_create(cuuid_t *cuuid, uint8_t flag, uint8_t subc, char tag[3]) {
+    memset(cuuid, '\0', sizeof(cuuid_t));
     if (cuuid->version == QUID_REV4)
         return quid_create_rev4(cuuid, flag, subc);
 
@@ -651,8 +652,7 @@ int quid_parse(char *quid, cuuid_t *cuuid) {
 
 /* Convert quid to string */
 void quid_tostring(const cuuid_t *u, char str[QUID_FULLLEN + 1]) {
-    str[QUID_FULLLEN] = '\0';
-    snprintf(str, QUID_FULLLEN,
+    snprintf(str, QUID_FULLLEN + 1,
         "{%.8lx-%.4x-%.4x-%.2x%.2x-%.2x%.2x%.2x%.2x%.2x%.2x}",
         u->time_low,
         u->time_mid,
