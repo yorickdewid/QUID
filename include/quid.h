@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2017, Yorick de Wid <ydw at x3 dot quenza dot net>
+ * Copyright (c) 2012-2018, Yorick de Wid <yorick17 at outlook dot com>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,6 +29,10 @@
 
 #ifndef __QUID_H__
 #define __QUID_H__
+
+#ifdef _WIN32
+# pragma once
+#endif
 
 #include <stdint.h>
 #include <time.h>

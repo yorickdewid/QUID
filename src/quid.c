@@ -51,8 +51,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#ifdef __WIN32__
-#include <unistd.h>
+#ifdef _WIN32
 #include <winsock2.h>
 #else
 #include <unistd.h>
@@ -110,7 +109,11 @@ void quid_set_rnd_seed(int cnt) {
 
 /* Library version */
 const char *quid_libversion(void) {
+#ifdef _WIN32
+	return "test";//TODO
+#else
     return PACKAGE_VERSION;
+#endif
 }
 
 /* Compare two QUID structures */
@@ -130,7 +133,7 @@ int quid_cmp(const cuuid_t *s1, const cuuid_t *s2) {
 
 /* Retrieve system time */
 static void get_system_time(cuuid_time_t *cuuid_time) {
-#ifdef __WIN32___
+#ifdef _WIN32
     ULARGE_INTEGER time;
 
     GetSystemTimeAsFileTime((FILETIME *)&time);
@@ -492,7 +495,7 @@ void get_current_time(cuuid_time_t *timestamp) {
 
 /* Get hardware tick count */
 static double get_tick_count(void) {
-#ifdef __WIN32___
+#ifdef _WIN32
     return GetTickCount();
 #else
     struct timespec now;
