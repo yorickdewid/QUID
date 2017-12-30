@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.69])
-AC_INIT(quid, 1.3, yorick17@outlook.com)
+AC_INIT(quid, 1.5, yorick17@outlook.com)
 AM_INIT_AUTOMAKE([1.9])
 AC_CONFIG_SRCDIR([src/quid.c])
 

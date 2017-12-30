@@ -37,10 +37,14 @@
  *          - Testcases
  * 2017-01: Version 1.4
  *          - User defined tags
+ * 2017-12: Version 1.5
+ *          - Update Licenses
+ *          - Add CMake support
+ *          - Windows support
  *
  * TODO:
  * - Last digit in timestamp
- * - Move randon cipher counter
+ * - Move random cipher counter
  */
 
 #ifdef HAVE_CLOCK_GETTIME
@@ -52,11 +56,11 @@
 #include <stdlib.h>
 
 #ifdef _WIN32
-#include <winsock2.h>
+# include <winsock2.h>
 #else
-#include <unistd.h>
-#include <sys/time.h>
-#include <ctype.h>
+# include <unistd.h>
+# include <sys/time.h>
+# include <ctype.h>
 #endif
 
 #include <quid.h>
@@ -109,11 +113,7 @@ void quid_set_rnd_seed(int cnt) {
 
 /* Library version */
 const char *quid_libversion(void) {
-#ifdef _WIN32
-	return "test";//TODO
-#else
     return PACKAGE_VERSION;
-#endif
 }
 
 /* Compare two QUID structures */
@@ -207,21 +207,24 @@ const char *quid_tag(cuuid_t *cuuid) {
     static char tag[3];
 
     /* Skip older formats */
-    if (cuuid->version != QUID_REV7)
-        return "Not implemented";
+	if (cuuid->version != QUID_REV7) {
+		return "Not implemented";
+	}
 
     memcpy(&node, &cuuid->node, sizeof(cuuid_node_t));
     encrypt_node(cuuid->time_low, cuuid->clock_seq_hi_and_reserved, cuuid->clock_seq_low, &node);
 
     /* Must match version */
-    if (node.node[0] != QUID_REV7)
-        return "Invalid";
+	if (node.node[0] != QUID_REV7) {
+		return "Invalid";
+	}
 
     /* Check for padding */
-    if (node.node[3] == padding[0] &&
-        node.node[4] == padding[1] &&
-        node.node[5] == padding[2])
-        return "None";
+	if (node.node[3] == padding[0] &&
+		node.node[4] == padding[1] &&
+		node.node[5] == padding[2]) {
+		return "None";
+	}
 
     tag[0] = node.node[3];
     tag[1] = node.node[4];
@@ -278,7 +281,7 @@ static void get_memory_seed(cuuid_node_t *node) {
     static int mem_seed_count = 0;
     static cuuid_node_t saved_node;
     uint8_t seed[SEEDSZ];
-    FILE *fp;
+    FILE *fp = NULL;
 
     if (!mem_seed_count) {
         fp = fopen(RANDFILE, "rb");
@@ -415,8 +418,9 @@ int quid_create_rev7(cuuid_t *uid, uint8_t flag, uint8_t subc, char tag[3]) {
 /* Default constructor */
 int quid_create(cuuid_t *cuuid, uint8_t flag, uint8_t subc, char tag[3]) {
     memset(cuuid, '\0', sizeof(cuuid_t));
-    if (cuuid->version == QUID_REV4)
-        return quid_create_rev4(cuuid, flag, subc);
+	if (cuuid->version == QUID_REV4) {
+		return quid_create_rev4(cuuid, flag, subc);
+	}
 
     /* Default to latest */
     cuuid->version = QUID_REV7;
@@ -500,8 +504,9 @@ static double get_tick_count(void) {
 #else
     struct timespec now;
 
-    if (clock_gettime(CLOCK_MONOTONIC, &now))
-        return 0;
+	if (clock_gettime(CLOCK_MONOTONIC, &now)) {
+		return 0;
+	}
 
     return now.tv_sec * 1000.0 + now.tv_nsec / 1000000.0;
 #endif
@@ -530,11 +535,12 @@ static void strip_special_chars(char *s) {
 
     while (*pr) {
         *pw = *pr++;
-        if ((*pw != '-') &&
-            (*pw != '{') &&
-            (*pw != '}') &&
-            (*pw != ' '))
-            pw++;
+		if ((*pw != '-') &&
+			(*pw != '{') &&
+			(*pw != '}') &&
+			(*pw != ' ')) {
+			pw++;
+		}
     }
 
     *pw = '\0';
@@ -543,8 +549,9 @@ static void strip_special_chars(char *s) {
 /* Check if string validates as hex */
 static int ishex(char *s) {
     while (*s) {
-        if (!isxdigit(*s))
-            return 0;
+		if (!isxdigit(*s)) {
+			return 0;
+		}
         s++;
     }
 
@@ -618,16 +625,18 @@ static void strtoquid(char *str, cuuid_t *u) {
 
 /* Validate quid as genuine identifier */
 int quid_validate(cuuid_t *cuuid) {
-    if ((cuuid->time_hi_and_version & VERSION_REV7) == VERSION_REV7)
-        cuuid->version = QUID_REV7;
-    else if ((cuuid->time_hi_and_version & VERSION_REV4) == VERSION_REV4)
-        cuuid->version = QUID_REV4;
-    else
-        return QUID_ERROR;
+	if ((cuuid->time_hi_and_version & VERSION_REV7) == VERSION_REV7) {
+		cuuid->version = QUID_REV7;
+	} else if ((cuuid->time_hi_and_version & VERSION_REV4) == VERSION_REV4) {
+		cuuid->version = QUID_REV4;
+	} else {
+		return QUID_ERROR;
+	}
 
     /* In any version, these must be filled */
-    if (!cuuid->node[2] || !cuuid->node[5])
-        return QUID_ERROR;
+	if (!cuuid->node[2] || !cuuid->node[5]) {
+		return QUID_ERROR;
+	}
 
     return QUID_OK;
 }
@@ -641,16 +650,19 @@ int quid_parse(char *quid, cuuid_t *cuuid) {
     len = strlen(quid);
 
     /* Fail if invalid length */
-    if (len != QUID_LEN)
-        return QUID_ERROR;
+	if (len != QUID_LEN) {
+		return QUID_ERROR;
+	}
 
     /* Fail if not hex */
-    if (!ishex(quid))
-        return QUID_ERROR;
+	if (!ishex(quid)) {
+		return QUID_ERROR;
+	}
 
     strtoquid(quid, cuuid);
-    if (!quid_validate(cuuid))
-       return QUID_ERROR;
+	if (!quid_validate(cuuid)) {
+		return QUID_ERROR;
+	}
 
     return QUID_OK;
 }

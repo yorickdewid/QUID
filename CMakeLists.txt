@@ -5,7 +5,7 @@
 cmake_minimum_required(VERSION 3.2 FATAL_ERROR)
 
 # Set project info
-project(quid C)
+project(quid VERSION 1.5 LANGUAGES C)
 
 # In-source builds are disabled.
 if(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
@@ -18,15 +18,20 @@ endif ()
 
 # Build sources with additional warnings
 if(CMAKE_COMPILER_IS_GNUCC)
-	set(CMAKE_C_FLAGS  "${CMAKE_C_FLAGS} -Wall -Wextra")
+	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Werror -pedantic -std=c99-Wmissing-prototypes \
+	-Wpointer-arith \
+	-Wendif-labels \
+	-Wmissing-format-attribute \
+	-Wformat-security \
+	-Wno-strict-aliasing")
 endif()
 if(MSVC)
-	set(CMAKE_C_FLAGS  "${CMAKE_C_FLAGS} /W4 /WX")
+	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /W4 /WX /sdl")
+	set(CMAKE_C_STANDARD 99)
 endif()
 
 set(CMAKE_VERBOSE_MAKEFILE ON)
 set(CMAKE_COLOR_MAKEFILE ON)
-set(CMAKE_C_STANDARD 99)
 
 # Direct output to certain directories
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
@@ -34,6 +39,11 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
 include_directories(${CMAKE_SOURCE_DIR}/include)
+
+add_definitions(-DPACKAGE_NAME="${PROJECT_NAME}")
+add_definitions(-DPACKAGE_VERSION="${PROJECT_VERSION}")
+add_definitions(-DPACKAGE_="${PROJECT_NAME}")
+add_definitions(-DVERSION="${PROJECT_VERSION}")
 
 add_library(quid STATIC
 	include/quid.h
