@@ -13,6 +13,7 @@ include_directories(${CMAKE_SOURCE_DIR}/include)
 add_definitions(-D_POSIX_C_SOURCE=199309L)
 
 set(PROJECT_SOURCES
+	win32_getopt.h
 	quidutil.c
 )
 

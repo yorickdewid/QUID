@@ -153,8 +153,11 @@ static void get_system_time(cuuid_time_t *cuuid_time) {
 #else
     struct timeval tv;
     uint64_t result = EPOCH_DIFF;
-    gettimeofday(&tv, NULL);
-    result += tv.tv_sec;
+	if (gettimeofday(&tv, NULL) != 0) {
+		assert(0);
+	}
+    
+	result += tv.tv_sec;
     result *= 10000000LL;
     result += tv.tv_usec * 10;
     *cuuid_time = result;
@@ -198,11 +201,14 @@ struct tm *quid_timestamp(cuuid_t *cuuid) {
 
     /* Localtime */
 #ifdef _WIN32
-	static struct tm buf;
-	assert(localtime_s(&buf, (const time_t *)&tv.tv_sec) == 0);
-	return &buf;
+	static struct tm timeinfo;
+	const time_t timv = tv.tv_sec;
+	assert(localtime_s(&timeinfo, &timv) == 0);
+	return &timeinfo;
 #else
-    return localtime(&tv.tv_sec);
+	struct tm *timeinfo = localtime(&tv.tv_sec);
+	assert(timeinfo);
+	return timeinfo;
 #endif
 }
 
@@ -226,7 +232,7 @@ const char *quid_tag(cuuid_t *cuuid) {
 		return "Not implemented";
 	}
 
-    memcpy(&node, &cuuid->node, sizeof(cuuid_node_t));
+    assert(memcpy(&node, &cuuid->node, sizeof(cuuid_node_t)));
     encrypt_node(cuuid->time_low, cuuid->clock_seq_hi_and_reserved, cuuid->clock_seq_low, &node);
 
     /* Must match version */
@@ -257,7 +263,7 @@ uint8_t quid_category(cuuid_t *cuuid) {
         case QUID_REV4:
             return cuuid->node[2];
         case QUID_REV7: {
-            memcpy(&node, &cuuid->node, sizeof(cuuid_node_t));
+            assert(memcpy(&node, &cuuid->node, sizeof(cuuid_node_t)));
             encrypt_node(cuuid->time_low, cuuid->clock_seq_hi_and_reserved, cuuid->clock_seq_low, &node);
             return node.node[2];
         }
@@ -276,14 +282,14 @@ uint8_t quid_flag(cuuid_t *cuuid) {
         case QUID_REV4:
             return cuuid->node[1];
         case QUID_REV7: {
-            memcpy(&node, &cuuid->node, sizeof(cuuid_node_t));
+            assert(memcpy(&node, &cuuid->node, sizeof(cuuid_node_t)));
             encrypt_node(cuuid->time_low, cuuid->clock_seq_hi_and_reserved, cuuid->clock_seq_low, &node);
             return node.node[1];
         }
     }
 
     /* Invalid */
-    return 0x0;
+    return QUID_ERROR;
 }
 
 /*
@@ -301,18 +307,16 @@ static void get_memory_seed(cuuid_node_t *node) {
     if (!mem_seed_count) {
 		QFOPEN(fp, RANDFILE, "rb");
         if (fp) {
-            if (fread(&saved_node, sizeof(saved_node), 1, fp) < 1)
-                abort();
-            fclose(fp);
+			assert(fread(&saved_node, sizeof(saved_node), 1, fp) > 0);
+            assert(fclose(fp) == 0);
         } else {
             seed[0] |= 0x01;
-            memcpy(&saved_node, seed, sizeof(saved_node));
+            assert(memcpy(&saved_node, seed, sizeof(saved_node)));
 
 			QFOPEN(fp, RANDFILE, "wb");
             if (fp) {
-                if (fwrite(&saved_node, sizeof(saved_node), 1, fp) < 1)
-                    abort();
-                fclose(fp);
+				assert(fwrite(&saved_node, sizeof(saved_node), 1, fp) > 0);
+				assert(fclose(fp) == 0);
             }
         }
     }
@@ -425,14 +429,14 @@ int quid_create_rev7(cuuid_t *uid, uint8_t flag, uint8_t subc, char tag[3]) {
 
     /* Encrypt nodes */
     encrypt_node(uid->time_low, uid->clock_seq_hi_and_reserved, uid->clock_seq_low, &node);
-    memcpy(&uid->node, &node, sizeof(uid->node));
+    assert(memcpy(&uid->node, &node, sizeof(uid->node)));
 
     return QUID_OK;
 }
 
 /* Default constructor */
 int quid_create(cuuid_t *cuuid, uint8_t flag, uint8_t subc, char tag[3]) {
-    memset(cuuid, '\0', sizeof(cuuid_t));
+    assert(memset(cuuid, '\0', sizeof(cuuid_t)));
 	if (cuuid->version == QUID_REV4) {
 		return quid_create_rev4(cuuid, flag, subc);
 	}
@@ -517,22 +521,12 @@ static double get_tick_count(void) {
 #ifdef _WIN32
     return GetTickCount();
 #else
-#ifdef _POSIX
-    struct timespec now;
-
-	if (clock_gettime(CLOCK_MONOTONIC, &now)) {
-		return 0;
-	}
-
-    return now.tv_sec * 1000.0 + now.tv_nsec / 1000000.0;
-#else
 	struct timeval tv;
 	if (gettimeofday(&tv, NULL) != 0) {
-		return 0;
+		assert(0);
 	}
 
 	return (tv.tv_sec * 1000) + (tv.tv_usec / 1000);
-#endif
 #endif
 }
 
@@ -555,6 +549,7 @@ static uint16_t true_random(void) {
 
 /* Strip special characters from string */
 static void strip_special_chars(char *s) {
+	assert(s);
     char *pr = s, *pw = s;
 
     while (*pr) {
@@ -568,6 +563,7 @@ static void strip_special_chars(char *s) {
     }
 
     *pw = '\0';
+	assert(s);
 }
 
 /* Check if string validates as hex */

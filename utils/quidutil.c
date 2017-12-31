@@ -37,7 +37,7 @@
 
 #ifdef _WIN32
 # include <winsock2.h>
-# include "getopt.h"
+# include "win32_getopt.h"
 #else
 # include <unistd.h>
 # include <getopt.h>
