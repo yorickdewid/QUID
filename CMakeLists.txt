@@ -45,18 +45,31 @@ add_definitions(-DPACKAGE_VERSION="${PROJECT_VERSION}")
 add_definitions(-DPACKAGE_="${PROJECT_NAME}")
 add_definitions(-DVERSION="${PROJECT_VERSION}")
 
-add_library(quid STATIC
+set(PROJECT_SOURCES
 	include/quid.h
 	src/quid.c
 	src/chacha.c
 	src/chacha.h
 )
 
+add_library(quid_a STATIC ${PROJECT_SOURCES})
+add_library(quid_lib SHARED ${PROJECT_SOURCES})
+
 # Define output directories
-set_target_properties(${PROJECT_NAME}
+set_target_properties(quid_a
 	PROPERTIES
 	OUTPUT_NAME "quid"
-	PROJECT_LABEL "Quenza Unique Identifier"
+	PROJECT_LABEL "Quenza Unique Identifier Static"
+	ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
+	LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
+	RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
+)
+
+# Define output directories
+set_target_properties(quid_lib
+	PROPERTIES
+	OUTPUT_NAME "quid"
+	PROJECT_LABEL "Quenza Unique Identifier Dynamic"
 	ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
 	LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
 	RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"

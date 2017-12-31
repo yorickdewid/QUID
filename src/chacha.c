@@ -49,8 +49,8 @@
     x[a] = ADDITION(x[a],x[b]); x[d] = ROTATE(XOR(x[d],x[a]), 8); \
     x[c] = ADDITION(x[c],x[d]); x[b] = ROTATE(XOR(x[b],x[c]), 7);
 
-static const uint8_t SIGMA[16] = "expand 32-byte k";
-static const uint8_t TAU[16]   = "expand 16-byte k";
+static const uint8_t SIGMA[16] = { 'e','x','p','a','n','d',' ','3','2','-','b','y','t','e',' ','k' }; /* expand 32-byte k */
+static const uint8_t TAU[16]   = { 'e','x','p','a','n','d',' ','1','6','-','b','y','t','e',' ','k' }; /* expand 16-byte k */
 
 static void doublerounds(uint8_t output[64], const uint32_t input[16], uint8_t rounds) {
     uint32_t x[16];
@@ -144,13 +144,15 @@ void chacha_next(chacha_ctx *ctx, const uint8_t m[64], uint8_t c[64]) {
     /* Update the internal state and increase the block counter */
     doublerounds(x, ctx->state, ctx->rounds);
     ctx->state[12] = PLUSONE(ctx->state[12]);
-    if (!ctx->state[12])
-        ctx->state[13] = PLUSONE(ctx->state[13]);
+	if (!ctx->state[12]) {
+		ctx->state[13] = PLUSONE(ctx->state[13]);
+	}
 
     /* XOR the input block with the new temporal state to
      * create the transformed block */
-    for (i = 0; i < 64; ++i)
-        c[i] = m[i] ^ x[i];
+	for (i = 0; i < 64; ++i) {
+		c[i] = m[i] ^ x[i];
+	}
 }
 
 void chacha_xor(chacha_ctx *ctx, uint8_t *input, size_t len) {
@@ -158,23 +160,27 @@ void chacha_xor(chacha_ctx *ctx, uint8_t *input, size_t len) {
     unsigned int i;
 
     /* Upper block limit */
-    if (len > 64)
-        abort();
+	if (len > 64) {
+		abort();
+	}
 
     /* Update the internal state and increase the block counter */
     doublerounds(block, ctx->state, ctx->rounds);
     ctx->state[12] = PLUSONE(ctx->state[12]);
-    if (!ctx->state[12])
-        ctx->state[13] = PLUSONE(ctx->state[13]);
+	if (!ctx->state[12]) {
+		ctx->state[13] = PLUSONE(ctx->state[13]);
+	}
 
-    for (i = 0; i < len; ++i)
-        input[i] = input[i] ^ block[i];
+	for (i = 0; i < len; ++i) {
+		input[i] = input[i] ^ block[i];
+	}
 }
 
 void chacha_init_ctx(chacha_ctx *ctx, uint8_t rounds) {
     /* Not too crazy */
-    if (rounds < 2)
-        abort();
+	if (rounds < 2) {
+		abort();
+	}
 
     memset(ctx->state, '\0', sizeof(ctx->state));
     ctx->rounds = rounds;

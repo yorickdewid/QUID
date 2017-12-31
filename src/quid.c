@@ -54,6 +54,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <assert.h>
 
 #ifdef _WIN32
 # include <winsock2.h>
@@ -79,6 +80,14 @@
 #define VERSION_REV7    0xb000
 
 typedef unsigned long long cuuid_time_t;
+
+#ifdef _WIN32
+# define PRINT_QUID_FORMAT "{%.8llx-%.4x-%.4x-%.2x%.2x-%.2x%.2x%.2x%.2x%.2x%.2x}"
+# define QFOPEN(f,n,m) assert(fopen_s(&f, n, m) == 0);
+#else
+# define PRINT_QUID_FORMAT "{%.8lx-%.4x-%.4x-%.2x%.2x-%.2x%.2x%.2x%.2x%.2x%.2x}"
+# define QFOPEN(f,n,m) f = fopen(n, m);
+#endif
 
 /*
  * Temporary node structure
@@ -177,7 +186,7 @@ static void quid_timeval(cuuid_t *cuuid, struct timeval *tv) {
     usec = (cuuid_time/10) % 1000000LL;
     sec = (((cuuid_time/10) - usec)/1000000LL) - EPOCH_DIFF;
 
-    tv->tv_sec = sec;
+    tv->tv_sec = (long)sec;
     tv->tv_usec = usec;
 }
 
@@ -188,7 +197,13 @@ struct tm *quid_timestamp(cuuid_t *cuuid) {
     quid_timeval(cuuid, &tv);
 
     /* Localtime */
+#ifdef _WIN32
+	static struct tm buf;
+	assert(localtime_s(&buf, (const time_t *)&tv.tv_sec) == 0);
+	return &buf;
+#else
     return localtime(&tv.tv_sec);
+#endif
 }
 
 /* Retrieve microtime */
@@ -284,7 +299,7 @@ static void get_memory_seed(cuuid_node_t *node) {
     FILE *fp = NULL;
 
     if (!mem_seed_count) {
-        fp = fopen(RANDFILE, "rb");
+		QFOPEN(fp, RANDFILE, "rb");
         if (fp) {
             if (fread(&saved_node, sizeof(saved_node), 1, fp) < 1)
                 abort();
@@ -293,7 +308,7 @@ static void get_memory_seed(cuuid_node_t *node) {
             seed[0] |= 0x01;
             memcpy(&saved_node, seed, sizeof(saved_node));
 
-            fp = fopen(RANDFILE, "wb");
+			QFOPEN(fp, RANDFILE, "wb");
             if (fp) {
                 if (fwrite(&saved_node, sizeof(saved_node), 1, fp) < 1)
                     abort();
@@ -444,7 +459,7 @@ void format_quid_rev4(cuuid_t* uid, uint16_t clock_seq, cuuid_time_t timestamp, 
     uid->clock_seq_hi_and_reserved |= QUIDMAGIC;
 
     memcpy(&uid->node, &node, sizeof(uid->node));
-    uid->node[0] = true_random();
+    uid->node[0] = (uint8_t)true_random();
     uid->node[1] = QUID_REV4;
     uid->node[5] = (true_random() & 0xff);
 }
@@ -535,7 +550,7 @@ static uint16_t true_random(void) {
     /* Advance counters */
     rnd_seed_count = (rnd_seed_count == max_rnd_seed) ? 0 : rnd_seed_count + 1;
 
-    return (rand() + get_tick_count());
+    return ((uint16_t)(rand() + get_tick_count()));
 }
 
 /* Strip special characters from string */
@@ -591,13 +606,13 @@ static void strtoquid(char *str, cuuid_t *u) {
     octet[1] = str[9];
     octet[2] = str[10];
     octet[3] = str[11];
-    u->time_mid = (int)strtol(octet, NULL, 16);
+    u->time_mid = (uint16_t)strtol(octet, NULL, 16);
 
     octet[0] = str[12];
     octet[1] = str[13];
     octet[2] = str[14];
     octet[3] = str[15];
-    u->time_hi_and_version = (int)strtol(octet, NULL, 16);
+    u->time_hi_and_version = (uint16_t)strtol(octet, NULL, 16);
 
     node[0] = str[16];
     node[1] = str[17];
@@ -678,8 +693,7 @@ int quid_parse(char *quid, cuuid_t *cuuid) {
 
 /* Convert quid to string */
 void quid_tostring(const cuuid_t *u, char str[QUID_FULLLEN + 1]) {
-    snprintf(str, QUID_FULLLEN + 1,
-        "{%.8lx-%.4x-%.4x-%.2x%.2x-%.2x%.2x%.2x%.2x%.2x%.2x}",
+    snprintf(str, QUID_FULLLEN + 1, PRINT_QUID_FORMAT,
         u->time_low,
         u->time_mid,
         u->time_hi_and_version,
