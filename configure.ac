@@ -14,13 +14,13 @@ AM_PROG_LIBTOOL
 LT_INIT
 
 # Checks for libraries.
-AC_CHECK_LIB(rt, clock_gettime)
+AC_CHECK_LIB(rt)
 
 # Checks for header files.
 AC_CHECK_HEADERS([stdio.h time.h sys/time.h ctype.h])
 
 # Checks for library functions.
-AC_CHECK_FUNCS([clock_gettime gettimeofday strtol])
+AC_CHECK_FUNCS([gettimeofday strtol])
 
 AC_PREFIX_DEFAULT(/usr)
 

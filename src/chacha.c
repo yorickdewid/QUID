@@ -176,6 +176,6 @@ void chacha_init_ctx(chacha_ctx *ctx, uint8_t rounds) {
     if (rounds < 2)
         abort();
 
-    memset(ctx->state, '\0', 16);
+    memset(ctx->state, '\0', sizeof(ctx->state));
     ctx->rounds = rounds;
 }

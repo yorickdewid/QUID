@@ -18,7 +18,7 @@ endif ()
 
 # Build sources with additional warnings
 if(CMAKE_COMPILER_IS_GNUCC)
-	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Werror -pedantic -std=c99-Wmissing-prototypes \
+	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Werror -pedantic -std=c99 -Wmissing-prototypes \
 	-Wpointer-arith \
 	-Wendif-labels \
 	-Wmissing-format-attribute \

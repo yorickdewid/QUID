@@ -324,17 +324,17 @@ void encrypt_node(uint64_t prekey, uint8_t preiv1, uint8_t preiv2, cuuid_node_t 
     key[1] = (uint8_t)prekey | (uint8_t)(prekey >> 16);
     key[2] = (uint8_t)prekey ^ (uint8_t)(prekey >> 8);
     key[3] = (uint8_t)prekey;
-    
+
     key[4] = 0x1;
     key[5] = (uint8_t)(prekey >> 8) | (uint8_t)(prekey >> 24);
     key[6] = (uint8_t)(prekey >> 8) ^ (uint8_t)(prekey >> 16);
     key[7] = (uint8_t)(prekey >> 8);
-    
+
     key[8] = 0x2;
     key[9] = (uint8_t)(prekey >> 16) | (uint8_t)prekey;
     key[10] = (uint8_t)(prekey >> 16) ^ (uint8_t)(prekey >> 24);
     key[11] = (uint8_t)(prekey >> 16);
-    
+
     key[12] = 0x3;
     key[13] = (uint8_t)(prekey >> 24) | (uint8_t)(prekey >> 8);
     key[14] = (uint8_t)(prekey >> 24) ^ (uint8_t)prekey;
@@ -502,6 +502,7 @@ static double get_tick_count(void) {
 #ifdef _WIN32
     return GetTickCount();
 #else
+#ifdef _POSIX
     struct timespec now;
 
 	if (clock_gettime(CLOCK_MONOTONIC, &now)) {
@@ -509,6 +510,14 @@ static double get_tick_count(void) {
 	}
 
     return now.tv_sec * 1000.0 + now.tv_nsec / 1000000.0;
+#else
+	struct timeval tv;
+	if (gettimeofday(&tv, NULL) != 0) {
+		return 0;
+	}
+
+	return (tv.tv_sec * 1000) + (tv.tv_usec / 1000);
+#endif
 #endif
 }
 
