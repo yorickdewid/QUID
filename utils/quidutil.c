@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2017, Yorick de Wid <ydw at x3 dot quenza dot net>
+ * Copyright (c) 2012-2018, Yorick de Wid <yorick17 at outlook dot com>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,13 +32,25 @@
 #include <stdlib.h>
 #include <time.h>
 #include <signal.h>
-#include <unistd.h>
-#include <getopt.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <sys/time.h>
+
+#ifdef _WIN32
+# include <winsock2.h>
+# include "getopt.h"
+#else
+# include <unistd.h>
+# include <getopt.h>
+# include <sys/time.h>
+#endif
 
 #include <quid.h>
+
+#ifdef _WIN32
+# if !defined S_ISDIR
+#  define S_ISDIR(m) (((m) & _S_IFDIR) == _S_IFDIR)
+# endif
+#endif
 
 /* Global variables */
 int delay = 0;
@@ -62,6 +74,7 @@ const char *category_name(uint8_t cat);
 
 /* Set flag if program got terminated */
 void set_signint(int s) {
+	((void)s);
     intflag = 1;
 }
 
@@ -88,7 +101,11 @@ void quid_print_file(FILE *fp, cuuid_t u, int format) {
 
         fprintf(fp, "\n");
     } else if(format == 2) {
+#ifdef _WIN32
+		fprintf(fp, "%lld", u.time_low);
+#else
         fprintf(fp, "%ld", u.time_low);
+#endif
         fprintf(fp, "%d", u.time_mid);
         fprintf(fp, "%d", u.time_hi_and_version);
         fprintf(fp, "%d", u.clock_seq_hi_and_reserved);
@@ -236,16 +253,17 @@ void print_version(void) {
 int check_fname(const char *pathname) {
     struct stat info;
 
-    if (stat(pathname, &info) != 0)
-        return 0;
-    else if(info.st_mode & S_IFDIR)
+	if (stat(pathname, &info) != 0) {
+		return 0;
+	} else if (S_ISDIR(info.st_mode)) {
         return 1;
-    else
+    } else {
         return 2;
+	}
 }
 
-const char *category_name(uint8_t cat) {
-    switch (cat) {
+const char *category_name(uint8_t _cat) {
+    switch (_cat) {
         case CLS_CMON:
             return "Common";
         case CLS_INFO:
@@ -259,12 +277,56 @@ const char *category_name(uint8_t cat) {
     }
 }
 
+static void qusleep(int64_t usec) {
+#ifdef _WIN32
+	HANDLE timer;
+	LARGE_INTEGER ft;
+
+	ft.QuadPart = -(10 * usec); // Convert to 100 nanosecond interval, negative value indicates relative time
+
+	timer = CreateWaitableTimer(NULL, TRUE, NULL);
+	SetWaitableTimer(timer, &ft, 0, NULL, NULL, 0);
+	WaitForSingleObject(timer, INFINITE);
+	CloseHandle(timer);
+#else
+	struct timespec tm;
+	tm.tv_sec = 0;
+	tm.tv_nsec = usec * 1000;
+
+	nanosleep(&tm, NULL);
+#endif
+}
+
+#ifdef _WIN32
+int gettimeofday(struct timeval *tp, char *tzp) {
+	((void)tzp);
+	
+	// Note: some broken versions only have 8 trailing zero's, the correct epoch has 9 trailing zero's
+	// This magic number is the number of 100 nanosecond intervals since January 1, 1601 (UTC)
+	// until 00:00:00 January 1, 1970 
+	static const uint64_t EPOCH = ((uint64_t)116444736000000000ULL);
+
+	SYSTEMTIME  system_time;
+	FILETIME    file_time;
+	uint64_t    time;
+
+	GetSystemTime(&system_time);
+	SystemTimeToFileTime(&system_time, &file_time);
+	time = ((uint64_t)file_time.dwLowDateTime);
+	time += ((uint64_t)file_time.dwHighDateTime) << 32;
+
+	tp->tv_sec = (long)((time - EPOCH) / 10000000L);
+	tp->tv_usec = (long)(system_time.wMilliseconds * 1000);
+	return 0;
+}
+#endif
+
 /* Program main */
 int main(int argc, char *argv[]) {
     cuuid_t cuuid;
     int c, rtn;
     unsigned int n = 1;
-    char *fname;
+    char *fname = NULL;
     FILE *fp = NULL;
     int fout = 0, nout = 0, fmat = 0, vbose = 0, gen = 1;
     int option_index;
@@ -345,7 +407,7 @@ int main(int argc, char *argv[]) {
                 } else if (!strcmp("set-sign", long_options[option_index].name)) {
                     flg |= IDF_SIGNED;
                 } else if (!strcmp("category", long_options[option_index].name)) {
-                    cat = atoi(optarg);
+                    cat = (char)atoi(optarg);
                     switch (cat) {
                         case CLS_CMON:
                         case CLS_INFO:
@@ -430,30 +492,36 @@ int main(int argc, char *argv[]) {
         for (i=0; i<n; ++i) {
             quid_create(&cuuid, flg, cat, tag);
 
-            if (intflag)
-                break;
+			if (intflag) {
+				break;
+			}
 
             if (!fout){
-                if (!nout)
-                    quid_print(cuuid, fmat);
-            } else
-                quid_print_file(fp, cuuid, fmat);
+				if (!nout) {
+					quid_print(cuuid, fmat);
+				}
+			} else {
+				quid_print_file(fp, cuuid, fmat);
+			}
 
-            if (delay)
-                usleep(delay * 1000);
+			if (delay) {
+				qusleep(delay * 1000);
+			}
 
             ticks = clock();
         }
 
-        if (fp)
-            fclose(fp);
+		if (fp) {
+			fclose(fp);
+		}
 
         gettimeofday(&t2, NULL);
     }
 
     /* Show counters */
-    if (vbose && gen) 
-        generate_verbose();
+	if (vbose && gen) {
+		generate_verbose();
+	}
 
     return 0;
 }

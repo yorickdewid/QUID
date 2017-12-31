@@ -40,9 +40,13 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
 include_directories(${CMAKE_SOURCE_DIR}/include)
 
+add_definitions(-DPACKAGE_TARNAME="${PROJECT_NAME}")
 add_definitions(-DPACKAGE_NAME="${PROJECT_NAME}")
 add_definitions(-DPACKAGE_VERSION="${PROJECT_VERSION}")
-add_definitions(-DPACKAGE_="${PROJECT_NAME}")
+add_definitions(-DPACKAGE_STRING="${PROJECT_NAME} ${PROJECT_VERSION}")
+add_definitions(-DPACKAGE_BUGREPORT="yorick17@outlook.com")
+add_definitions(-DPACKAGE_URL="")
+add_definitions(-DPACKAGE="${PROJECT_NAME}")
 add_definitions(-DVERSION="${PROJECT_VERSION}")
 
 set(PROJECT_SOURCES
@@ -74,3 +78,5 @@ set_target_properties(quid_lib
 	LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
 	RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
 )
+
+add_subdirectory(utils)
