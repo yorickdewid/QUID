@@ -32,6 +32,13 @@
 
 #ifdef _WIN32
 # pragma once
+# ifdef quid_lib_EXPORTS
+#  define QUID_LIB_API __declspec(dllexport)
+# else
+#  define QUID_LIB_API
+# endif
+#else
+# define QUID_LIB_API
 #endif
 
 #include <stdint.h>
@@ -117,24 +124,24 @@ enum {
 /*
  * Prototypes to library functions
  */
-extern int          quid_create_rev4(cuuid_t *, uint8_t, uint8_t);
-extern int          quid_create_rev7(cuuid_t *, uint8_t, uint8_t, char tag[3]);
-extern int          quid_create(cuuid_t *, uint8_t, uint8_t, char tag[3]);
+QUID_LIB_API extern int          quid_create_rev4(cuuid_t *, uint8_t, uint8_t);
+QUID_LIB_API extern int          quid_create_rev7(cuuid_t *, uint8_t, uint8_t, char tag[3]);
+QUID_LIB_API extern int          quid_create(cuuid_t *, uint8_t, uint8_t, char tag[3]);
 
-extern int          quid_validate(cuuid_t *);
-extern int          quid_parse(char *, cuuid_t *);
-extern void         quid_tostring(const cuuid_t *, char str[QUID_FULLLEN + 1]);
+QUID_LIB_API extern int          quid_validate(cuuid_t *);
+QUID_LIB_API extern int          quid_parse(char *, cuuid_t *);
+QUID_LIB_API extern void         quid_tostring(const cuuid_t *, char str[QUID_FULLLEN + 1]);
 
-extern void         quid_set_rnd_seed(int);
-extern void         quid_set_mem_seed(int);
+QUID_LIB_API extern void         quid_set_rnd_seed(int);
+QUID_LIB_API extern void         quid_set_mem_seed(int);
 
-extern const char  *quid_libversion(void);
-extern int          quid_cmp(const cuuid_t *, const cuuid_t *);
-extern struct tm   *quid_timestamp(cuuid_t *);
-extern long         quid_microtime(cuuid_t *);
-extern const char  *quid_tag(cuuid_t *);
-extern uint8_t      quid_category(cuuid_t *);
-extern uint8_t      quid_flag(cuuid_t *);
+QUID_LIB_API extern const char  *quid_libversion(void);
+QUID_LIB_API extern int          quid_cmp(const cuuid_t *, const cuuid_t *);
+QUID_LIB_API extern struct tm   *quid_timestamp(cuuid_t *);
+QUID_LIB_API extern long         quid_microtime(cuuid_t *);
+QUID_LIB_API extern const char  *quid_tag(cuuid_t *);
+QUID_LIB_API extern uint8_t      quid_category(cuuid_t *);
+QUID_LIB_API extern uint8_t      quid_flag(cuuid_t *);
 
 #if defined(__cplusplus)
 }

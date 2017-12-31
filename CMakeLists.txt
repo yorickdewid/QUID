@@ -58,7 +58,7 @@ add_library(quid_lib SHARED ${PROJECT_SOURCES})
 # Define output directories
 set_target_properties(quid_a
 	PROPERTIES
-	OUTPUT_NAME "quid"
+	OUTPUT_NAME "quid_a"
 	PROJECT_LABEL "Quenza Unique Identifier Static"
 	ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
 	LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
