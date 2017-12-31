@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2017, Yorick de Wid <ydw at x3 dot quenza dot net>
+ * Copyright (c) 2012-2018, Yorick de Wid <yorick17 at outlook dot com>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,11 +28,12 @@
  */
 
 #include <stdio.h>
+#include <memory.h>
 #include <assert.h>
 
 #include "../src/chacha.h"
 
-void print_block(uint8_t block[64]) {
+static void print_block(uint8_t block[64]) {
     uint8_t i;
 
     for (i = 0 ; i < 64 ; i++) {
@@ -46,7 +47,7 @@ void print_block(uint8_t block[64]) {
     printf("\n");
 }
 
-void print_key_iv(uint8_t *key, uint32_t keylen,  uint8_t *iv) {
+static void print_key_iv(uint8_t *key, uint32_t keylen,  uint8_t *iv) {
     uint8_t i;
 
     printf("Key:    ");
@@ -65,7 +66,7 @@ void print_key_iv(uint8_t *key, uint32_t keylen,  uint8_t *iv) {
     printf("\n");
 }
 
-void test_vectors(uint8_t *key, uint8_t *iv, uint8_t keystream[2*3][64]) {
+static void test_vectors(uint8_t *key, uint8_t *iv, uint8_t keystream[2*3][64]) {
     uint32_t keylengths[2] = {128, 256};
     uint8_t rounds[4] = {8, 12, 20};
 
@@ -114,7 +115,7 @@ void test_vectors(uint8_t *key, uint8_t *iv, uint8_t keystream[2*3][64]) {
     }
 }
 
-int main(int argc, char *argv[]) {
+int main() {
     printf("Test vectors for the ChaCha stream cipher\n");
     printf("=========================================\n\n");
 

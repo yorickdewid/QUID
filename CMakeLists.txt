@@ -94,3 +94,4 @@ target_compile_definitions(quid_lib PRIVATE
 remove_definitions(-DPACKAGE)
 
 add_subdirectory(utils)
+add_subdirectory(test)

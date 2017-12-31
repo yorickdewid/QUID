@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2017, Yorick de Wid <ydw at x3 dot quenza dot net>
+ * Copyright (c) 2012-2018, Yorick de Wid <yorick17 at outlook dot com>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,10 +28,12 @@
  */
 
 #include <stdio.h>
+#include <string.h>
 #include <assert.h>
+
 #include <quid.h>
 
-void quid_print(const cuuid_t *u) {
+static void quid_print(const cuuid_t *u) {
     printf("{");
 
     printf("%.8x-", (unsigned int)u->time_low);
@@ -50,7 +52,7 @@ void quid_print(const cuuid_t *u) {
     printf("}\n");
 }
 
-int main(int argc, char *argv[]) {
+int main() {
     printf("Test vectors for QUID identifier\n");
     printf("=========================================\n\n");
 
