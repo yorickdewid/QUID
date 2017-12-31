@@ -40,14 +40,8 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
 include_directories(${CMAKE_SOURCE_DIR}/include)
 
-add_definitions(-DPACKAGE_TARNAME="${PROJECT_NAME}")
-add_definitions(-DPACKAGE_NAME="${PROJECT_NAME}")
-add_definitions(-DPACKAGE_VERSION="${PROJECT_VERSION}")
-add_definitions(-DPACKAGE_STRING="${PROJECT_NAME} ${PROJECT_VERSION}")
 add_definitions(-DPACKAGE_BUGREPORT="yorick17@outlook.com")
 add_definitions(-DPACKAGE_URL="")
-add_definitions(-DPACKAGE="${PROJECT_NAME}")
-add_definitions(-DVERSION="${PROJECT_VERSION}")
 
 set(PROJECT_SOURCES
 	include/quid.h
@@ -78,5 +72,25 @@ set_target_properties(quid_lib
 	LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
 	RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
 )
+
+target_compile_definitions(quid_a PRIVATE
+	PACKAGE_NAME="${PROJECT_NAME}"
+	PACKAGE_TARNAME="${PROJECT_NAME}"
+	PACKAGE_VERSION="${PROJECT_VERSION}"
+	PACKAGE_STRING="${PROJECT_NAME} ${PROJECT_VERSION}"
+	PACKAGE="${PROJECT_NAME}"
+	VERSION="${PROJECT_VERSION}"
+)
+
+target_compile_definitions(quid_lib PRIVATE
+	PACKAGE_NAME="${PROJECT_NAME}"
+	PACKAGE_TARNAME="${PROJECT_NAME}"
+	PACKAGE_VERSION="${PROJECT_VERSION}"
+	PACKAGE_STRING="${PROJECT_NAME} ${PROJECT_VERSION}"
+	PACKAGE="${PROJECT_NAME}"
+	VERSION="${PROJECT_VERSION}"
+)
+
+remove_definitions(-DPACKAGE)
 
 add_subdirectory(utils)

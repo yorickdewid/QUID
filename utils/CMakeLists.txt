@@ -9,15 +9,6 @@ project(quidutil VERSION 1.5 LANGUAGES C)
 
 include_directories(${CMAKE_SOURCE_DIR}/include)
 
-#add_definitions(-DPACKAGE_TARNAME="${PROJECT_NAME}")
-#add_definitions(-DPACKAGE_NAME="${PROJECT_NAME}")
-#add_definitions(-DPACKAGE_VERSION="${PROJECT_VERSION}")
-#add_definitions(-DPACKAGE_STRING="${PROJECT_NAME} ${PROJECT_VERSION}")
-#add_definitions(-DPACKAGE_BUGREPORT="yorick17@outlook.com")
-#add_definitions(-DPACKAGE_URL="")
-#add_definitions(-DPACKAGE="${PROJECT_NAME}")
-#add_definitions(-DVERSION="${PROJECT_VERSION}")
-
 # Sleep is only available with POSIX
 add_definitions(-D_POSIX_C_SOURCE=199309L)
 
@@ -35,6 +26,15 @@ set_target_properties(quidutil
 	ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
 	LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
 	RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
+)
+
+target_compile_definitions(quidutil PRIVATE
+	PACKAGE_NAME="${PROJECT_NAME}"
+	PACKAGE_TARNAME="${PROJECT_NAME}"
+	PACKAGE_VERSION="${PROJECT_VERSION}"
+	PACKAGE_STRING="${PROJECT_NAME} ${PROJECT_VERSION}"
+	PACKAGE="${PROJECT_NAME}"
+	VERSION="${PROJECT_VERSION}"
 )
 
 target_link_libraries(quidutil quid_a)
