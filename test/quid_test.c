@@ -33,114 +33,101 @@
 
 #include <quid.h>
 
-static void quid_print(const cuuid_t *u) {
-    printf("{");
+#include "tinytest.h"
 
-    printf("%.8x-", (unsigned int)u->time_low);
-    printf("%.4x-", u->time_mid);
-    printf("%.4x-", u->time_hi_and_version);
-    printf("%.2x",  u->clock_seq_hi_and_reserved);
-    printf("%.2x-", u->clock_seq_low);
+static void lib_quid() {
+	ASSERT("no version set", quid_libversion());
+}
 
-    printf("%.2x", u->node[0]);
-    printf("%.2x", u->node[1]);
-    printf("%.2x", u->node[2]);
-    printf("%.2x", u->node[3]);
-    printf("%.2x", u->node[4]);
-    printf("%.2x", u->node[5]);
+static void general_quid() {
+	cuuid_t tc_u;
+	int i;
+	
+	for (i = 0; i < 1000; ++i) {
+		ASSERT_EQUALS(QUID_OK, quid_create(&tc_u, IDF_NULL, CLS_CMON, NULL));
+		ASSERT_EQUALS(QUID_OK, quid_validate(&tc_u));
+	}
+}
 
-    printf("}\n");
+static void convert_string() {
+	cuuid_t tc_u;
+	char tc_str[QUID_FULLLEN + 1];
+
+	ASSERT_EQUALS(QUID_OK, quid_create_simple(&tc_u));
+	quid_tostring(&tc_u, tc_str);
+	ASSERT("string does not match quid format", tc_str[0] == '{'
+		   && tc_str[9] == '-'
+		   && tc_str[14] == '-'
+		   && tc_str[19] == '-'
+		   && tc_str[QUID_FULLLEN - 1] == '}');
+}
+
+static void convert_string_and_back() {
+	cuuid_t tc_3u, tc_3u_;
+	char tc_3str[QUID_FULLLEN + 1];
+
+	int i;
+	for (i = 0; i < 20; ++i) {
+		ASSERT_EQUALS(QUID_OK, quid_create_simple(&tc_3u));
+		quid_tostring(&tc_3u, tc_3str);
+		ASSERT("first char cannot be empty", tc_3str[0] != 0);
+		ASSERT_EQUALS(QUID_OK, quid_parse(tc_3str, &tc_3u_));
+		ASSERT("quid does not match", quid_cmp(&tc_3u, &tc_3u_));
+	}
+}
+
+static void legacy_string_and_back() {
+	cuuid_t tc_4u, tc_4u_;
+	tc_4u.version = QUID_REV4;
+
+	char tc_4str[QUID_FULLLEN + 1];
+	ASSERT_EQUALS(QUID_OK, quid_create_simple(&tc_4u));
+	quid_tostring(&tc_4u, tc_4str);
+	ASSERT("first char cannot be empty", tc_4str[0] != 0);
+	ASSERT_EQUALS(QUID_OK, quid_parse(tc_4str, &tc_4u_));
+	ASSERT("quid does not match", quid_cmp(&tc_4u, &tc_4u_));
+}
+
+static void check_category_and_flags() {
+	cuuid_t tc_u;
+
+	ASSERT_EQUALS(QUID_OK, quid_create(&tc_u, IDF_MASTER | IDF_STRICT, CLS_WARN, NULL));
+	ASSERT("no flag found", quid_flag(&tc_u) & FLAG_MASTER);
+	ASSERT("no flag found", quid_flag(&tc_u) & FLAG_STRICT);
+	ASSERT_EQUALS(CLS_WARN, quid_category(&tc_u));
+}
+
+static void check_legacy_category_and_flags() {
+	cuuid_t tc_u;
+	tc_u.version = QUID_REV4;
+
+	ASSERT_EQUALS(QUID_OK, quid_create(&tc_u, IDF_MASTER | IDF_STRICT, CLS_WARN, NULL));
+	ASSERT("no flag found", quid_flag(&tc_u) & FLAG_MASTER);
+	ASSERT("no flag found", quid_flag(&tc_u) & FLAG_STRICT);
+	ASSERT_EQUALS(CLS_WARN, quid_category(&tc_u));
+}
+
+static void check_tag() {
+	cuuid_t tc_u;
+
+	ASSERT_EQUALS(QUID_OK, quid_create(&tc_u, IDF_SIGNED | IDF_PUBLIC, CLS_ERROR, "CHK"));
+	ASSERT("no flag found", quid_flag(&tc_u) & IDF_SIGNED);
+	ASSERT("no flag found", quid_flag(&tc_u) & IDF_PUBLIC);
+	ASSERT_EQUALS(CLS_ERROR, quid_category(&tc_u));
+	ASSERT("string does not match", !strncmp(quid_tag(&tc_u), "CHK", 3));
 }
 
 int main() {
     printf("Test vectors for QUID identifier\n");
     printf("=========================================\n\n");
 
-    printf("TC1: General QUID.\n");
-    printf("----------------------------------------\n");
-
-    cuuid_t tc_1u;
-    assert(quid_create(&tc_1u, IDF_NULL, CLS_CMON, NULL) == QUID_OK);
-    assert(quid_validate(&tc_1u) == QUID_OK);
-    quid_print(&tc_1u);
-    printf("\n");
-
-    printf("TC2: Convert to string.\n");
-    printf("----------------------------------------\n");
-
-    cuuid_t tc_2u;
-    char tc2_str[QUID_FULLLEN + 1];
-    assert(quid_create_simple(&tc_2u) == QUID_OK);
-    quid_tostring(&tc_2u, tc2_str);
-    assert(tc2_str[0] != 0);
-    puts(tc2_str);
-    printf("\n");
-
-    printf("TC3: Convert to string and back.\n");
-    printf("----------------------------------------\n");
-
-    cuuid_t tc_3u, tc_3u_;
-    char tc_3str[QUID_FULLLEN + 1];
-    assert(quid_create_simple(&tc_3u) == QUID_OK);
-    quid_tostring(&tc_3u, tc_3str);
-    assert(tc_3str[0] != 0);
-    puts(tc_3str);
-    assert(quid_parse(tc_3str, &tc_3u_) == QUID_OK);
-    quid_print(&tc_3u);
-    quid_print(&tc_3u_);
-    assert(quid_cmp(&tc_3u, &tc_3u_));
-    printf("\n");
-
-    printf("TC4: Legacy version to string and back.\n");
-    printf("----------------------------------------\n");
-
-    cuuid_t tc_4u, tc_4u_;
-    tc_4u.version = QUID_REV4;
-    char tc_4str[QUID_FULLLEN + 1];
-    assert(quid_create_simple(&tc_4u) == QUID_OK);
-    quid_tostring(&tc_4u, tc_4str);
-    assert(tc_4str[0] != 0);
-    puts(tc_4str);
-    assert(quid_parse(tc_4str, &tc_4u_) == QUID_OK);
-    quid_print(&tc_4u);
-    quid_print(&tc_4u_);
-    assert(quid_cmp(&tc_4u, &tc_4u_));
-    printf("\n");
-
-    printf("TC5: Check category and flags.\n");
-    printf("----------------------------------------\n");
-
-    cuuid_t tc_5u;
-    assert(quid_create(&tc_5u, IDF_MASTER | IDF_STRICT, CLS_WARN, NULL) == QUID_OK);
-    quid_print(&tc_5u);
-    assert(quid_flag(&tc_5u) & FLAG_MASTER);
-    assert(quid_flag(&tc_5u) & FLAG_STRICT);
-    assert(quid_category(&tc_5u) == CLS_WARN);
-    printf("\n");
-
-    printf("TC6: Check legacy category and flags.\n");
-    printf("----------------------------------------\n");
-
-    cuuid_t tc_6u;
-    tc_6u.version = QUID_REV4;
-    assert(quid_create(&tc_6u, IDF_MASTER | IDF_STRICT, CLS_WARN, NULL) == QUID_OK);
-    quid_print(&tc_6u);
-    assert(quid_flag(&tc_6u) & FLAG_MASTER);
-    assert(quid_flag(&tc_6u) & FLAG_STRICT);
-    assert(quid_category(&tc_6u) == CLS_WARN);
-    printf("\n");
-
-    printf("TC7: Check tag.\n");
-    printf("----------------------------------------\n");
-
-    cuuid_t tc_7u;
-    assert(quid_create(&tc_7u, IDF_SIGNED | IDF_PUBLIC, CLS_ERROR, "CHK") == QUID_OK);
-    quid_print(&tc_7u);
-    assert(quid_flag(&tc_7u) & IDF_SIGNED);
-    assert(quid_flag(&tc_7u) & IDF_PUBLIC);
-    assert(quid_category(&tc_7u) == CLS_ERROR);
-    assert(!strncmp(quid_tag(&tc_7u), "CHK", 3));
-    printf("\n");
-
-    return 0;
+	RUN(lib_quid);
+	RUN(general_quid);
+	RUN(convert_string);
+	RUN(convert_string_and_back);
+	RUN(legacy_string_and_back);
+	RUN(check_category_and_flags);
+	RUN(check_legacy_category_and_flags);
+	RUN(check_tag);
+	return TEST_REPORT();
 }

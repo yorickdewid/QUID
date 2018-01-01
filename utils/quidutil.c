@@ -30,6 +30,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <assert.h>
 #include <time.h>
 #include <signal.h>
 #include <sys/types.h>
@@ -490,6 +491,7 @@ int main(int argc, char *argv[]) {
         }
 
         for (i=0; i<n; ++i) {
+			assert(cat != 0);
             quid_create(&cuuid, flg, cat, tag);
 
 			if (intflag) {

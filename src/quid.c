@@ -89,6 +89,10 @@ typedef unsigned long long cuuid_time_t;
 # define QFOPEN(f,n,m) f = fopen(n, m);
 #endif
 
+#define SIZE_CHECK() \
+	assert(sizeof(uint64_t) == 8); \
+	assert(sizeof(long long) == 8);
+
 /*
  * Temporary node structure
  */
@@ -99,8 +103,8 @@ typedef struct {
 /*
  * Prototypes
  */
-static void             format_quid_rev4(cuuid_t *, unsigned short, cuuid_time_t, cuuid_node_t);
-static void             format_quid_rev7(cuuid_t *, unsigned short, cuuid_time_t);
+static void             format_quid_rev4(cuuid_t *, uint16_t, cuuid_time_t, cuuid_node_t);
+static void             format_quid_rev7(cuuid_t *, uint16_t, cuuid_time_t);
 static void             encrypt_node(uint64_t, uint8_t, uint8_t, cuuid_node_t *);
 static void             get_current_time(cuuid_time_t *);
 static unsigned short   true_random(void);
@@ -111,22 +115,28 @@ static int max_rnd_seed = RND_SEED_CYCLE;
 static const uint8_t padding[3] = {0x12, 0x82, 0x7b};
 
 /* Set memory seed cycle */
-void quid_set_mem_seed(int cnt) {
+QUID_LIB_API void quid_set_mem_seed(int cnt) {
     max_mem_seed = cnt;
 }
 
 /* Set rnd seed cycle */
-void quid_set_rnd_seed(int cnt) {
+QUID_LIB_API void quid_set_rnd_seed(int cnt) {
     max_rnd_seed = cnt;
 }
 
 /* Library version */
-const char *quid_libversion(void) {
+QUID_LIB_API const char *quid_libversion(void) {
     return PACKAGE_VERSION;
 }
 
-/* Compare two QUID structures */
-int quid_cmp(const cuuid_t *s1, const cuuid_t *s2) {
+/**
+* Compare two quid structures and return match result.
+*
+* @param   s1  First quid to be compared
+* @param   s2  Second quid to be compared with first
+* @return      0 if the two identifiers did not match, otherwise 1
+*/
+QUID_LIB_API int quid_cmp(const cuuid_t *s1, const cuuid_t *s2) {
     return s1->time_low == s2->time_low
         && s1->time_mid == s2->time_mid
         && s1->time_hi_and_version == s2->time_hi_and_version
@@ -146,6 +156,7 @@ static void get_system_time(cuuid_time_t *cuuid_time) {
     ULARGE_INTEGER time;
 
     GetSystemTimeAsFileTime((FILETIME *)&time);
+	assert(time.QuadPart > 0);
     time.QuadPart += (unsigned __int64) (1000*1000*10)
                     * (unsigned __int64) (60 * 60 * 24)
                     * (unsigned __int64) (17+30+31+365*18+5);
@@ -194,7 +205,7 @@ static void quid_timeval(cuuid_t *cuuid, struct timeval *tv) {
 }
 
 /* Retrieve timestamp */
-struct tm *quid_timestamp(cuuid_t *cuuid) {
+QUID_LIB_API struct tm *quid_timestamp(cuuid_t *cuuid) {
     struct timeval tv;
 
     quid_timeval(cuuid, &tv);
@@ -213,7 +224,7 @@ struct tm *quid_timestamp(cuuid_t *cuuid) {
 }
 
 /* Retrieve microtime */
-long quid_microtime(cuuid_t *cuuid) {
+QUID_LIB_API long quid_microtime(cuuid_t *cuuid) {
     struct timeval tv;
 
     quid_timeval(cuuid, &tv);
@@ -223,7 +234,7 @@ long quid_microtime(cuuid_t *cuuid) {
 }
 
 /* Retrieve user tag */
-const char *quid_tag(cuuid_t *cuuid) {
+QUID_LIB_API const char *quid_tag(cuuid_t *cuuid) {
     cuuid_node_t node;
     static char tag[3];
 
@@ -255,7 +266,7 @@ const char *quid_tag(cuuid_t *cuuid) {
 }
 
 /* Retrieve category */
-uint8_t quid_category(cuuid_t *cuuid) {
+QUID_LIB_API uint8_t quid_category(cuuid_t *cuuid) {
     cuuid_node_t node;
 
     /* Determine category per version */
@@ -270,11 +281,11 @@ uint8_t quid_category(cuuid_t *cuuid) {
     }
 
     /* Invalid */
-    return 0x0;
+    return QUID_ERROR;
 }
 
 /* Retrieve flag if any */
-uint8_t quid_flag(cuuid_t *cuuid) {
+QUID_LIB_API uint8_t quid_flag(cuuid_t *cuuid) {
     cuuid_node_t node;
 
     /* Determine category per version */
@@ -321,7 +332,7 @@ static void get_memory_seed(cuuid_node_t *node) {
         }
     }
 
-    /* Advance counters */
+    /* Advance counter */
     mem_seed_count = (mem_seed_count == max_mem_seed) ? 0 : mem_seed_count + 1;
 
     *node = saved_node;
@@ -332,8 +343,13 @@ static void get_memory_seed(cuuid_node_t *node) {
  * The key and IV are stretched to match the stream input. The derivations
  * are by no means secure and are only applied to increase diffusion. The stream
  * cipher may use low rounds as the primary goal is entropy, not privacy.
+ *
+ * @param  prekey
+ * @param  preiv1
+ * @param  preiv2
+ * @param  node
  */
-void encrypt_node(uint64_t prekey, uint8_t preiv1, uint8_t preiv2, cuuid_node_t *node) {
+static void encrypt_node(uint64_t prekey, uint8_t preiv1, uint8_t preiv2, cuuid_node_t *node) {
     chacha_ctx ctx;
     uint8_t key[16];
     uint8_t iv[8];
@@ -375,14 +391,23 @@ void encrypt_node(uint64_t prekey, uint8_t preiv1, uint8_t preiv2, cuuid_node_t 
     chacha_init(&ctx, key, 128, iv, 0);
 
     chacha_xor(&ctx, (uint8_t *)node, sizeof(cuuid_node_t));
+	assert(node);
+}
+
+static int memvcmp(void *memory, unsigned char val, unsigned int size) {
+	uint8_t *mm = (uint8_t *)memory;
+	return (*mm == val) && memcmp(mm, mm + 1, size - 1) == 0;
 }
 
 /* QUID format REV4 */
-int quid_create_rev4(cuuid_t *uid, uint8_t flag, uint8_t subc) {
+QUID_LIB_API int quid_create_rev4(cuuid_t *uid, uint8_t flag, uint8_t subc) {
     cuuid_time_t    timestamp;
     unsigned short  clockseq;
     cuuid_node_t    node;
 
+	assert(memvcmp(uid, '\0', sizeof(cuuid_t)));
+
+	uid->version = QUID_REV4;
     get_current_time(&timestamp);
     get_memory_seed(&node);
     clockseq = true_random();
@@ -398,11 +423,14 @@ int quid_create_rev4(cuuid_t *uid, uint8_t flag, uint8_t subc) {
 }
 
 /* QUID format REV7 */
-int quid_create_rev7(cuuid_t *uid, uint8_t flag, uint8_t subc, char tag[3]) {
+QUID_LIB_API int quid_create_rev7(cuuid_t *uid, uint8_t flag, uint8_t subc, char tag[3]) {
     cuuid_time_t    timestamp;
     unsigned short  clockseq;
     cuuid_node_t    node;
+	
+	assert(memvcmp(uid, '\0', sizeof(cuuid_t)));
 
+	uid->version = QUID_REV7;
     get_current_time(&timestamp);
     clockseq = true_random();
 
@@ -418,10 +446,7 @@ int quid_create_rev7(cuuid_t *uid, uint8_t flag, uint8_t subc, char tag[3]) {
     node.node[5] = padding[2];
 
     /* Set tag if passed */
-    if (tag &&
-        tag[0] != 0x0 &&
-        tag[1] != 0x0 &&
-        tag[2] != 0x0) {
+    if (tag && tag[0] != 0 && tag[1] != 0 && tag[2] != 0) {
         node.node[3] = tag[0];
         node.node[4] = tag[1];
         node.node[5] = tag[2];
@@ -435,14 +460,17 @@ int quid_create_rev7(cuuid_t *uid, uint8_t flag, uint8_t subc, char tag[3]) {
 }
 
 /* Default constructor */
-int quid_create(cuuid_t *cuuid, uint8_t flag, uint8_t subc, char tag[3]) {
+QUID_LIB_API int quid_create(cuuid_t *cuuid, uint8_t flag, uint8_t subc, char tag[3]) {
+
+	/* Static size assert */
+	SIZE_CHECK();
+
     assert(memset(cuuid, '\0', sizeof(cuuid_t)));
-	if (cuuid->version == QUID_REV4) {
+	if (cuuid->version == QUID_REV4) {//TODO
 		return quid_create_rev4(cuuid, flag, subc);
 	}
 
     /* Default to latest */
-    cuuid->version = QUID_REV7;
     return quid_create_rev7(cuuid, flag, subc, tag);
 }
 
@@ -450,7 +478,7 @@ int quid_create(cuuid_t *cuuid, uint8_t flag, uint8_t subc, char tag[3]) {
  * Format QUID from the timestamp, clocksequence, and node ID
  * Structure succeeds version 3 (REV1)
  */
-void format_quid_rev4(cuuid_t* uid, uint16_t clock_seq, cuuid_time_t timestamp, cuuid_node_t node) {
+static void format_quid_rev4(cuuid_t* uid, uint16_t clock_seq, cuuid_time_t timestamp, cuuid_node_t node) {
     uid->time_low = (uint64_t)(timestamp & 0xffffffff);
     uid->time_mid = (uint16_t)((timestamp >> 32) & 0xffff);
 
@@ -462,7 +490,7 @@ void format_quid_rev4(cuuid_t* uid, uint16_t clock_seq, cuuid_time_t timestamp, 
     uid->clock_seq_hi_and_reserved = (clock_seq & 0x3f00) >> 8;
     uid->clock_seq_hi_and_reserved |= QUIDMAGIC;
 
-    memcpy(&uid->node, &node, sizeof(uid->node));
+    assert(memcpy(&uid->node, &node, sizeof(uid->node)));
     uid->node[0] = (uint8_t)true_random();
     uid->node[1] = QUID_REV4;
     uid->node[5] = (true_random() & 0xff);
@@ -472,7 +500,7 @@ void format_quid_rev4(cuuid_t* uid, uint16_t clock_seq, cuuid_time_t timestamp, 
  * Format QUID from the timestamp, clocksequence, and node ID
  * Structure succeeds version 7 (REV7)
  */
-void format_quid_rev7(cuuid_t* uid, uint16_t clock_seq, cuuid_time_t timestamp) {
+static void format_quid_rev7(cuuid_t *uid, uint16_t clock_seq, cuuid_time_t timestamp) {
     uid->time_low = (uint64_t)(timestamp & 0xffffffff);
     uid->time_mid = (uint16_t)((timestamp >> 32) & 0xffff);
 
@@ -486,7 +514,7 @@ void format_quid_rev7(cuuid_t* uid, uint16_t clock_seq, cuuid_time_t timestamp) 
 }
 
 /* Get current time including cpu clock */
-void get_current_time(cuuid_time_t *timestamp) {
+static void get_current_time(cuuid_time_t *timestamp) {
     static int              inited = 0;
     static cuuid_time_t     time_last;
     static uint16_t         ids_this_tick;
@@ -596,7 +624,8 @@ static void strtoquid(char *str, cuuid_t *u) {
     octet1[5] = str[5];
     octet1[6] = str[6];
     octet1[7] = str[7];
-    u->time_low = strtol(octet1, NULL, 16);
+	u->time_low = (uint64_t)strtoll(octet1, NULL, 16);
+	assert(u->time_low != 0L && u->time_low != LLONG_MAX && u->time_low != LLONG_MIN);
 
     octet[0] = str[8];
     octet[1] = str[9];
@@ -643,8 +672,15 @@ static void strtoquid(char *str, cuuid_t *u) {
     u->node[5] = (char)strtol(node, NULL, 16);
 }
 
-/* Validate quid as genuine identifier */
-int quid_validate(cuuid_t *cuuid) {
+/**
+ * Validate input quid as genuine identifier by checking
+ * its quid version and make sure some parts are non-zero.
+ *
+ * @param   cuuid  The quid to be validated in internal representation
+ * @return         QUID_ERROR on faillure and QUID_OK on success
+ */
+QUID_LIB_API int quid_validate(cuuid_t *cuuid) {
+	assert(cuuid);
 	if ((cuuid->time_hi_and_version & VERSION_REV7) == VERSION_REV7) {
 		cuuid->version = QUID_REV7;
 	} else if ((cuuid->time_hi_and_version & VERSION_REV4) == VERSION_REV4) {
@@ -653,17 +689,23 @@ int quid_validate(cuuid_t *cuuid) {
 		return QUID_ERROR;
 	}
 
-    /* In any version, these must be filled */
-	if (!cuuid->node[2] || !cuuid->node[5]) {
-		return QUID_ERROR;
-	}
-
-    return QUID_OK;
+	return QUID_OK;
 }
 
-/* Convert string to identifier */
-int quid_parse(char *quid, cuuid_t *cuuid) {
+/**
+ * Convert string to quid identifier. If the string
+ * cannot be parsed as a quid, and error is returned.
+ *
+ * @param    quid   Input string to be parsed by the function
+ * @param    cuuid  Output quid structure provided by the caller
+ * @return          QUID_ERROR on faillure and QUID_OK on success
+ */
+QUID_LIB_API int quid_parse(char *quid, cuuid_t *cuuid) {
     int len;
+	assert(quid);
+
+	/* Static size assert */
+	SIZE_CHECK();
 
     /* Remove all special characters */
     strip_special_chars(quid);
@@ -679,6 +721,7 @@ int quid_parse(char *quid, cuuid_t *cuuid) {
 		return QUID_ERROR;
 	}
 
+	/* Do the actual parsing */
     strtoquid(quid, cuuid);
 	if (!quid_validate(cuuid)) {
 		return QUID_ERROR;
@@ -687,18 +730,27 @@ int quid_parse(char *quid, cuuid_t *cuuid) {
     return QUID_OK;
 }
 
-/* Convert quid to string */
-void quid_tostring(const cuuid_t *u, char str[QUID_FULLLEN + 1]) {
+/**
+ * Convert quid structure to string. The caller must provide
+ * an array capable of holding the size of a QUID_FULLLEN+1. If
+ * the str paramter does not contain enough elements or the parameter
+ * is invalid memory, the resulting operation will cause an access violation.
+ *
+ * @param    cuuid  Input quid structure to be converted to string
+ * @param    str    Output string in which the result will be written
+ */
+QUID_LIB_API void quid_tostring(const cuuid_t *cuuid, char str[QUID_FULLLEN + 1]) {
+	assert(cuuid);
     snprintf(str, QUID_FULLLEN + 1, PRINT_QUID_FORMAT,
-        u->time_low,
-        u->time_mid,
-        u->time_hi_and_version,
-        u->clock_seq_hi_and_reserved,
-        u->clock_seq_low,
-        u->node[0],
-        u->node[1],
-        u->node[2],
-        u->node[3],
-        u->node[4],
-        u->node[5]);
+			 cuuid->time_low,
+			 cuuid->time_mid,
+			 cuuid->time_hi_and_version,
+			 cuuid->clock_seq_hi_and_reserved,
+			 cuuid->clock_seq_low,
+			 cuuid->node[0],
+			 cuuid->node[1],
+			 cuuid->node[2],
+			 cuuid->node[3],
+			 cuuid->node[4],
+			 cuuid->node[5]);
 }

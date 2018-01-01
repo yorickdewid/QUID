@@ -9,9 +9,6 @@ project(quid_test VERSION 1.5 LANGUAGES C)
 
 include_directories(${CMAKE_SOURCE_DIR}/include)
 
-# Sleep is only available with POSIX
-#add_definitions(-D_POSIX_C_SOURCE=199309L)
-
 add_executable(quid_test quid_test.c)
 add_executable(chacha_test chacha_test.c)
 
