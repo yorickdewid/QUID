@@ -49,6 +49,11 @@ extern "c" {
 #endif
 
 /**
+ * Public API functions resulting type.
+ */
+typedef int cresult;
+    
+/**
  * Flags for individual identifiers
  * This provides extra informaton for the
  * recipient.
@@ -120,27 +125,26 @@ enum {
 };
 
 /**
- * Helper
+ * Simplified version of the quid creator.
  */
-#define quid_create_simple(c) \
-    quid_create(c, IDF_NULL, CLS_CMON, NULL)
+#define quid_create_simple(c) quid_create(c, IDF_NULL, CLS_CMON, NULL)
 
 /**
  * Prototypes to library functions.
  */
-QUID_LIB_API extern int          quid_create_rev4(cuuid_t *, uint8_t, uint8_t);
-QUID_LIB_API extern int          quid_create_rev7(cuuid_t *, uint8_t, uint8_t, char tag[3]);
-QUID_LIB_API extern int          quid_create(cuuid_t *, uint8_t, uint8_t, char tag[3]);
+QUID_LIB_API extern cresult      quid_create_rev4(cuuid_t *, uint8_t, uint8_t);
+QUID_LIB_API extern cresult      quid_create_rev7(cuuid_t *, uint8_t, uint8_t, char tag[3]);
+QUID_LIB_API extern cresult      quid_create(cuuid_t *, uint8_t, uint8_t, char tag[3]);
 
-QUID_LIB_API extern int          quid_validate(cuuid_t *);
-QUID_LIB_API extern int          quid_parse(char *, cuuid_t *);
+QUID_LIB_API extern cresult      quid_validate(cuuid_t *);
+QUID_LIB_API extern cresult      quid_parse(char *, cuuid_t *);
 QUID_LIB_API extern void         quid_tostring(const cuuid_t *, char str[QUID_FULLLEN + 1]);
 
 QUID_LIB_API extern void         quid_set_rnd_seed(int);
 QUID_LIB_API extern void         quid_set_mem_seed(int);
 
 QUID_LIB_API extern const char  *quid_libversion(void);
-QUID_LIB_API extern int          quid_cmp(const cuuid_t *, const cuuid_t *);
+QUID_LIB_API extern cresult      quid_cmp(const cuuid_t *, const cuuid_t *);
 QUID_LIB_API extern struct tm   *quid_timestamp(cuuid_t *);
 QUID_LIB_API extern long         quid_microtime(cuuid_t *);
 QUID_LIB_API extern const char  *quid_tag(cuuid_t *);
