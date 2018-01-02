@@ -45,6 +45,9 @@
  * TODO:
  * - Last digit in timestamp
  * - Move random cipher counter
+ * - Request version from quid
+ * - #if guards around obsolete functions
+ * - REV8 2018 version
  */
 
 #ifdef HAVE_CLOCK_GETTIME
@@ -90,17 +93,17 @@ typedef unsigned long long cuuid_time_t;
 #endif
 
 #define SIZE_CHECK() \
-	assert(sizeof(uint64_t) == 8); \
-	assert(sizeof(long long) == 8);
+    assert(sizeof(uint64_t) == 8); \
+    assert(sizeof(long long) == 8);
 
-/*
+/**
  * Temporary node structure
  */
 typedef struct {
     uint8_t node[6];     /* Allocate 6 nodes */
 } cuuid_node_t;
 
-/*
+/**
  * Prototypes
  */
 static void             format_quid_rev4(cuuid_t *, uint16_t, cuuid_time_t, cuuid_node_t);
@@ -156,7 +159,7 @@ static void get_system_time(cuuid_time_t *cuuid_time) {
     ULARGE_INTEGER time;
 
     GetSystemTimeAsFileTime((FILETIME *)&time);
-	assert(time.QuadPart > 0);
+    assert(time.QuadPart > 0);
     time.QuadPart += (unsigned __int64) (1000*1000*10)
                     * (unsigned __int64) (60 * 60 * 24)
                     * (unsigned __int64) (17+30+31+365*18+5);
@@ -164,11 +167,11 @@ static void get_system_time(cuuid_time_t *cuuid_time) {
 #else
     struct timeval tv;
     uint64_t result = EPOCH_DIFF;
-	if (gettimeofday(&tv, NULL) != 0) {
-		assert(0);
-	}
+    if (gettimeofday(&tv, NULL) != 0) {
+        assert(0);
+    }
     
-	result += tv.tv_sec;
+    result += tv.tv_sec;
     result *= 10000000LL;
     result += tv.tv_usec * 10;
     *cuuid_time = result;
@@ -212,14 +215,14 @@ QUID_LIB_API struct tm *quid_timestamp(cuuid_t *cuuid) {
 
     /* Localtime */
 #ifdef _WIN32
-	static struct tm timeinfo;
-	const time_t timv = tv.tv_sec;
-	assert(localtime_s(&timeinfo, &timv) == 0);
-	return &timeinfo;
+    static struct tm timeinfo;
+    const time_t timv = tv.tv_sec;
+    assert(localtime_s(&timeinfo, &timv) == 0);
+    return &timeinfo;
 #else
-	struct tm *timeinfo = localtime(&tv.tv_sec);
-	assert(timeinfo);
-	return timeinfo;
+    struct tm *timeinfo = localtime(&tv.tv_sec);
+    assert(timeinfo);
+    return timeinfo;
 #endif
 }
 
@@ -239,9 +242,9 @@ QUID_LIB_API const char *quid_tag(cuuid_t *cuuid) {
     static char tag[3];
 
     /* Skip older formats */
-	if (cuuid->version != QUID_REV7) {
-		return "Not implemented";
-	}
+    if (cuuid->version != QUID_REV7) {
+        return "Not implemented";
+    }
 
     assert(memcpy(&node, &cuuid->node, sizeof(cuuid_node_t)));
     encrypt_node(cuuid->time_low, cuuid->clock_seq_hi_and_reserved, cuuid->clock_seq_low, &node);
@@ -303,11 +306,15 @@ QUID_LIB_API uint8_t quid_flag(cuuid_t *cuuid) {
     return QUID_ERROR;
 }
 
-/*
- * Read seed or create if not exist (Obsolete)
- * Compilers and flatforms may zero stack
- * and/or heap memory beforehand causing low
- * entropy QUID nodes.
+/**
+ * Read seed or create if not exist.
+ *
+ * OBSOLETE:
+ *    Compilers and platforms may zero the stack
+ *    and/or heap memory beforehand causing low
+ *    entropy QUID nodes. The function is still
+ *    part of the source to support backwards
+ *    compatible quid structures.
  */
 static void get_memory_seed(cuuid_node_t *node) {
     static int mem_seed_count = 0;
@@ -338,16 +345,16 @@ static void get_memory_seed(cuuid_node_t *node) {
     *node = saved_node;
 }
 
-/*
+/**
  * Run the nods agains ChaCha in order to XOR encrypt or decrypt
  * The key and IV are stretched to match the stream input. The derivations
  * are by no means secure and are only applied to increase diffusion. The stream
  * cipher may use low rounds as the primary goal is entropy, not privacy.
  *
- * @param  prekey
- * @param  preiv1
- * @param  preiv2
- * @param  node
+ * @param  prekey    The key to encrypt datablocks
+ * @param  preiv1    Initialization vector higher bits
+ * @param  preiv2    Initialization vector lower bits
+ * @param  node      Node block to encrypt, the parameter is permuted in place
  */
 static void encrypt_node(uint64_t prekey, uint8_t preiv1, uint8_t preiv2, cuuid_node_t *node) {
     chacha_ctx ctx;
@@ -390,10 +397,19 @@ static void encrypt_node(uint64_t prekey, uint8_t preiv1, uint8_t preiv2, cuuid_
     chacha_init_ctx(&ctx, 4);
     chacha_init(&ctx, key, 128, iv, 0);
 
+    /* Encrypt the node with the stretched key */
     chacha_xor(&ctx, (uint8_t *)node, sizeof(cuuid_node_t));
     assert(node);
 }
 
+/**
+ * Check whether memory is a vector of same values.
+ *
+ * @param  memory  Memory region to inspect
+ * @param  val     Value to detect in all memory locations
+ * @param  size    Size of memory block
+ * @return         1 if all memory elements contain the same value, otherwise 0
+ */
 static int memvcmp(void *memory, unsigned char val, unsigned int size) {
     uint8_t *mm = (uint8_t *)memory;
     return (*mm == val) && memcmp(mm, mm + 1, size - 1) == 0;
@@ -459,7 +475,15 @@ QUID_LIB_API int quid_create_rev7(cuuid_t *uid, uint8_t flag, uint8_t subc, char
     return QUID_OK;
 }
 
-/* Default constructor */
+/**
+ * Default constructor for new quid structures.
+ *
+ * @param  cuuid The quid output structure, the caller must provide the memory block
+ * @param  flag  Indicator flag to encode boolean flags inside the quid
+ * @param  subc  Subclass to encode in the quid, parameter may not be zero
+ * @param  tag   Optional tag to include in the quid structure
+ * @return       QUID_ERROR on faillure and QUID_OK on success
+ */
 QUID_LIB_API int quid_create(cuuid_t *cuuid, uint8_t flag, uint8_t subc, char tag[3]) {
 
     /* Static size assert */
