@@ -48,12 +48,12 @@
 extern "c" {
 #endif
 
-/*
+/**
  * Flags for individual identifiers
  * This provides extra informaton for the
  * recipient.
  *
- * Test flags using bitshit operators
+ * Test flags using bitshit operators.
  */
 #define FLAG_PUBLIC 1<<0    /* Check for public flag */
 #define FLAG_IDSAFE 1<<1    /* Check for safety flag */
@@ -71,8 +71,8 @@ extern "c" {
 #define IDF_TAGGED 0x20     /* Set flag as tag */
 #define IDF_STRICT 0x40     /* Set flag to strict mode */
 
-/*
- * Identifier classification
+/**
+ * Identifier classification.
  * This provides extra informaton for the
  * recipient. Only one category can be of use
  * at a time.
@@ -82,22 +82,23 @@ extern "c" {
 #define CLS_WARN 0x3    /* Set warning class */
 #define CLS_ERROR 0x4   /* Set error class */
 
-/*
- * Identifier structure
+/**
+ * Identifier structure.
  */
 #define QUID_LEN 32                     /* Default string length for striped quid */
 #define QUID_FULLLEN QUID_LEN + 4 + 2   /* Full QUID length */
 
-/*
- * QUID versions
+/**
+ * QUID versions.
  */
 enum {
     QUID_REV4 = 0x10,
     QUID_REV7 = 0x12,
+    QUID_REV8 = 0x13,
 };
 
-/*
- * Identifier structure
+/**
+ * Identifier structure.
  */
 typedef struct {
     uint64_t  time_low;                   /* Time lover half */
@@ -110,19 +111,22 @@ typedef struct {
     uint8_t   version;                    /* Internal version */
 } cuuid_t;
 
+/**
+ * Public API function result code.
+ */
 enum {
     QUID_ERROR = 0,
     QUID_OK = 1,
 };
 
-/*
+/**
  * Helper
  */
 #define quid_create_simple(c) \
     quid_create(c, IDF_NULL, CLS_CMON, NULL)
 
-/*
- * Prototypes to library functions
+/**
+ * Prototypes to library functions.
  */
 QUID_LIB_API extern int          quid_create_rev4(cuuid_t *, uint8_t, uint8_t);
 QUID_LIB_API extern int          quid_create_rev7(cuuid_t *, uint8_t, uint8_t, char tag[3]);
