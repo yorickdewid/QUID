@@ -5,7 +5,7 @@
 cmake_minimum_required(VERSION 3.2 FATAL_ERROR)
 
 # Set project info
-project(quid VERSION 1.5 LANGUAGES C)
+project(quid VERSION 1.6 LANGUAGES C)
 
 # In-source builds are disabled.
 if(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})

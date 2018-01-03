@@ -41,6 +41,8 @@
  *          - Update Licenses
  *          - Add CMake support
  *          - Windows support
+ * 2018-01: Version 1.6
+ *          - Fix timestamp on Win32 & Linux
  *
  * TODO:
  * - Last digit in timestamp
@@ -154,7 +156,7 @@ static int memvcmp(void *memory, unsigned char val, unsigned int size)
 * @param   s2  Second quid to be compared with first
 * @return      0 if the two identifiers did not match, otherwise 1
 */
-QUID_LIB_API int quid_cmp(const cuuid_t *s1, const cuuid_t *s2) {
+QUID_LIB_API cresult quid_cmp(const cuuid_t *s1, const cuuid_t *s2) {
     return s1->time_low == s2->time_low
         && s1->time_mid == s2->time_mid
         && s1->time_hi_and_version == s2->time_hi_and_version
@@ -469,7 +471,7 @@ static void encrypt_node(uint64_t prekey, uint8_t preiv1, uint8_t preiv2, cuuid_
 }
 
 /* QUID format REV4 */
-QUID_LIB_API int quid_create_rev4(cuuid_t *uid, uint8_t flag, uint8_t subc) {
+QUID_LIB_API cresult quid_create_rev4(cuuid_t *uid, uint8_t flag, uint8_t subc) {
     cuuid_time_t    timestamp;
     unsigned short  clockseq;
     cuuid_node_t    node;
@@ -492,7 +494,7 @@ QUID_LIB_API int quid_create_rev4(cuuid_t *uid, uint8_t flag, uint8_t subc) {
 }
 
 /* QUID format REV7 */
-QUID_LIB_API int quid_create_rev7(cuuid_t *uid, uint8_t flag, uint8_t subc, char tag[3]) {
+QUID_LIB_API cresult quid_create_rev7(cuuid_t *uid, uint8_t flag, uint8_t subc, char tag[3]) {
     cuuid_time_t    timestamp;
     unsigned short  clockseq;
     cuuid_node_t    node;
@@ -537,9 +539,7 @@ QUID_LIB_API int quid_create_rev7(cuuid_t *uid, uint8_t flag, uint8_t subc, char
  * @param  tag   Optional tag to include in the quid structure
  * @return       QUID_ERROR on faillure and QUID_OK on success
  */
-QUID_LIB_API int quid_create(cuuid_t *cuuid, uint8_t flag, uint8_t subc, char tag[3]) {
-
-    /* Static size assert */
+QUID_LIB_API cresult quid_create(cuuid_t *cuuid, uint8_t flag, uint8_t subc, char tag[3]) {
     SIZE_CHECK();
 
     assert(memset(cuuid, '\0', sizeof(cuuid_t)));
@@ -551,9 +551,9 @@ QUID_LIB_API int quid_create(cuuid_t *cuuid, uint8_t flag, uint8_t subc, char ta
     return quid_create_rev7(cuuid, flag, subc, tag);
 }
 
-/*
+/**
  * Format QUID from the timestamp, clocksequence, and node ID
- * Structure succeeds version 3 (REV1)
+ * Structure succeeds version 3 (REV1).
  */
 static void format_quid_rev4(cuuid_t* uid, uint16_t clock_seq, cuuid_time_t timestamp, cuuid_node_t node) {
     uid->time_low = (uint64_t)(timestamp & 0xffffffff);
@@ -573,9 +573,9 @@ static void format_quid_rev4(cuuid_t* uid, uint16_t clock_seq, cuuid_time_t time
     uid->node[5] = (true_random() & 0xff);
 }
 
-/*
+/**
  * Format QUID from the timestamp, clocksequence, and node ID
- * Structure succeeds version 7 (REV7)
+ * Structure succeeds version 7 (REV7).
  */
 static void format_quid_rev7(cuuid_t *uid, uint16_t clock_seq, cuuid_time_t timestamp) {
     uid->time_low = (uint64_t)(timestamp & 0xffffffff);
@@ -680,70 +680,45 @@ static int ishex(char *s) {
     return 1;
 }
 
-/* Parse string into QUID */
-static void strtoquid(char *str, cuuid_t *u) {
-    char octet1[9];
-    char octet[5];
-    char node[3];
+/**
+ * Parse string into quid structure. Even if the resulting quid structure
+ * is not a valid quid identifier, no validation is performed in this
+ * function.
+ *
+ * @param   str    Quid structure to be parsed represented as string
+ * @param   u      The output quid structure, caller must provide memory
+ */
+static void strtoquid(const char *str, cuuid_t *u) {
+    char octet1[8 + 1];
+    char octet[4 + 1];
+    char node[2 + 1];
+    assert(u);
 
-    octet1[8] = '\0';
-    octet[4] = '\0';
-    node[2] = '\0';
+    memset(octet1, '\0', sizeof(octet1));
+    memset(octet, '\0', sizeof(octet));
+    memset(node, '\0', sizeof(node));
 
-    octet1[0] = str[0];
-    octet1[1] = str[1];
-    octet1[2] = str[2];
-    octet1[3] = str[3];
-    octet1[4] = str[4];
-    octet1[5] = str[5];
-    octet1[6] = str[6];
-    octet1[7] = str[7];
+    memcpy(octet1, str, 8);
     u->time_low = (uint64_t)strtoll(octet1, NULL, 16);
     assert(u->time_low != 0L && u->time_low != LLONG_MAX && u->time_low != LLONG_MIN);
 
-    octet[0] = str[8];
-    octet[1] = str[9];
-    octet[2] = str[10];
-    octet[3] = str[11];
+    memcpy(octet, str + 8, 4);
     u->time_mid = (uint16_t)strtol(octet, NULL, 16);
 
-    octet[0] = str[12];
-    octet[1] = str[13];
-    octet[2] = str[14];
-    octet[3] = str[15];
+    memcpy(octet, str + 8 + 4, 4);
     u->time_hi_and_version = (uint16_t)strtol(octet, NULL, 16);
 
-    node[0] = str[16];
-    node[1] = str[17];
-    u->clock_seq_hi_and_reserved = (char)strtol(node, NULL, 16);
+    memcpy(node, str + 8 + 4 + 4, 2);
+    u->clock_seq_hi_and_reserved = (uint8_t)strtol(node, NULL, 16);
 
-    node[0] = str[18];
-    node[1] = str[19];
-    u->clock_seq_low = (char)strtol(node, NULL, 16);
+    memcpy(node, str + 8 + 4 + 4 + 2, 2);
+    u->clock_seq_low = (uint8_t)strtol(node, NULL, 16);
 
-    node[0] = str[20];
-    node[1] = str[21];
-    u->node[0] = (char)strtol(node, NULL, 16);
-
-    node[0] = str[22];
-    node[1] = str[23];
-    u->node[1] = (char)strtol(node, NULL, 16);
-
-    node[0] = str[24];
-    node[1] = str[25];
-    u->node[2] = (char)strtol(node, NULL, 16);
-
-    node[0] = str[26];
-    node[1] = str[27];
-    u->node[3] = (char)strtol(node, NULL, 16);
-
-    node[0] = str[28];
-    node[1] = str[29];
-    u->node[4] = (char)strtol(node, NULL, 16);
-
-    node[0] = str[30];
-    node[1] = str[31];
-    u->node[5] = (char)strtol(node, NULL, 16);
+    int i;
+    for (i = 0; i < sizeof(u->node); ++i) {
+        memcpy(node, str + 20 + (i * 2), 2);
+        u->node[i] = (uint8_t)strtol(node, NULL, 16);
+    }
 }
 
 /**
@@ -753,7 +728,7 @@ static void strtoquid(char *str, cuuid_t *u) {
  * @param   cuuid  The quid to be validated in internal representation
  * @return         QUID_ERROR on faillure and QUID_OK on success
  */
-QUID_LIB_API int quid_validate(cuuid_t *cuuid) {
+QUID_LIB_API cresult quid_validate(cuuid_t *cuuid) {
     assert(cuuid);
     if ((cuuid->time_hi_and_version & VERSION_REV7) == VERSION_REV7) {
         cuuid->version = QUID_REV7;
@@ -774,7 +749,7 @@ QUID_LIB_API int quid_validate(cuuid_t *cuuid) {
  * @param    cuuid  Output quid structure provided by the caller
  * @return          QUID_ERROR on faillure and QUID_OK on success
  */
-QUID_LIB_API int quid_parse(char *quid, cuuid_t *cuuid) {
+QUID_LIB_API cresult quid_parse(char *quid, cuuid_t *cuuid) {
     int len;
     assert(quid);
 

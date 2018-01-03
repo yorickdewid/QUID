@@ -35,6 +35,12 @@
 
 #include "tinytest.h"
 
+#ifdef _WIN32
+# define STRCOPY(s,c) strcpy_s(s, sizeof(s), c);
+#else
+# define STRCOPY(s,c) strcpy(s, c);
+#endif
+
 static void lib_quid() {
     ASSERT("no version set", quid_libversion());
 }
@@ -92,18 +98,9 @@ static void convert_string_and_back() {
         ASSERT("quid does not match", quid_cmp(&tc_u, &tc_b));
     }
 
-#ifdef _WIN32
-    strcpy_s(tc_str, sizeof(tc_str), "{faf38af0-c099-b089-ca43-75cfd0bb5725}");
-#else
-    strcpy(tc_str, "{faf38af0-c099-b089-ca43-75cfd0bb5725}");
-#endif
+    STRCOPY(tc_str, "{faf38af0-c099-b089-ca43-75cfd0bb5725}");
     ASSERT_EQUALS(QUID_OK, quid_parse(tc_str, &tc_c));
-    
-#ifdef _WIN32
-    strcpy_s(tc_str, sizeof(tc_str), "b4be7a9e-ca82-b0b5-8000-9a3df5bf6f88");
-#else
-    strcpy(tc_str, "b4be7a9e-ca82-b0b5-8000-9a3df5bf6f88");
-#endif
+    STRCOPY(tc_str, "b4be7a9e-ca82-b0b5-8000-9a3df5bf6f88");
     ASSERT_EQUALS(QUID_OK, quid_parse(tc_str, &tc_c));
 }
 

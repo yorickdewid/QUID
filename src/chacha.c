@@ -144,15 +144,15 @@ void chacha_next(chacha_ctx *ctx, const uint8_t m[64], uint8_t c[64]) {
     /* Update the internal state and increase the block counter */
     doublerounds(x, ctx->state, ctx->rounds);
     ctx->state[12] = PLUSONE(ctx->state[12]);
-	if (!ctx->state[12]) {
-		ctx->state[13] = PLUSONE(ctx->state[13]);
-	}
+    if (!ctx->state[12]) {
+        ctx->state[13] = PLUSONE(ctx->state[13]);
+    }
 
     /* XOR the input block with the new temporal state to
      * create the transformed block */
-	for (i = 0; i < 64; ++i) {
-		c[i] = m[i] ^ x[i];
-	}
+    for (i = 0; i < 64; ++i) {
+        c[i] = m[i] ^ x[i];
+    }
 }
 
 void chacha_xor(chacha_ctx *ctx, uint8_t *input, size_t len) {
@@ -160,27 +160,27 @@ void chacha_xor(chacha_ctx *ctx, uint8_t *input, size_t len) {
     unsigned int i;
 
     /* Upper block limit */
-	if (len > 64) {
-		abort();
-	}
+    if (len > 64) {
+        abort();
+    }
 
     /* Update the internal state and increase the block counter */
     doublerounds(block, ctx->state, ctx->rounds);
     ctx->state[12] = PLUSONE(ctx->state[12]);
-	if (!ctx->state[12]) {
-		ctx->state[13] = PLUSONE(ctx->state[13]);
-	}
+    if (!ctx->state[12]) {
+        ctx->state[13] = PLUSONE(ctx->state[13]);
+    }
 
-	for (i = 0; i < len; ++i) {
-		input[i] = input[i] ^ block[i];
-	}
+    for (i = 0; i < len; ++i) {
+        input[i] = input[i] ^ block[i];
+    }
 }
 
 void chacha_init_ctx(chacha_ctx *ctx, uint8_t rounds) {
     /* Not too crazy */
-	if (rounds < 2) {
-		abort();
-	}
+    if (rounds < 2) {
+        abort();
+    }
 
     memset(ctx->state, '\0', sizeof(ctx->state));
     ctx->rounds = rounds;

@@ -5,7 +5,7 @@
 cmake_minimum_required(VERSION 3.2 FATAL_ERROR)
 
 # Set project info
-project(quid_test VERSION 1.5 LANGUAGES C)
+project(quid_test VERSION 1.6 LANGUAGES C)
 
 include_directories(${CMAKE_SOURCE_DIR}/include)
 
