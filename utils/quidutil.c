@@ -75,7 +75,7 @@ const char *category_name(uint8_t cat);
 
 /* Set flag if program got terminated */
 void set_signint(int s) {
-	((void)s);
+    ((void)s);
     intflag = 1;
 }
 
@@ -103,7 +103,7 @@ void quid_print_file(FILE *fp, cuuid_t u, int format) {
         fprintf(fp, "\n");
     } else if(format == 2) {
 #ifdef _WIN32
-		fprintf(fp, "%lld", u.time_low);
+        fprintf(fp, "%lld", u.time_low);
 #else
         fprintf(fp, "%ld", u.time_low);
 #endif
@@ -145,24 +145,27 @@ void input_verbose(cuuid_t u) {
     char sflag;
     int version = 0;
     char structure[32];
+	char rev[32];
 
     switch (u.version) {
         case QUID_REV4:
             version = 4;
             strcpy(structure, "memgrep");
+			strcpy(rev, "REV2012");
             break;
         case QUID_REV7:
             version = 7;
             strcpy(structure, "ChaCha/4");
+			strcpy(rev, "REV2017");
             break;
     }
 
     printf("---------------------------------------------\n");
     printf("Health          : %s\n", quid_validate(&u) ? "OK" : "INVALID");
-    printf("Timestamp       : %s", asctime(quid_timestamp(&u)));
+    printf("Timestamp (UTC) : %s", asctime(quid_timestamp(&u)));
     printf("Microtime       : %fms\n", quid_microtime(&u)/1000.0);
     printf("Structure       : %s\n", structure);
-    printf("Cuuid version   : %d\n", version);
+    printf("Cuuid version   : %d (%s)\n", version, rev);
     printf("Tag             : %s\n", quid_tag(&u));
     printf("Category        : %s\n", category_name(quid_category(&u)));
 
@@ -170,23 +173,29 @@ void input_verbose(cuuid_t u) {
     sflag = (quid_flag(&u) ^ IDF_NULL);
     printf("Flags           :\n");
 
-    if (sflag & FLAG_PUBLIC)
+    if (sflag & FLAG_PUBLIC) {
         printf(" * Public\n");
+    }
 
-    if (sflag & FLAG_IDSAFE)
+    if (sflag & FLAG_IDSAFE) {
         printf(" * Safe\n");
+    }
 
-    if (sflag & FLAG_MASTER)
+    if (sflag & FLAG_MASTER) {
         printf(" * master\n");
+    }
 
-    if (sflag & FLAG_SIGNED)
+    if (sflag & FLAG_SIGNED) {
         printf(" * Signed\n");
+    }
 
-    if (sflag & FLAG_TAGGED)
+    if (sflag & FLAG_TAGGED) {
         printf(" * Tagged\n");
+    }
 
-    if (sflag & FLAG_STRICT)
+    if (sflag & FLAG_STRICT) {
         printf(" * Strict\n");
+    }
 
     printf("---------------------------------------------\n");
 }
@@ -254,13 +263,13 @@ void print_version(void) {
 int check_fname(const char *pathname) {
     struct stat info;
 
-	if (stat(pathname, &info) != 0) {
-		return 0;
-	} else if (S_ISDIR(info.st_mode)) {
+    if (stat(pathname, &info) != 0) {
+        return 0;
+    } else if (S_ISDIR(info.st_mode)) {
         return 1;
-    } else {
-        return 2;
-	}
+    }
+
+    return 2;
 }
 
 const char *category_name(uint8_t _cat) {
@@ -274,51 +283,53 @@ const char *category_name(uint8_t _cat) {
         case CLS_ERROR:
             return "Error";
         default:
-            return "Unknown";
+			break;
     }
+
+    return "Unknown";
 }
 
 static void qusleep(int64_t usec) {
 #ifdef _WIN32
-	HANDLE timer;
-	LARGE_INTEGER ft;
+    HANDLE timer;
+    LARGE_INTEGER ft;
 
-	ft.QuadPart = -(10 * usec); // Convert to 100 nanosecond interval, negative value indicates relative time
+    ft.QuadPart = -(10 * usec); // Convert to 100 nanosecond interval, negative value indicates relative time
 
-	timer = CreateWaitableTimer(NULL, TRUE, NULL);
-	SetWaitableTimer(timer, &ft, 0, NULL, NULL, 0);
-	WaitForSingleObject(timer, INFINITE);
-	CloseHandle(timer);
+    timer = CreateWaitableTimer(NULL, TRUE, NULL);
+    SetWaitableTimer(timer, &ft, 0, NULL, NULL, 0);
+    WaitForSingleObject(timer, INFINITE);
+    CloseHandle(timer);
 #else
-	struct timespec tm;
-	tm.tv_sec = 0;
-	tm.tv_nsec = usec * 1000;
+    struct timespec tm;
+    tm.tv_sec = 0;
+    tm.tv_nsec = usec * 1000;
 
-	nanosleep(&tm, NULL);
+    nanosleep(&tm, NULL);
 #endif
 }
 
 #ifdef _WIN32
 int gettimeofday(struct timeval *tp, char *tzp) {
-	((void)tzp);
-	
-	// Note: some broken versions only have 8 trailing zero's, the correct epoch has 9 trailing zero's
-	// This magic number is the number of 100 nanosecond intervals since January 1, 1601 (UTC)
-	// until 00:00:00 January 1, 1970 
-	static const uint64_t EPOCH = ((uint64_t)116444736000000000ULL);
+    ((void)tzp);
+    
+    // Note: some broken versions only have 8 trailing zero's, the correct epoch has 9 trailing zero's
+    // This magic number is the number of 100 nanosecond intervals since January 1, 1601 (UTC)
+    // until 00:00:00 January 1, 1970 
+    static const uint64_t EPOCH = ((uint64_t)11644473600ULL);
 
-	SYSTEMTIME  system_time;
-	FILETIME    file_time;
-	uint64_t    time;
+    SYSTEMTIME  system_time;
+    FILETIME    file_time;
+    uint64_t    time;
 
-	GetSystemTime(&system_time);
-	SystemTimeToFileTime(&system_time, &file_time);
-	time = ((uint64_t)file_time.dwLowDateTime);
-	time += ((uint64_t)file_time.dwHighDateTime) << 32;
+    GetSystemTime(&system_time);
+    SystemTimeToFileTime(&system_time, &file_time);
+    time = ((uint64_t)file_time.dwLowDateTime);
+    time += ((uint64_t)file_time.dwHighDateTime) << 32;
 
-	tp->tv_sec = (long)((time - EPOCH) / 10000000L);
-	tp->tv_usec = (long)(system_time.wMilliseconds * 1000);
-	return 0;
+    tp->tv_sec = (long)((time - EPOCH) / 10000000L);
+    tp->tv_usec = (long)(system_time.wMilliseconds * 1000);
+    return 0;
 }
 #endif
 
@@ -491,39 +502,39 @@ int main(int argc, char *argv[]) {
         }
 
         for (i=0; i<n; ++i) {
-			assert(cat != 0);
+            assert(cat != 0);
             quid_create(&cuuid, flg, cat, tag);
 
-			if (intflag) {
-				break;
-			}
+            if (intflag) {
+                break;
+            }
 
             if (!fout){
-				if (!nout) {
-					quid_print(cuuid, fmat);
-				}
-			} else {
-				quid_print_file(fp, cuuid, fmat);
-			}
+                if (!nout) {
+                    quid_print(cuuid, fmat);
+                }
+            } else {
+                quid_print_file(fp, cuuid, fmat);
+            }
 
-			if (delay) {
-				qusleep(delay * 1000);
-			}
+            if (delay) {
+                qusleep(delay * 1000);
+            }
 
             ticks = clock();
         }
 
-		if (fp) {
-			fclose(fp);
-		}
+        if (fp) {
+            fclose(fp);
+        }
 
         gettimeofday(&t2, NULL);
     }
 
     /* Show counters */
-	if (vbose && gen) {
-		generate_verbose();
-	}
+    if (vbose && gen) {
+        generate_verbose();
+    }
 
     return 0;
 }

@@ -50,13 +50,10 @@
  * - REV8 2018 version
  */
 
-#ifdef HAVE_CLOCK_GETTIME
-#define _DEFAULT_SOURCE
-#endif
-
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <limits.h>
 #include <assert.h>
 
 #ifdef _WIN32
@@ -72,7 +69,6 @@
 #include "chacha.h"
 
 #define UIDS_PER_TICK   1024             /* Generate identifiers per tick interval */
-#define EPOCH_DIFF      11644473600LL    /* Conversion needed for EPOCH to UTC */
 #define RANDFILE        ".rnd"           /* File descriptor for random seed */
 #define MEM_SEED_CYCLE  65536            /* Generate new memory seed after interval */
 #define RND_SEED_CYCLE  4096             /* Generate new random seed after interval */
@@ -87,10 +83,15 @@ typedef unsigned long long cuuid_time_t;
 #ifdef _WIN32
 # define PRINT_QUID_FORMAT "{%.8llx-%.4x-%.4x-%.2x%.2x-%.2x%.2x%.2x%.2x%.2x%.2x}"
 # define QFOPEN(f,n,m) assert(fopen_s(&f, n, m) == 0);
+# define q_gettimeofday(t,z) win32_gettimeofday(t,z)
 #else
 # define PRINT_QUID_FORMAT "{%.8lx-%.4x-%.4x-%.2x%.2x-%.2x%.2x%.2x%.2x%.2x%.2x}"
 # define QFOPEN(f,n,m) f = fopen(n, m);
+# define q_gettimeofday(t,z) gettimeofday(t,z)
+# define HAS_GETTIMEOFDAY 1
 #endif
+
+#define UNUSED(u) ((void)u)
 
 #define SIZE_CHECK() \
     assert(sizeof(uint64_t) == 8); \
@@ -117,7 +118,7 @@ static int max_rnd_seed = RND_SEED_CYCLE;
 
 static const uint8_t padding[3] = {0x12, 0x82, 0x7b};
 
-/* Set memory seed cycle */
+/* Set memory seed cycle (OBSOLETE) */
 QUID_LIB_API void quid_set_mem_seed(int cnt) {
     max_mem_seed = cnt;
 }
@@ -130,6 +131,20 @@ QUID_LIB_API void quid_set_rnd_seed(int cnt) {
 /* Library version */
 QUID_LIB_API const char *quid_libversion(void) {
     return PACKAGE_VERSION;
+}
+
+/**
+* Check whether memory is a vector of same values.
+*
+* @param  memory  Memory region to inspect
+* @param  val     Value to detect in all memory locations
+* @param  size    Size of memory block
+* @return         1 if all memory elements contain the same value, otherwise 0
+*/
+static int memvcmp(void *memory, unsigned char val, unsigned int size)
+{
+    uint8_t *mm = (uint8_t *)memory;
+    return (*mm == val) && memcmp(mm, mm + 1, size - 1) == 0;
 }
 
 /**
@@ -153,37 +168,68 @@ QUID_LIB_API int quid_cmp(const cuuid_t *s1, const cuuid_t *s2) {
         && s1->node[5] == s2->node[5];
 }
 
-/* Retrieve system time */
-static void get_system_time(cuuid_time_t *cuuid_time) {
-#ifdef _WIN32
-    ULARGE_INTEGER time;
+#ifndef HAS_GETTIMEOFDAY
+int win32_gettimeofday(struct timeval *tp, char *tzp) {
+    SYSTEMTIME system_time;
+    FILETIME file_time;
+    uint64_t time;
+    UNUSED(tzp);
 
-    GetSystemTimeAsFileTime((FILETIME *)&time);
-    assert(time.QuadPart > 0);
-    time.QuadPart += (unsigned __int64) (1000*1000*10)
-                    * (unsigned __int64) (60 * 60 * 24)
-                    * (unsigned __int64) (17+30+31+365*18+5);
-    *cuuid_time = time.QuadPart;
-#else
+    /**
+     * Note: some broken versions only have 8 trailing zero's, the correct epoch has 9 trailing zero's
+     * This magic number is the number of 100 nanosecond intervals since January 1, 1601 (UTC)
+     * until 00:00:00 January 1, 1970
+     */
+    static const uint64_t EPOCH_DIFF = ((uint64_t)116444736000000000);
+
+    GetSystemTime(&system_time);
+    SystemTimeToFileTime(&system_time, &file_time);
+    time = ((uint64_t)file_time.dwLowDateTime);
+    time += ((uint64_t)file_time.dwHighDateTime) << 32;
+
+    tp->tv_sec = (long)((time - EPOCH_DIFF) / 10000000L);
+    tp->tv_usec = (long)(system_time.wMilliseconds * 1000);
+
+    assert(tp->tv_sec > 1000000000);
+    return 0;
+}
+#endif
+
+/**
+ * Get system time in Coordinated Universal Time (UTC).
+ * Depending on the system some form of the gettimeofday
+ * function is called.
+ *
+ * @return  cuuid_time_t containing the 64 bit timestamp
+ */
+static void get_system_time(cuuid_time_t *cuuid_time) {
     struct timeval tv;
-    uint64_t result = EPOCH_DIFF;
-    if (gettimeofday(&tv, NULL) != 0) {
+    if (q_gettimeofday(&tv, NULL) != 0) {
         assert(0);
     }
     
-    result += tv.tv_sec;
+    /* Squeeze sec and usec into single integer */
+    uint64_t result = tv.tv_sec;
     result *= 10000000LL;
     result += tv.tv_usec * 10;
     *cuuid_time = result;
-#endif
+
+    assert(result > 10000000000000000);
+    assert(cuuid_time);
 }
 
-/* Retrieve timestamp from QUID */
+/**
+ * Retrieve timestamp from QUID
+ * 
+ * @param  cuuid   Quid input structure
+ * @return         struct timeval
+ */
 static void quid_timeval(cuuid_t *cuuid, struct timeval *tv) {
     cuuid_time_t cuuid_time;
     uint16_t versubtr = 0;
     long int usec;
     time_t sec;
+    assert(cuuid);
 
     /* Determine version substraction */
     switch (cuuid->version) {
@@ -201,35 +247,47 @@ static void quid_timeval(cuuid_t *cuuid, struct timeval *tv) {
 
     /* Timestamp to timeval */
     usec = (cuuid_time/10) % 1000000LL;
-    sec = (((cuuid_time/10) - usec)/1000000LL) - EPOCH_DIFF;
+    sec = (((cuuid_time/10) - usec)/1000000LL);// - EPOCH_DIFF;
 
     tv->tv_sec = (long)sec;
     tv->tv_usec = usec;
 }
 
-/* Retrieve timestamp */
+/**
+ * Retrieve timestamp as timeinfo structure.
+ * The timeinfo structure can be converted into
+ * a string or serve as input to other datetime
+ * functions.
+ * 
+ * @param  cuuid   Quid input structure
+ * @return         struct tm on success or NULL on faillure
+ */
 QUID_LIB_API struct tm *quid_timestamp(cuuid_t *cuuid) {
     struct timeval tv;
+    assert(cuuid);
 
+    /* Fetch time from quid */
     quid_timeval(cuuid, &tv);
+    const time_t timet = tv.tv_sec;
 
     /* Localtime */
 #ifdef _WIN32
     static struct tm timeinfo;
-    const time_t timv = tv.tv_sec;
-    assert(localtime_s(&timeinfo, &timv) == 0);
+    if (gmtime_s(&timeinfo, &timet) != 0) {
+        return NULL;
+    };
     return &timeinfo;
 #else
-    struct tm *timeinfo = localtime(&tv.tv_sec);
-    assert(timeinfo);
-    return timeinfo;
+    return gmtime(&timet);
 #endif
 }
 
 /* Retrieve microtime */
 QUID_LIB_API long quid_microtime(cuuid_t *cuuid) {
     struct timeval tv;
+    assert(cuuid);
 
+    /* Fetch time from quid */
     quid_timeval(cuuid, &tv);
 
     /* Microseconds */
@@ -240,6 +298,7 @@ QUID_LIB_API long quid_microtime(cuuid_t *cuuid) {
 QUID_LIB_API const char *quid_tag(cuuid_t *cuuid) {
     cuuid_node_t node;
     static char tag[3];
+    assert(cuuid);
 
     /* Skip older formats */
     if (cuuid->version != QUID_REV7) {
@@ -271,6 +330,7 @@ QUID_LIB_API const char *quid_tag(cuuid_t *cuuid) {
 /* Retrieve category */
 QUID_LIB_API uint8_t quid_category(cuuid_t *cuuid) {
     cuuid_node_t node;
+    assert(cuuid);
 
     /* Determine category per version */
     switch (cuuid->version) {
@@ -343,6 +403,7 @@ static void get_memory_seed(cuuid_node_t *node) {
     mem_seed_count = (mem_seed_count == max_mem_seed) ? 0 : mem_seed_count + 1;
 
     *node = saved_node;
+    assert(node);
 }
 
 /**
@@ -360,6 +421,11 @@ static void encrypt_node(uint64_t prekey, uint8_t preiv1, uint8_t preiv2, cuuid_
     chacha_ctx ctx;
     uint8_t key[16];
     uint8_t iv[8];
+
+    assert(prekey);
+    //assert(preiv1);
+    //assert(preiv2);
+    assert(node);
 
     /* Weak key stretching */
     key[0] = 0x0;
@@ -402,19 +468,6 @@ static void encrypt_node(uint64_t prekey, uint8_t preiv1, uint8_t preiv2, cuuid_
     assert(node);
 }
 
-/**
- * Check whether memory is a vector of same values.
- *
- * @param  memory  Memory region to inspect
- * @param  val     Value to detect in all memory locations
- * @param  size    Size of memory block
- * @return         1 if all memory elements contain the same value, otherwise 0
- */
-static int memvcmp(void *memory, unsigned char val, unsigned int size) {
-    uint8_t *mm = (uint8_t *)memory;
-    return (*mm == val) && memcmp(mm, mm + 1, size - 1) == 0;
-}
-
 /* QUID format REV4 */
 QUID_LIB_API int quid_create_rev4(cuuid_t *uid, uint8_t flag, uint8_t subc) {
     cuuid_time_t    timestamp;
@@ -443,7 +496,7 @@ QUID_LIB_API int quid_create_rev7(cuuid_t *uid, uint8_t flag, uint8_t subc, char
     cuuid_time_t    timestamp;
     unsigned short  clockseq;
     cuuid_node_t    node;
-	
+    
     assert(memvcmp(uid, '\0', sizeof(cuuid_t)));
 
     uid->version = QUID_REV7;
@@ -606,11 +659,8 @@ static void strip_special_chars(char *s) {
 
     while (*pr) {
         *pw = *pr++;
-            if ((*pw != '-') &&
-                (*pw != '{') &&
-                (*pw != '}') &&
-                (*pw != ' ')) {
-	    pw++;
+        if (*pw != '-' && *pw != '{' && *pw != '}' && *pw != ' ') {
+            pw++;
         }
     }
 
@@ -766,15 +816,15 @@ QUID_LIB_API int quid_parse(char *quid, cuuid_t *cuuid) {
 QUID_LIB_API void quid_tostring(const cuuid_t *cuuid, char str[QUID_FULLLEN + 1]) {
     assert(cuuid);
     snprintf(str, QUID_FULLLEN + 1, PRINT_QUID_FORMAT,
-			 cuuid->time_low,
-			 cuuid->time_mid,
-			 cuuid->time_hi_and_version,
-			 cuuid->clock_seq_hi_and_reserved,
-			 cuuid->clock_seq_low,
-			 cuuid->node[0],
-			 cuuid->node[1],
-			 cuuid->node[2],
-			 cuuid->node[3],
-			 cuuid->node[4],
-			 cuuid->node[5]);
+             cuuid->time_low,
+             cuuid->time_mid,
+             cuuid->time_hi_and_version,
+             cuuid->clock_seq_hi_and_reserved,
+             cuuid->clock_seq_low,
+             cuuid->node[0],
+             cuuid->node[1],
+             cuuid->node[2],
+             cuuid->node[3],
+             cuuid->node[4],
+             cuuid->node[5]);
 }
