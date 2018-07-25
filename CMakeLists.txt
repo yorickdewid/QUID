@@ -30,7 +30,7 @@ if(MSVC)
 	set(CMAKE_C_STANDARD 99)
 endif()
 
-set(CMAKE_VERBOSE_MAKEFILE ON)
+# set(CMAKE_VERBOSE_MAKEFILE ON)
 set(CMAKE_COLOR_MAKEFILE ON)
 
 # Direct output to certain directories
@@ -38,7 +38,7 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
-include_directories(${CMAKE_SOURCE_DIR}/include)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 add_definitions(-DPACKAGE_BUGREPORT="yorick17@outlook.com")
 add_definitions(-DPACKAGE_URL="")
@@ -57,7 +57,7 @@ add_library(quid_lib SHARED ${PROJECT_SOURCES})
 set_target_properties(quid_a
 	PROPERTIES
 	OUTPUT_NAME "quid_a"
-	PROJECT_LABEL "Quenza Unique Identifier Static"
+	PROJECT_LABEL "QUID Static Library"
 	ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
 	LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
 	RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
@@ -67,7 +67,7 @@ set_target_properties(quid_a
 set_target_properties(quid_lib
 	PROPERTIES
 	OUTPUT_NAME "quid"
-	PROJECT_LABEL "Quenza Unique Identifier Dynamic"
+	PROJECT_LABEL "QUID Dynamic Library"
 	ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
 	LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
 	RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"

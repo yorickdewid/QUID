@@ -34,3 +34,8 @@ set_target_properties(chacha_test
 
 target_link_libraries(quid_test quid_a)
 target_link_libraries(chacha_test quid_a)
+
+# Add test
+add_test(NAME ${PROJECT_NAME}
+	COMMAND ${CMAKE_BINARY_DIR}/bin/quid_test.exe
+)

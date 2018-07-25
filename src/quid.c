@@ -758,7 +758,7 @@ QUID_LIB_API cresult quid_parse(char *quid, cuuid_t *cuuid) {
 
     /* Remove all special characters */
     strip_special_chars(quid);
-    len = strlen(quid);
+    len = (int)strlen(quid);
 
     /* Fail if invalid length */
     if (len != QUID_LEN) {
