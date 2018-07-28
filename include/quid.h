@@ -32,6 +32,7 @@
 
 #ifdef _WIN32
 # pragma once
+# pragma warning(disable : 4100) // unreferenced formal parameter
 # ifdef quid_lib_EXPORTS
 #  define QUID_LIB_API __declspec(dllexport)
 # else
