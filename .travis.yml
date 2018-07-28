@@ -11,4 +11,5 @@ script:
   - ./configure
   - make
   - make check
+  - make dist
   - cd test && ./duplicate.sh
