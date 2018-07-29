@@ -164,8 +164,11 @@ static void check_timestamp() {
         time_t timt = time(NULL);
         struct tm ti1;
 #ifdef _WIN32
-		errno_t er = gmtime_s(&ti1, &timt);
-        assert(er == 0);
+# if defined(_DEBUG) || defined(DEBUG) || !defined(NDEBUG)
+        assert(gmtime_s(&ti1, &timt) == 0);
+# else
+		gmtime_s(&ti1, &timt);
+#endif
 #else
         struct tm *_ti1 = gmtime(&timt);
         ti1 = *_ti1;
