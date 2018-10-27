@@ -112,7 +112,7 @@ void quid_print_file_hex(FILE *fp, cuuid_t u) {
 }
 
 void quid_print_file_dec(FILE *fp, cuuid_t u) {
-#ifdef WIN32
+#if defined(WIN32) || defined(__APPLE__)
     fprintf(fp, "%lld", u.time_low);
 #else
     fprintf(fp, "%ld", u.time_low);

@@ -85,12 +85,16 @@
 
 typedef unsigned long long cuuid_time_t;
 
-#ifdef WIN32
+#if defined(WIN32) || defined(__APPLE__)
 # define PRINT_QUID_FORMAT "{%.8llx-%.4x-%.4x-%.2x%.2x-%.2x%.2x%.2x%.2x%.2x%.2x}"
+#else
+# define PRINT_QUID_FORMAT "{%.8lx-%.4x-%.4x-%.2x%.2x-%.2x%.2x%.2x%.2x%.2x%.2x}"
+#endif
+
+#ifdef WIN32
 # define QFOPEN(f,n,m) assert(fopen_s(&f, n, m) == 0);
 # define q_gettimeofday(t,z) win32_gettimeofday(t,z)
 #else
-# define PRINT_QUID_FORMAT "{%.8lx-%.4x-%.4x-%.2x%.2x-%.2x%.2x%.2x%.2x%.2x%.2x}"
 # define QFOPEN(f,n,m) f = fopen(n, m);
 # define q_gettimeofday(t,z) gettimeofday(t,z)
 # define HAS_GETTIMEOFDAY 1
