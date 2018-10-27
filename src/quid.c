@@ -92,7 +92,7 @@ typedef unsigned long long cuuid_time_t;
 #endif
 
 #ifdef WIN32
-# define QFOPEN(f,n,m) assert(fopen_s(&f, n, m) == 0);
+# define QFOPEN(f,n,m) fopen_s(&f, n, m)
 # define q_gettimeofday(t,z) win32_gettimeofday(t,z)
 #else
 # define QFOPEN(f,n,m) f = fopen(n, m);
@@ -442,16 +442,31 @@ static void get_memory_seed(cuuid_node_t *node) {
     if (!mem_seed_count) {
         QFOPEN(fp, RANDFILE, "rb");
         if (fp) {
-            assert(fread(&saved_node, sizeof(saved_node), 1, fp) > 0);
-            assert(fclose(fp) == 0);
+            if (fread(&saved_node, sizeof(saved_node), 1, fp) < 0) {
+                perror("fread");
+                FATAL_ERROR_BAIL();
+            }
+            if (fclose(fp) != 0) {
+                perror("fclose");
+                FATAL_ERROR_BAIL();
+             }
         } else {
             seed[0] |= 0x01;
-            assert(memcpy(&saved_node, seed, sizeof(saved_node)));
+            if (!memcpy(&saved_node, seed, sizeof(saved_node))) {
+                perror("memcpy");
+                FATAL_ERROR_BAIL();
+            }
 
             QFOPEN(fp, RANDFILE, "wb");
             if (fp) {
-                assert(fwrite(&saved_node, sizeof(saved_node), 1, fp) > 0);
-                assert(fclose(fp) == 0);
+                if (fwrite(&saved_node, sizeof(saved_node), 1, fp) < 0) {
+                    perror("fread");
+                    FATAL_ERROR_BAIL();
+                }
+                if (fclose(fp) != 0) {
+                    perror("fclose");
+                    FATAL_ERROR_BAIL();
+                }
             }
         }
     }
@@ -480,8 +495,8 @@ static void encrypt_node(uint64_t prekey, uint8_t preiv1, uint8_t preiv2, cuuid_
     uint8_t iv[8];
 
     assert(prekey);
-    //assert(preiv1);
-    //assert(preiv2);
+    assert(preiv1);
+    assert(preiv2);
     assert(node);
 
     /* Weak key stretching */
