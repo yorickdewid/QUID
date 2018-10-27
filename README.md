@@ -42,15 +42,15 @@ required:
 Most Linux distributions provide these tools under the name `autotools`. Run the commands listed
 below to build QUID.
 ```bash
-cd scripts/
-./autogen.sh
-./configure
-make
-make install
+mkdir Build
+cd Build
+cmake .. -DCMAKE_BUILD_TYPE=Release
+cmake --build . # make
+ctest .         # make test
 ```
 
 License
 -------
 
 QUID, libquid and genquid are released under the terms of the Quenza license.
-Copyright (c) 2012-2014
+Copyright (c) 2012-2018
