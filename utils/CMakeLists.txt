@@ -5,7 +5,7 @@
 cmake_minimum_required(VERSION 3.2 FATAL_ERROR)
 
 # Set project info
-project(quidutil VERSION 1.6 LANGUAGES C)
+project(quidutil VERSION 1.7 LANGUAGES C)
 
 include_directories(${CMAKE_SOURCE_DIR}/include)
 

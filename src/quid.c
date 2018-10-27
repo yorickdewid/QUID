@@ -209,7 +209,7 @@ static void get_system_time(cuuid_time_t *cuuid_time) {
     if (q_gettimeofday(&tv, NULL) != 0) {
         assert(0);
     }
-    
+
     /* Squeeze sec and usec into single integer */
     uint64_t result = tv.tv_sec;
     result *= 10000000LL;
@@ -222,7 +222,7 @@ static void get_system_time(cuuid_time_t *cuuid_time) {
 
 /**
  * Retrieve timestamp from QUID
- * 
+ *
  * @param  cuuid   Quid input structure
  * @return         struct timeval
  */
@@ -260,7 +260,7 @@ static void quid_timeval(cuuid_t *cuuid, struct timeval *tv) {
  * The timeinfo structure can be converted into
  * a string or serve as input to other datetime
  * functions.
- * 
+ *
  * @param  cuuid   Quid input structure
  * @return         struct tm on success or NULL on faillure
  */
@@ -498,7 +498,7 @@ QUID_LIB_API cresult quid_create_rev7(cuuid_t *uid, uint8_t flag, uint8_t subc, 
     cuuid_time_t    timestamp;
     unsigned short  clockseq;
     cuuid_node_t    node;
-    
+
     assert(memvcmp(uid, '\0', sizeof(cuuid_t)));
 
     uid->version = QUID_REV7;

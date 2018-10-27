@@ -255,7 +255,7 @@ void usage(void) {
 /* Print program version */
 void print_version(void) {
     printf("QUID Generator %s\n", PACKAGE_VERSION);
-    printf("Copyright (C) 2017 Quenza, Inc.\n");
+    printf("Copyright (C) " YEAR " " PACKAGE_AUTHOR "\n");
     printf("Report bugs to <" PACKAGE_BUGREPORT ">\n");
 }
 
@@ -312,10 +312,10 @@ static void qusleep(int64_t usec) {
 #ifdef _WIN32
 int gettimeofday(struct timeval *tp, char *tzp) {
     ((void)tzp);
-    
+
     // Note: some broken versions only have 8 trailing zero's, the correct epoch has 9 trailing zero's
     // This magic number is the number of 100 nanosecond intervals since January 1, 1601 (UTC)
-    // until 00:00:00 January 1, 1970 
+    // until 00:00:00 January 1, 1970
     static const uint64_t EPOCH = ((uint64_t)11644473600ULL);
 
     SYSTEMTIME  system_time;

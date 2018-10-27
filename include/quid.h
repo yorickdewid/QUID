@@ -53,7 +53,7 @@ extern "c" {
  * Public API functions resulting type.
  */
 typedef int cresult;
-    
+
 /**
  * Flags for individual identifiers
  * This provides extra informaton for the
