@@ -39,3 +39,5 @@ target_compile_definitions(quidutil PRIVATE
 )
 
 target_link_libraries(quidutil quid_a)
+
+add_test(NAME quidutil_generate COMMAND quidutil -c 100000 -d 0)

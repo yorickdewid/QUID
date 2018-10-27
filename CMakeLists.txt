@@ -18,7 +18,7 @@ endif ()
 
 # Build sources with additional warnings
 if(CMAKE_COMPILER_IS_GNUCC)
-	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Werror -pedantic -std=c99 -Wmissing-prototypes \
+	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Werror -pedantic -std=c11 \
 	-Wpointer-arith \
 	-Wendif-labels \
 	-Wmissing-format-attribute \
@@ -27,13 +27,13 @@ if(CMAKE_COMPILER_IS_GNUCC)
 endif()
 if(MSVC)
 	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /W4 /WX /sdl")
-	set(CMAKE_C_STANDARD 99)
+	set(CMAKE_C_STANDARD 11)
 endif()
 
 string(TIMESTAMP PROJECT_COMPILE_YEAR "%Y")
-set(PROJECT_ERROR_REPORTR "yorick17@outlook.com" CACHE STRING "Address to report bugs")
-set(PROJECT_URL "" CACHE STRING "Project website")
-set(PROJECT_AUTHOR "Quenza, Inc." CACHE STRING "Project author")
+set(PROJECT_ERROR_REPORTR "yorick17 at outlook dot com" CACHE STRING "Address to report bugs")
+set(PROJECT_URL "https://github.com/yorickdewid/QUID" CACHE STRING "Project website")
+set(PROJECT_AUTHOR "Blub Corp." CACHE STRING "Project author")
 
 # set(CMAKE_VERBOSE_MAKEFILE ON)
 set(CMAKE_COLOR_MAKEFILE ON)
