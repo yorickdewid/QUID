@@ -442,7 +442,7 @@ static void get_memory_seed(cuuid_node_t *node) {
     if (!mem_seed_count) {
         QFOPEN(fp, RANDFILE, "rb");
         if (fp) {
-            if (fread(&saved_node, sizeof(saved_node), 1, fp) < 0) {
+            if (fread(&saved_node, sizeof(saved_node), 1, fp) < 1) {
                 perror("fread");
                 FATAL_ERROR_BAIL();
             }
@@ -459,7 +459,7 @@ static void get_memory_seed(cuuid_node_t *node) {
 
             QFOPEN(fp, RANDFILE, "wb");
             if (fp) {
-                if (fwrite(&saved_node, sizeof(saved_node), 1, fp) < 0) {
+                if (fwrite(&saved_node, sizeof(saved_node), 1, fp) < 1) {
                     perror("fread");
                     FATAL_ERROR_BAIL();
                 }
