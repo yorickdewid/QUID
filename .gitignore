@@ -17,7 +17,6 @@ lcov.info
 Makefile
 *.Po
 *.Plo
-*.in
 *.rnd
 *.log
 *.m4
