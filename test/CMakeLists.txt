@@ -36,6 +36,5 @@ target_link_libraries(quid_test quid_a)
 target_link_libraries(chacha_test quid_a)
 
 # Add test
-add_test(NAME ${PROJECT_NAME}
- 	COMMAND ${PROJECT_NAME}
-)
+add_test(NAME quid_test COMMAND quid_test)
+add_test(NAME chacha_test COMMAND chacha_test)

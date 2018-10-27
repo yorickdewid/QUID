@@ -100,6 +100,8 @@ target_compile_definitions(quid_lib PRIVATE
 
 remove_definitions(-DPACKAGE)
 
+enable_testing()
+
 add_subdirectory(utils)
 add_subdirectory(test)
 add_subdirectory(quidpp)

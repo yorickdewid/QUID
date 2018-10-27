@@ -135,6 +135,7 @@ QUID_LIB_API const char *quid_libversion(void) {
     return PACKAGE_VERSION;
 }
 
+#ifndef NDEBUG
 /**
 * Check whether memory is a vector of same values.
 *
@@ -148,6 +149,7 @@ static int memvcmp(void *memory, unsigned char val, unsigned int size)
     uint8_t *mm = (uint8_t *)memory;
     return (*mm == val) && memcmp(mm, mm + 1, size - 1) == 0;
 }
+#endif // NDEBUG
 
 /**
 * Compare two quid structures and return match result.
