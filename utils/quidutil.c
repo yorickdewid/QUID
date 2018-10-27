@@ -36,7 +36,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
-#ifdef _WIN32
+#ifdef WIN32
 # include <winsock2.h>
 # include "win32_getopt.h"
 #else
@@ -47,7 +47,7 @@
 
 #include <quid.h>
 
-#ifdef _WIN32
+#ifdef WIN32
 # if !defined S_ISDIR
 #  define S_ISDIR(m) (((m) & _S_IFDIR) == _S_IFDIR)
 # endif
@@ -73,6 +73,12 @@ void quid_print_file(FILE *, cuuid_t, int);
 void set_signint(int);
 const char *category_name(uint8_t cat);
 
+enum {
+	PRINT_FORMAT_HEX = 1,
+	PRINT_FORMAT_DEC = 2,
+	PRINT_FORMAT_HEX_BACKET = 0,
+};
+
 /* Set flag if program got terminated */
 void set_signint(int s) {
     ((void)s);
@@ -84,60 +90,77 @@ void quid_print(cuuid_t u, int format) {
     quid_print_file(stdout, u, format);
 }
 
+void quid_print_file_hex(FILE *fp, cuuid_t u) {
+	fprintf(fp, "%x", (unsigned int)u.time_low);
+	fprintf(fp, "%x", u.time_mid);
+	fprintf(fp, "%x", u.time_hi_and_version);
+	fprintf(fp, "%x", u.clock_seq_hi_and_reserved);
+	fprintf(fp, "%x", u.clock_seq_low);
+
+	fprintf(fp, "%x", u.node[0]);
+	fprintf(fp, "%x", u.node[1]);
+	fprintf(fp, "%x", u.node[2]);
+	fprintf(fp, "%x", u.node[3]);
+	fprintf(fp, "%x", u.node[4]);
+	fprintf(fp, "%x", u.node[5]);
+
+	fprintf(fp, "\n");
+}
+
+void quid_print_file_dec(FILE *fp, cuuid_t u) {
+#ifdef WIN32
+	fprintf(fp, "%lld", u.time_low);
+#else
+	fprintf(fp, "%ld", u.time_low);
+#endif
+	fprintf(fp, "%d", u.time_mid);
+	fprintf(fp, "%d", u.time_hi_and_version);
+	fprintf(fp, "%d", u.clock_seq_hi_and_reserved);
+	fprintf(fp, "%d", u.clock_seq_low);
+
+	fprintf(fp, "%d", u.node[0]);
+	fprintf(fp, "%d", u.node[1]);
+	fprintf(fp, "%d", u.node[2]);
+	fprintf(fp, "%d", u.node[3]);
+	fprintf(fp, "%d", u.node[4]);
+	fprintf(fp, "%d", u.node[5]);
+
+	fprintf(fp, "\n");
+}
+
+void quid_print_file_hex_bracket(FILE *fp, cuuid_t u) {
+	fprintf(fp, "{");
+
+	fprintf(fp, "%.8x-", (unsigned int)u.time_low);
+	fprintf(fp, "%.4x-", u.time_mid);
+	fprintf(fp, "%.4x-", u.time_hi_and_version);
+	fprintf(fp, "%x", u.clock_seq_hi_and_reserved);
+	fprintf(fp, "%.2x-", u.clock_seq_low);
+
+	fprintf(fp, "%.2x", u.node[0]);
+	fprintf(fp, "%.2x", u.node[1]);
+	fprintf(fp, "%.2x", u.node[2]);
+	fprintf(fp, "%.2x", u.node[3]);
+	fprintf(fp, "%.2x", u.node[4]);
+	fprintf(fp, "%.2x", u.node[5]);
+
+	fprintf(fp, "}\n");
+}
+
 /* Print QUID to file */
 void quid_print_file(FILE *fp, cuuid_t u, int format) {
-    if (format == 1) {
-        fprintf(fp, "%x", (unsigned int)u.time_low);
-        fprintf(fp, "%x", u.time_mid);
-        fprintf(fp, "%x", u.time_hi_and_version);
-        fprintf(fp, "%x", u.clock_seq_hi_and_reserved);
-        fprintf(fp, "%x", u.clock_seq_low);
-
-        fprintf(fp, "%x", u.node[0]);
-        fprintf(fp, "%x", u.node[1]);
-        fprintf(fp, "%x", u.node[2]);
-        fprintf(fp, "%x", u.node[3]);
-        fprintf(fp, "%x", u.node[4]);
-        fprintf(fp, "%x", u.node[5]);
-
-        fprintf(fp, "\n");
-    } else if(format == 2) {
-#ifdef _WIN32
-        fprintf(fp, "%lld", u.time_low);
-#else
-        fprintf(fp, "%ld", u.time_low);
-#endif
-        fprintf(fp, "%d", u.time_mid);
-        fprintf(fp, "%d", u.time_hi_and_version);
-        fprintf(fp, "%d", u.clock_seq_hi_and_reserved);
-        fprintf(fp, "%d", u.clock_seq_low);
-
-        fprintf(fp, "%d", u.node[0]);
-        fprintf(fp, "%d", u.node[1]);
-        fprintf(fp, "%d", u.node[2]);
-        fprintf(fp, "%d", u.node[3]);
-        fprintf(fp, "%d", u.node[4]);
-        fprintf(fp, "%d", u.node[5]);
-
-        fprintf(fp, "\n");
-    } else {
-        fprintf(fp, "{");
-
-        fprintf(fp, "%.8x-", (unsigned int)u.time_low);
-        fprintf(fp, "%.4x-", u.time_mid);
-        fprintf(fp, "%.4x-", u.time_hi_and_version);
-        fprintf(fp, "%x", u.clock_seq_hi_and_reserved);
-        fprintf(fp, "%.2x-", u.clock_seq_low);
-
-        fprintf(fp, "%.2x", u.node[0]);
-        fprintf(fp, "%.2x", u.node[1]);
-        fprintf(fp, "%.2x", u.node[2]);
-        fprintf(fp, "%.2x", u.node[3]);
-        fprintf(fp, "%.2x", u.node[4]);
-        fprintf(fp, "%.2x", u.node[5]);
-
-        fprintf(fp, "}\n");
-    }
+	switch (format) {
+	case PRINT_FORMAT_HEX:
+		quid_print_file_hex(fp, u);
+		break;
+	case PRINT_FORMAT_DEC:
+		quid_print_file_dec(fp, u);
+		break;
+	case PRINT_FORMAT_HEX_BACKET:
+	default:
+		quid_print_file_hex_bracket(fp, u);
+		break;
+	}
 }
 
 /* Report versbose identifier info */
@@ -290,7 +313,7 @@ const char *category_name(uint8_t _cat) {
 }
 
 static void qusleep(int64_t usec) {
-#ifdef _WIN32
+#ifdef WIN32
     HANDLE timer;
     LARGE_INTEGER ft;
 
@@ -309,7 +332,7 @@ static void qusleep(int64_t usec) {
 #endif
 }
 
-#ifdef _WIN32
+#ifdef WIN32
 int gettimeofday(struct timeval *tp, char *tzp) {
     ((void)tzp);
 
@@ -340,7 +363,7 @@ int main(int argc, char *argv[]) {
     unsigned int n = 1;
     char *fname = NULL;
     FILE *fp = NULL;
-    int fout = 0, nout = 0, fmat = 0, vbose = 0, gen = 1;
+    int fout = 0, nout = 0, fmat = PRINT_FORMAT_HEX_BACKET, vbose = 0, gen = 1;
     int option_index;
     char tag[3] = {0x0, 0x0, 0x0};
 
@@ -444,10 +467,10 @@ int main(int argc, char *argv[]) {
                 fout = 1;
                 break;
             case 'x':
-                fmat = 1;
+                fmat = PRINT_FORMAT_HEX;
                 break;
             case 'i':
-                fmat = 2;
+                fmat = PRINT_FORMAT_DEC;
                 break;
             case 'q':
                 nout = 1;

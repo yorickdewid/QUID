@@ -30,7 +30,7 @@
 #ifndef __QUID_H__
 #define __QUID_H__
 
-#ifdef _WIN32
+#ifdef WIN32
 # pragma once
 # pragma warning(disable : 4100) // unreferenced formal parameter
 # ifdef quid_lib_EXPORTS
