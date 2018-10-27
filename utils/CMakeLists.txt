@@ -7,7 +7,9 @@ cmake_minimum_required(VERSION 3.2 FATAL_ERROR)
 # Set project info
 project(quidutil VERSION 1.7 LANGUAGES C)
 
-include_directories(${CMAKE_SOURCE_DIR}/include)
+configure_file(${CMAKE_SOURCE_DIR}/config.h.in ${PROJECT_BINARY_DIR}/config.h)
+
+include_directories(${CMAKE_SOURCE_DIR}/include ${PROJECT_BINARY_DIR})
 
 # Sleep is only available with POSIX
 add_definitions(-D_POSIX_C_SOURCE=199309L)
@@ -29,15 +31,8 @@ set_target_properties(quidutil
 	RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
 )
 
-target_compile_definitions(quidutil PRIVATE
-	PACKAGE_NAME="${PROJECT_NAME}"
-	PACKAGE_TARNAME="${PROJECT_NAME}"
-	PACKAGE_VERSION="${PROJECT_VERSION}"
-	PACKAGE_STRING="${PROJECT_NAME} ${PROJECT_VERSION}"
-	PACKAGE="${PROJECT_NAME}"
-	VERSION="${PROJECT_VERSION}"
-)
-
 target_link_libraries(quidutil quid_a)
+
+install(TARGETS quidutil DESTINATION bin)
 
 add_test(NAME quidutil_generate COMMAND quidutil -c 100000 -d 0)

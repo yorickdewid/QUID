@@ -46,6 +46,7 @@
 #endif
 
 #include <quid.h>
+#include <config.h>
 
 #ifdef WIN32
 # if !defined S_ISDIR
@@ -247,7 +248,7 @@ void generate_verbose(void) {
 
 /* Program usage */
 void usage(void) {
-    printf("Usage: " PACKAGE_NAME " [OPTIONS] identifier...\n");
+    printf("Usage: " PROJECT_NAME " [OPTIONS] identifier...\n");
     printf("Options:\n");
     printf("  -c <count>               Number of identifiers, 0 for infinite\n");
     printf("  -d <ms>                  Delay between generation in miliseconds\n");
@@ -276,14 +277,14 @@ void usage(void) {
     printf("  -V, --verbose            Output verbose information\n");
     printf("  -v, --version            Show version\n");
     printf("  -h, --help               Show this help\n\n");
-    printf("Report bugs to <" PACKAGE_BUGREPORT ">\n");
+    printf("Report bugs to <" PROJECT_BUGREPORT ">\n");
 }
 
 /* Print program version */
 void print_version(void) {
-    printf("QUID Generator %s\n", PACKAGE_VERSION);
-    printf("Copyright (C) " YEAR " " PACKAGE_AUTHOR "\n");
-    printf("Report bugs to <" PACKAGE_BUGREPORT ">\n");
+    printf("QUID Generator %s\n", PROJECT_VERSION);
+    printf("Copyright (C) " PROJECT_COMPILE_YEAR " " PROJECT_AUTHOR "\n");
+    printf("Report bugs to <" PROJECT_BUGREPORT ">\n");
 }
 
 /* Check filesystem for output file */

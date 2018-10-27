@@ -70,6 +70,7 @@
 #endif
 
 #include <quid.h>
+#include <config.h>
 
 #include "chacha.h"
 
@@ -141,7 +142,7 @@ QUID_LIB_API void quid_set_rnd_seed(int cnt) {
 
 /* Library version */
 QUID_LIB_API const char *quid_libversion(void) {
-    return PACKAGE_VERSION;
+    return PROJECT_VERSION;
 }
 
 #ifndef NDEBUG
@@ -495,8 +496,6 @@ static void encrypt_node(uint64_t prekey, uint8_t preiv1, uint8_t preiv2, cuuid_
     uint8_t iv[8];
 
     assert(prekey);
-    assert(preiv1);
-    assert(preiv2);
     assert(node);
 
     /* Weak key stretching */

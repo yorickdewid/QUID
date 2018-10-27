@@ -31,7 +31,7 @@ if(MSVC)
 endif()
 
 string(TIMESTAMP PROJECT_COMPILE_YEAR "%Y")
-set(PROJECT_ERROR_REPORTR "yorick17 at outlook dot com" CACHE STRING "Address to report bugs")
+set(PROJECT_BUGREPORT "yorick17 at outlook dot com" CACHE STRING "Address to report bugs")
 set(PROJECT_URL "https://github.com/yorickdewid/QUID" CACHE STRING "Project website")
 set(PROJECT_AUTHOR "Blub Corp." CACHE STRING "Project author")
 
@@ -43,12 +43,9 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
+configure_file(${CMAKE_SOURCE_DIR}/config.h.in ${PROJECT_BINARY_DIR}/config.h)
 
-add_definitions(-DPACKAGE_BUGREPORT="${PROJECT_ERROR_REPORTR}")
-add_definitions(-DPACKAGE_URL="${PROJECT_URL}")
-add_definitions(-DPACKAGE_AUTHOR="${PROJECT_AUTHOR}")
-add_definitions(-DYEAR="${PROJECT_COMPILE_YEAR}")
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include ${PROJECT_BINARY_DIR})
 
 set(PROJECT_SOURCES
 	include/quid.h
@@ -80,25 +77,12 @@ set_target_properties(quid_lib
 	RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
 )
 
-target_compile_definitions(quid_a PRIVATE
-	PACKAGE_NAME="${PROJECT_NAME}"
-	PACKAGE_TARNAME="${PROJECT_NAME}"
-	PACKAGE_VERSION="${PROJECT_VERSION}"
-	PACKAGE_STRING="${PROJECT_NAME} ${PROJECT_VERSION}"
-	PACKAGE="${PROJECT_NAME}"
-	VERSION="${PROJECT_VERSION}"
+install(FILES include/quid.h DESTINATION include)
+install(TARGETS quid_lib quid_a
+	RUNTIME DESTINATION bin
+	LIBRARY DESTINATION lib
+	ARCHIVE DESTINATION lib
 )
-
-target_compile_definitions(quid_lib PRIVATE
-	PACKAGE_NAME="${PROJECT_NAME}"
-	PACKAGE_TARNAME="${PROJECT_NAME}"
-	PACKAGE_VERSION="${PROJECT_VERSION}"
-	PACKAGE_STRING="${PROJECT_NAME} ${PROJECT_VERSION}"
-	PACKAGE="${PROJECT_NAME}"
-	VERSION="${PROJECT_VERSION}"
-)
-
-remove_definitions(-DPACKAGE)
 
 enable_testing()
 
