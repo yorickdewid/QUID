@@ -159,17 +159,10 @@ static int memvcmp(void *memory, unsigned char val, unsigned int size)
 *
 * @param   s1  First quid to be compared
 * @param   s2  Second quid to be compared with first
-* @return      0 if the two identifiers did not match, otherwise 1
+* @return      QUID_OK if the two identifiers did not match
 */
 QUID_LIB_API cresult quid_cmp(const cuuid_t *s1, const cuuid_t *s2) {
-	if (!s1) {
-		fprintf(stderr, "quid_cmp: 's1' is uninitialized");
-		FATAL_ERROR_BAIL();
-	}
-	if (!s2) {
-		fprintf(stderr, "quid_cmp: 's2' is uninitialized");
-		FATAL_ERROR_BAIL();
-	}
+	if (!s1 || !s2) { return QUID_INVALID_PARAM; }
 
     return s1->time_low == s2->time_low
         && s1->time_mid == s2->time_mid
@@ -274,6 +267,7 @@ static void quid_timeval(cuuid_t *cuuid, struct timeval *tv) {
     tv->tv_usec = usec;
 }
 
+//TODO: Return via parameter list
 /**
  * Retrieve timestamp as timeinfo structure.
  * The timeinfo structure can be converted into
@@ -307,6 +301,7 @@ QUID_LIB_API struct tm *quid_timestamp(cuuid_t *cuuid) {
 #endif
 }
 
+//TODO: Return via parameter list
 /* Retrieve microtime */
 QUID_LIB_API long quid_microtime(cuuid_t *cuuid) {
     struct timeval tv;
@@ -323,6 +318,7 @@ QUID_LIB_API long quid_microtime(cuuid_t *cuuid) {
     return tv.tv_usec;
 }
 
+//TODO: Return via parameter list
 /* Retrieve user tag */
 QUID_LIB_API const char *quid_tag(cuuid_t *cuuid) {
     cuuid_node_t node;
@@ -363,6 +359,7 @@ QUID_LIB_API const char *quid_tag(cuuid_t *cuuid) {
     return tag;
 }
 
+//TODO: Return via parameter list
 /* Retrieve category */
 QUID_LIB_API uint8_t quid_category(cuuid_t *cuuid) {
     cuuid_node_t node;
@@ -390,6 +387,7 @@ QUID_LIB_API uint8_t quid_category(cuuid_t *cuuid) {
     return QUID_ERROR;
 }
 
+//TODO: Return via parameter list
 /* Retrieve flag if any */
 QUID_LIB_API uint8_t quid_flag(cuuid_t *cuuid) {
     cuuid_node_t node;
@@ -525,10 +523,12 @@ QUID_LIB_API cresult quid_create_rev4(cuuid_t *uid, uint8_t flag, uint8_t subc) 
     unsigned short  clockseq;
     cuuid_node_t    node;
 
-	if (!memvcmp(uid, '\0', sizeof(cuuid_t))) {
-		fprintf(stderr, "quid_create_rev4: 'uid' is uninitialized");
-		FATAL_ERROR_BAIL();
-	}
+	if (!uid) { return QUID_INVALID_PARAM; }
+
+	/* Structure must be empty. We only check this at debug compiles
+	 * since this operation is too expensive for release builds, 
+	 */
+	assert(memvcmp(uid, '\0', sizeof(cuuid_t)));
 
     uid->version = QUID_REV4;
     get_current_time(&timestamp);
@@ -551,10 +551,12 @@ QUID_LIB_API cresult quid_create_rev7(cuuid_t *uid, uint8_t flag, uint8_t subc, 
     unsigned short  clockseq;
     cuuid_node_t    node;
 
-	if (!memvcmp(uid, '\0', sizeof(cuuid_t))) {
-		fprintf(stderr, "quid_create_rev7: 'uid' is uninitialized");
-		FATAL_ERROR_BAIL();
-	}
+	if (!uid) { return QUID_INVALID_PARAM; }
+
+	/* Structure must be empty. We only check this at debug compiles
+	 * since this operation is too expensive for release builds,
+	 */
+	assert(memvcmp(uid, '\0', sizeof(cuuid_t)));
 
     uid->version = QUID_REV7;
     get_current_time(&timestamp);
@@ -599,6 +601,8 @@ QUID_LIB_API cresult quid_create_rev7(cuuid_t *uid, uint8_t flag, uint8_t subc, 
  */
 QUID_LIB_API cresult quid_create(cuuid_t *cuuid, uint8_t flag, uint8_t subc, char tag[3]) {
 	ASSERT_NATIVE_SIZE();
+
+	if (!cuuid) { return QUID_INVALID_PARAM; }
 
 	if (!memset(cuuid, '\0', sizeof(cuuid_t))) {
 		perror("memset");
@@ -683,6 +687,7 @@ static void get_current_time(cuuid_time_t *timestamp) {
     }
 
     *timestamp = time_now + ids_this_tick;
+	assert(timestamp);
 }
 
 /* Get hardware tick count */
@@ -797,8 +802,7 @@ static void strtoquid(const char *str, cuuid_t *u) {
  * @return         QUID_ERROR on faillure and QUID_OK on success
  */
 QUID_LIB_API cresult quid_validate(cuuid_t *cuuid) {
-	//TODO: another error code ?
-	if (!cuuid) { return QUID_ERROR; }
+	if (!cuuid) { return QUID_INVALID_PARAM; }
 
     if ((cuuid->time_hi_and_version & VERSION_REV7) == VERSION_REV7) {
         cuuid->version = QUID_REV7;
@@ -822,8 +826,8 @@ QUID_LIB_API cresult quid_validate(cuuid_t *cuuid) {
 QUID_LIB_API cresult quid_parse(char *quid, cuuid_t *cuuid) {
     int len;
     
-	//TODO: another error code ?
-	if (!cuuid) { return QUID_ERROR; }
+	if (!quid) { return QUID_INVALID_PARAM; }
+	if (!cuuid) { return QUID_INVALID_PARAM; }
 
     /* Static size assert */
 	ASSERT_NATIVE_SIZE();
@@ -860,8 +864,10 @@ QUID_LIB_API cresult quid_parse(char *quid, cuuid_t *cuuid) {
  * @param    cuuid  Input quid structure to be converted to string
  * @param    str    Output string in which the result will be written
  */
-QUID_LIB_API void quid_tostring(const cuuid_t *cuuid, char str[QUID_FULLLEN + 1]) {
-    assert(cuuid);
+QUID_LIB_API cresult quid_tostring(const cuuid_t *cuuid, char str[QUID_FULLLEN + 1]) {
+	if (!str) { return QUID_INVALID_PARAM; }
+	if (!cuuid) { return QUID_INVALID_PARAM; }
+
     snprintf(str, QUID_FULLLEN + 1, PRINT_QUID_FORMAT,
              cuuid->time_low,
              cuuid->time_mid,
@@ -874,4 +880,6 @@ QUID_LIB_API void quid_tostring(const cuuid_t *cuuid, char str[QUID_FULLLEN + 1]
              cuuid->node[3],
              cuuid->node[4],
              cuuid->node[5]);
+
+	return QUID_OK;
 }

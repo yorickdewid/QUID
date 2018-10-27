@@ -70,6 +70,10 @@ void print_version(void);
 int check_fname(const char *);
 void quid_print(cuuid_t, int);
 void quid_print_file(FILE *, cuuid_t, int);
+void quid_print_file_hex(FILE *, cuuid_t);
+void quid_print_file_dec(FILE *, cuuid_t);
+void quid_print_file_hex_bracket(FILE *, cuuid_t);
+
 void set_signint(int);
 const char *category_name(uint8_t cat);
 

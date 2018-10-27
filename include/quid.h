@@ -123,6 +123,7 @@ typedef struct {
 enum {
     QUID_ERROR = 0,
     QUID_OK = 1,
+    QUID_INVALID_PARAM = 2,
 };
 
 /**
@@ -139,7 +140,7 @@ QUID_LIB_API extern cresult      quid_create(cuuid_t *, uint8_t, uint8_t, char t
 
 QUID_LIB_API extern cresult      quid_validate(cuuid_t *);
 QUID_LIB_API extern cresult      quid_parse(char *, cuuid_t *);
-QUID_LIB_API extern void         quid_tostring(const cuuid_t *, char str[QUID_FULLLEN + 1]);
+QUID_LIB_API extern cresult      quid_tostring(const cuuid_t *, char str[QUID_FULLLEN + 1]);
 
 QUID_LIB_API extern void         quid_set_rnd_seed(int);
 QUID_LIB_API extern void         quid_set_mem_seed(int);

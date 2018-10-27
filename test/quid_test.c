@@ -35,7 +35,7 @@
 
 #include "tinytest.h"
 
-#ifdef _WIN32
+#ifdef WIN32
 # define STRCOPY(s,c) strcpy_s(s, sizeof(s), c);
 #else
 # define STRCOPY(s,c) strcpy(s, c);
@@ -163,7 +163,7 @@ static void check_timestamp() {
     for (i = 0; i < 500; ++i) {
         time_t timt = time(NULL);
         struct tm ti1;
-#ifdef _WIN32
+#ifdef WIN32
 # if defined(_DEBUG) || defined(DEBUG) || !defined(NDEBUG)
         assert(gmtime_s(&ti1, &timt) == 0);
 # else
