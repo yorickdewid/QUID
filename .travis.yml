@@ -2,6 +2,10 @@ language: c
 sudo: false
 dist: trusty
 
+os:
+  - windows
+  - linux
+
 compiler:
   - clang
   - gcc
@@ -12,10 +16,3 @@ script:
   - cmake .. -DCMAKE_BUILD_TYPE=Release
   - cmake --build . # make
   - ctest .         # make test
-
-#  - cd scripts/ && ./autogen.sh && cd ..
-#  - ./configure
-#  - make
-#  - make check
-#  - make dist
-#  - cd test && ./duplicate.sh
