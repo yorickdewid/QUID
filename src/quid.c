@@ -166,7 +166,7 @@ static int memvcmp(void *memory, unsigned char val, unsigned int size)
 * @return      QUID_OK if the two identifiers did not match
 */
 QUID_LIB_API cresult quid_cmp(const cuuid_t *s1, const cuuid_t *s2) {
-	if (!s1 || !s2) { return QUID_INVALID_PARAM; }
+    if (!s1 || !s2) { return QUID_INVALID_PARAM; }
 
     return s1->time_low == s2->time_low
         && s1->time_mid == s2->time_mid
@@ -218,8 +218,8 @@ int win32_gettimeofday(struct timeval *tp, char *tzp) {
 static void get_system_time(cuuid_time_t *cuuid_time) {
     struct timeval tv;
     if (q_gettimeofday(&tv, NULL) != 0) {
-		perror("q_gettimeofday");
-		FATAL_ERROR_BAIL();
+        perror("q_gettimeofday");
+        FATAL_ERROR_BAIL();
     }
 
     /* Squeeze sec and usec into single integer */
@@ -244,10 +244,10 @@ static void quid_timeval(cuuid_t *cuuid, struct timeval *tv) {
     long int usec;
     time_t sec;
 
-	if (!cuuid) {
-		fprintf(stderr, "quid_timeval: 'cuuid' is uninitialized");
-		FATAL_ERROR_BAIL();
-	}
+    if (!cuuid) {
+        fprintf(stderr, "quid_timeval: 'cuuid' is uninitialized");
+        FATAL_ERROR_BAIL();
+    }
 
     /* Determine version substraction */
     switch (cuuid->version) {
@@ -284,10 +284,10 @@ static void quid_timeval(cuuid_t *cuuid, struct timeval *tv) {
 QUID_LIB_API struct tm *quid_timestamp(cuuid_t *cuuid) {
     struct timeval tv;
 
-	if (!cuuid) {
-		fprintf(stderr, "quid_timestamp: 'cuuid' is uninitialized");
-		FATAL_ERROR_BAIL();
-	}
+    if (!cuuid) {
+        fprintf(stderr, "quid_timestamp: 'cuuid' is uninitialized");
+        FATAL_ERROR_BAIL();
+    }
 
     /* Fetch time from quid */
     quid_timeval(cuuid, &tv);
@@ -310,10 +310,10 @@ QUID_LIB_API struct tm *quid_timestamp(cuuid_t *cuuid) {
 QUID_LIB_API long quid_microtime(cuuid_t *cuuid) {
     struct timeval tv;
 
-	if (!cuuid) {
-		fprintf(stderr, "quid_microtime: 'cuuid' is uninitialized");
-		FATAL_ERROR_BAIL();
-	}
+    if (!cuuid) {
+        fprintf(stderr, "quid_microtime: 'cuuid' is uninitialized");
+        FATAL_ERROR_BAIL();
+    }
 
     /* Fetch time from quid */
     quid_timeval(cuuid, &tv);
@@ -328,20 +328,20 @@ QUID_LIB_API const char *quid_tag(cuuid_t *cuuid) {
     cuuid_node_t node;
     static char tag[3];
 
-	if (!cuuid) {
-		fprintf(stderr, "quid_tag: 'cuuid' is uninitialized");
-		FATAL_ERROR_BAIL();
-	}
+    if (!cuuid) {
+        fprintf(stderr, "quid_tag: 'cuuid' is uninitialized");
+        FATAL_ERROR_BAIL();
+    }
 
     /* Skip older formats */
     if (cuuid->version != QUID_REV7) {
         return "Not implemented";
     }
 
-	if (!memcpy(&node, &cuuid->node, sizeof(cuuid_node_t))) {
-		perror("memcpy");
-		FATAL_ERROR_BAIL();
-	}
+    if (!memcpy(&node, &cuuid->node, sizeof(cuuid_node_t))) {
+        perror("memcpy");
+        FATAL_ERROR_BAIL();
+    }
     encrypt_node(cuuid->time_low, cuuid->clock_seq_hi_and_reserved, cuuid->clock_seq_low, &node);
 
     /* Must match version */
@@ -368,20 +368,20 @@ QUID_LIB_API const char *quid_tag(cuuid_t *cuuid) {
 QUID_LIB_API uint8_t quid_category(cuuid_t *cuuid) {
     cuuid_node_t node;
 
-	if (!cuuid) {
-		fprintf(stderr, "quid_category: 'cuuid' is uninitialized");
-		FATAL_ERROR_BAIL();
-	}
+    if (!cuuid) {
+        fprintf(stderr, "quid_category: 'cuuid' is uninitialized");
+        FATAL_ERROR_BAIL();
+    }
 
     /* Determine category per version */
     switch (cuuid->version) {
         case QUID_REV4:
             return cuuid->node[2];
         case QUID_REV7: {
-			if (!memcpy(&node, &cuuid->node, sizeof(cuuid_node_t))) {
-				perror("memcpy");
-				FATAL_ERROR_BAIL();
-			}
+            if (!memcpy(&node, &cuuid->node, sizeof(cuuid_node_t))) {
+                perror("memcpy");
+                FATAL_ERROR_BAIL();
+            }
             encrypt_node(cuuid->time_low, cuuid->clock_seq_hi_and_reserved, cuuid->clock_seq_low, &node);
             return node.node[2];
         }
@@ -396,20 +396,20 @@ QUID_LIB_API uint8_t quid_category(cuuid_t *cuuid) {
 QUID_LIB_API uint8_t quid_flag(cuuid_t *cuuid) {
     cuuid_node_t node;
 
-	if (!cuuid) {
-		fprintf(stderr, "quid_flag: 'cuuid' is uninitialized");
-		FATAL_ERROR_BAIL();
-	}
+    if (!cuuid) {
+        fprintf(stderr, "quid_flag: 'cuuid' is uninitialized");
+        FATAL_ERROR_BAIL();
+    }
 
     /* Determine category per version */
     switch (cuuid->version) {
         case QUID_REV4:
             return cuuid->node[1];
         case QUID_REV7: {
-			if (!memcpy(&node, &cuuid->node, sizeof(cuuid_node_t))) {
-				perror("memcpy");
-				FATAL_ERROR_BAIL();
-			}
+            if (!memcpy(&node, &cuuid->node, sizeof(cuuid_node_t))) {
+                perror("memcpy");
+                FATAL_ERROR_BAIL();
+            }
             encrypt_node(cuuid->time_low, cuuid->clock_seq_hi_and_reserved, cuuid->clock_seq_low, &node);
             return node.node[1];
         }
@@ -527,12 +527,12 @@ QUID_LIB_API cresult quid_create_rev4(cuuid_t *uid, uint8_t flag, uint8_t subc) 
     unsigned short  clockseq;
     cuuid_node_t    node;
 
-	if (!uid) { return QUID_INVALID_PARAM; }
+    if (!uid) { return QUID_INVALID_PARAM; }
 
-	/* Structure must be empty. We only check this at debug compiles
-	 * since this operation is too expensive for release builds, 
-	 */
-	assert(memvcmp(uid, '\0', sizeof(cuuid_t)));
+    /* Structure must be empty. We only check this at debug compiles
+     * since this operation is too expensive for release builds, 
+     */
+    assert(memvcmp(uid, '\0', sizeof(cuuid_t)));
 
     uid->version = QUID_REV4;
     get_current_time(&timestamp);
@@ -555,12 +555,12 @@ QUID_LIB_API cresult quid_create_rev7(cuuid_t *uid, uint8_t flag, uint8_t subc, 
     unsigned short  clockseq;
     cuuid_node_t    node;
 
-	if (!uid) { return QUID_INVALID_PARAM; }
+    if (!uid) { return QUID_INVALID_PARAM; }
 
-	/* Structure must be empty. We only check this at debug compiles
-	 * since this operation is too expensive for release builds,
-	 */
-	assert(memvcmp(uid, '\0', sizeof(cuuid_t)));
+    /* Structure must be empty. We only check this at debug compiles
+     * since this operation is too expensive for release builds,
+     */
+    assert(memvcmp(uid, '\0', sizeof(cuuid_t)));
 
     uid->version = QUID_REV7;
     get_current_time(&timestamp);
@@ -586,10 +586,10 @@ QUID_LIB_API cresult quid_create_rev7(cuuid_t *uid, uint8_t flag, uint8_t subc, 
 
     /* Encrypt nodes */
     encrypt_node(uid->time_low, uid->clock_seq_hi_and_reserved, uid->clock_seq_low, &node);
-	if (!memcpy(&uid->node, &node, sizeof(uid->node))) {
-		perror("memcpy");
-		FATAL_ERROR_BAIL();
-	}
+    if (!memcpy(&uid->node, &node, sizeof(uid->node))) {
+        perror("memcpy");
+        FATAL_ERROR_BAIL();
+    }
 
     return QUID_OK;
 }
@@ -604,14 +604,14 @@ QUID_LIB_API cresult quid_create_rev7(cuuid_t *uid, uint8_t flag, uint8_t subc, 
  * @return       QUID_ERROR on faillure and QUID_OK on success
  */
 QUID_LIB_API cresult quid_create(cuuid_t *cuuid, uint8_t flag, uint8_t subc, char tag[3]) {
-	ASSERT_NATIVE_SIZE();
+    ASSERT_NATIVE_SIZE();
 
-	if (!cuuid) { return QUID_INVALID_PARAM; }
+    if (!cuuid) { return QUID_INVALID_PARAM; }
 
-	if (!memset(cuuid, '\0', sizeof(cuuid_t))) {
-		perror("memset");
-		FATAL_ERROR_BAIL();
-	}
+    if (!memset(cuuid, '\0', sizeof(cuuid_t))) {
+        perror("memset");
+        FATAL_ERROR_BAIL();
+    }
     if (cuuid->version == QUID_REV4) {//TODO
         return quid_create_rev4(cuuid, flag, subc);
     }
@@ -636,10 +636,10 @@ static void format_quid_rev4(cuuid_t* uid, uint16_t clock_seq, cuuid_time_t time
     uid->clock_seq_hi_and_reserved = (clock_seq & 0x3f00) >> 8;
     uid->clock_seq_hi_and_reserved |= QUIDMAGIC;
 
-	if (!memcpy(&uid->node, &node, sizeof(uid->node))) {
-		perror("memcpy");
-		FATAL_ERROR_BAIL();
-	}
+    if (!memcpy(&uid->node, &node, sizeof(uid->node))) {
+        perror("memcpy");
+        FATAL_ERROR_BAIL();
+    }
     uid->node[0] = (uint8_t)true_random();
     uid->node[1] = QUID_REV4;
     uid->node[5] = (true_random() & 0xff);
@@ -691,7 +691,7 @@ static void get_current_time(cuuid_time_t *timestamp) {
     }
 
     *timestamp = time_now + ids_this_tick;
-	assert(timestamp);
+    assert(timestamp);
 }
 
 /* Get hardware tick count */
@@ -727,7 +727,7 @@ static uint16_t true_random(void) {
 
 /* Strip special characters from string */
 static void strip_special_chars(char *s) {
-	if (!s) { return; }
+    if (!s) { return; }
     char *pr = s, *pw = s;
 
     while (*pr) {
@@ -743,7 +743,7 @@ static void strip_special_chars(char *s) {
 
 /* Check if string validates as hex */
 static int ishex(char *s) {
-	if (!s) { return 0; }
+    if (!s) { return 0; }
     while (*s) {
         if (!isxdigit(*s)) {
             return 0;
@@ -767,7 +767,7 @@ static void strtoquid(const char *str, cuuid_t *u) {
     char octet[4 + 1];
     char node[2 + 1];
 
-	assert(u);
+    assert(u);
     memset(octet1, '\0', sizeof(octet1));
     memset(octet, '\0', sizeof(octet));
     memset(node, '\0', sizeof(node));
@@ -803,7 +803,7 @@ static void strtoquid(const char *str, cuuid_t *u) {
  * @return         QUID_ERROR on faillure and QUID_OK on success
  */
 QUID_LIB_API cresult quid_validate(cuuid_t *cuuid) {
-	if (!cuuid) { return QUID_INVALID_PARAM; }
+    if (!cuuid) { return QUID_INVALID_PARAM; }
 
     if ((cuuid->time_hi_and_version & VERSION_REV7) == VERSION_REV7) {
         cuuid->version = QUID_REV7;
@@ -827,11 +827,11 @@ QUID_LIB_API cresult quid_validate(cuuid_t *cuuid) {
 QUID_LIB_API cresult quid_parse(char *quid, cuuid_t *cuuid) {
     int len;
     
-	if (!quid) { return QUID_INVALID_PARAM; }
-	if (!cuuid) { return QUID_INVALID_PARAM; }
+    if (!quid) { return QUID_INVALID_PARAM; }
+    if (!cuuid) { return QUID_INVALID_PARAM; }
 
     /* Static size assert */
-	ASSERT_NATIVE_SIZE();
+    ASSERT_NATIVE_SIZE();
 
     /* Remove all special characters */
     strip_special_chars(quid);
@@ -867,8 +867,8 @@ QUID_LIB_API cresult quid_parse(char *quid, cuuid_t *cuuid) {
  * @return          QUID_OK on success
  */
 QUID_LIB_API cresult quid_tostring(const cuuid_t *cuuid, char str[QUID_FULLLEN + 1]) {
-	if (!str) { return QUID_INVALID_PARAM; }
-	if (!cuuid) { return QUID_INVALID_PARAM; }
+    if (!str) { return QUID_INVALID_PARAM; }
+    if (!cuuid) { return QUID_INVALID_PARAM; }
 
     snprintf(str, QUID_FULLLEN + 1, PRINT_QUID_FORMAT,
              cuuid->time_low,
@@ -883,5 +883,5 @@ QUID_LIB_API cresult quid_tostring(const cuuid_t *cuuid, char str[QUID_FULLLEN +
              cuuid->node[4],
              cuuid->node[5]);
 
-	return QUID_OK;
+    return QUID_OK;
 }

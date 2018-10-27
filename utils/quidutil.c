@@ -78,9 +78,9 @@ void set_signint(int);
 const char *category_name(uint8_t cat);
 
 enum {
-	PRINT_FORMAT_HEX = 1,
-	PRINT_FORMAT_DEC = 2,
-	PRINT_FORMAT_HEX_BACKET = 0,
+    PRINT_FORMAT_HEX = 1,
+    PRINT_FORMAT_DEC = 2,
+    PRINT_FORMAT_HEX_BACKET = 0,
 };
 
 /* Set flag if program got terminated */
@@ -95,76 +95,76 @@ void quid_print(cuuid_t u, int format) {
 }
 
 void quid_print_file_hex(FILE *fp, cuuid_t u) {
-	fprintf(fp, "%x", (unsigned int)u.time_low);
-	fprintf(fp, "%x", u.time_mid);
-	fprintf(fp, "%x", u.time_hi_and_version);
-	fprintf(fp, "%x", u.clock_seq_hi_and_reserved);
-	fprintf(fp, "%x", u.clock_seq_low);
+    fprintf(fp, "%x", (unsigned int)u.time_low);
+    fprintf(fp, "%x", u.time_mid);
+    fprintf(fp, "%x", u.time_hi_and_version);
+    fprintf(fp, "%x", u.clock_seq_hi_and_reserved);
+    fprintf(fp, "%x", u.clock_seq_low);
 
-	fprintf(fp, "%x", u.node[0]);
-	fprintf(fp, "%x", u.node[1]);
-	fprintf(fp, "%x", u.node[2]);
-	fprintf(fp, "%x", u.node[3]);
-	fprintf(fp, "%x", u.node[4]);
-	fprintf(fp, "%x", u.node[5]);
+    fprintf(fp, "%x", u.node[0]);
+    fprintf(fp, "%x", u.node[1]);
+    fprintf(fp, "%x", u.node[2]);
+    fprintf(fp, "%x", u.node[3]);
+    fprintf(fp, "%x", u.node[4]);
+    fprintf(fp, "%x", u.node[5]);
 
-	fprintf(fp, "\n");
+    fprintf(fp, "\n");
 }
 
 void quid_print_file_dec(FILE *fp, cuuid_t u) {
 #ifdef WIN32
-	fprintf(fp, "%lld", u.time_low);
+    fprintf(fp, "%lld", u.time_low);
 #else
-	fprintf(fp, "%ld", u.time_low);
+    fprintf(fp, "%ld", u.time_low);
 #endif
-	fprintf(fp, "%d", u.time_mid);
-	fprintf(fp, "%d", u.time_hi_and_version);
-	fprintf(fp, "%d", u.clock_seq_hi_and_reserved);
-	fprintf(fp, "%d", u.clock_seq_low);
+    fprintf(fp, "%d", u.time_mid);
+    fprintf(fp, "%d", u.time_hi_and_version);
+    fprintf(fp, "%d", u.clock_seq_hi_and_reserved);
+    fprintf(fp, "%d", u.clock_seq_low);
 
-	fprintf(fp, "%d", u.node[0]);
-	fprintf(fp, "%d", u.node[1]);
-	fprintf(fp, "%d", u.node[2]);
-	fprintf(fp, "%d", u.node[3]);
-	fprintf(fp, "%d", u.node[4]);
-	fprintf(fp, "%d", u.node[5]);
+    fprintf(fp, "%d", u.node[0]);
+    fprintf(fp, "%d", u.node[1]);
+    fprintf(fp, "%d", u.node[2]);
+    fprintf(fp, "%d", u.node[3]);
+    fprintf(fp, "%d", u.node[4]);
+    fprintf(fp, "%d", u.node[5]);
 
-	fprintf(fp, "\n");
+    fprintf(fp, "\n");
 }
 
 void quid_print_file_hex_bracket(FILE *fp, cuuid_t u) {
-	fprintf(fp, "{");
+    fprintf(fp, "{");
 
-	fprintf(fp, "%.8x-", (unsigned int)u.time_low);
-	fprintf(fp, "%.4x-", u.time_mid);
-	fprintf(fp, "%.4x-", u.time_hi_and_version);
-	fprintf(fp, "%x", u.clock_seq_hi_and_reserved);
-	fprintf(fp, "%.2x-", u.clock_seq_low);
+    fprintf(fp, "%.8x-", (unsigned int)u.time_low);
+    fprintf(fp, "%.4x-", u.time_mid);
+    fprintf(fp, "%.4x-", u.time_hi_and_version);
+    fprintf(fp, "%x", u.clock_seq_hi_and_reserved);
+    fprintf(fp, "%.2x-", u.clock_seq_low);
 
-	fprintf(fp, "%.2x", u.node[0]);
-	fprintf(fp, "%.2x", u.node[1]);
-	fprintf(fp, "%.2x", u.node[2]);
-	fprintf(fp, "%.2x", u.node[3]);
-	fprintf(fp, "%.2x", u.node[4]);
-	fprintf(fp, "%.2x", u.node[5]);
+    fprintf(fp, "%.2x", u.node[0]);
+    fprintf(fp, "%.2x", u.node[1]);
+    fprintf(fp, "%.2x", u.node[2]);
+    fprintf(fp, "%.2x", u.node[3]);
+    fprintf(fp, "%.2x", u.node[4]);
+    fprintf(fp, "%.2x", u.node[5]);
 
-	fprintf(fp, "}\n");
+    fprintf(fp, "}\n");
 }
 
 /* Print QUID to file */
 void quid_print_file(FILE *fp, cuuid_t u, int format) {
-	switch (format) {
-	case PRINT_FORMAT_HEX:
-		quid_print_file_hex(fp, u);
-		break;
-	case PRINT_FORMAT_DEC:
-		quid_print_file_dec(fp, u);
-		break;
-	case PRINT_FORMAT_HEX_BACKET:
-	default:
-		quid_print_file_hex_bracket(fp, u);
-		break;
-	}
+    switch (format) {
+    case PRINT_FORMAT_HEX:
+        quid_print_file_hex(fp, u);
+        break;
+    case PRINT_FORMAT_DEC:
+        quid_print_file_dec(fp, u);
+        break;
+    case PRINT_FORMAT_HEX_BACKET:
+    default:
+        quid_print_file_hex_bracket(fp, u);
+        break;
+    }
 }
 
 /* Report versbose identifier info */
@@ -172,18 +172,18 @@ void input_verbose(cuuid_t u) {
     char sflag;
     int version = 0;
     char structure[32];
-	char rev[32];
+    char rev[32];
 
     switch (u.version) {
         case QUID_REV4:
             version = 4;
             strcpy(structure, "memgrep");
-			strcpy(rev, "REV2012");
+            strcpy(rev, "REV2012");
             break;
         case QUID_REV7:
             version = 7;
             strcpy(structure, "ChaCha/4");
-			strcpy(rev, "REV2017");
+            strcpy(rev, "REV2017");
             break;
     }
 
@@ -310,7 +310,7 @@ const char *category_name(uint8_t _cat) {
         case CLS_ERROR:
             return "Error";
         default:
-			break;
+            break;
     }
 
     return "Unknown";

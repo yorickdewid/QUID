@@ -167,7 +167,7 @@ static void check_timestamp() {
 # if defined(_DEBUG) || defined(DEBUG) || !defined(NDEBUG)
         assert(gmtime_s(&ti1, &timt) == 0);
 # else
-		gmtime_s(&ti1, &timt);
+        gmtime_s(&ti1, &timt);
 #endif
 #else
         struct tm *_ti1 = gmtime(&timt);
