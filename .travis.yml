@@ -5,6 +5,7 @@ dist: trusty
 os:
   - windows
   - linux
+  - osx
 
 compiler:
   - clang
@@ -14,5 +15,5 @@ script:
   - mkdir Release
   - cd Release
   - cmake .. -DCMAKE_BUILD_TYPE=Release
-  - cmake --build . # make
-  - ctest .         # make test
+  - cmake --build .
+  - ctest -C Release .
