@@ -140,6 +140,8 @@ QUID_LIB_API const char *quid_libversion(void) {
     return PACKAGE_VERSION;
 }
 
+#ifndef NDEBUG
+
 /**
 * Check whether memory is a vector of same values.
 *
@@ -153,6 +155,8 @@ static int memvcmp(void *memory, unsigned char val, unsigned int size)
     uint8_t *mm = (uint8_t *)memory;
     return (*mm == val) && memcmp(mm, mm + 1, size - 1) == 0;
 }
+
+#endif // NDEBUG
 
 /**
 * Compare two quid structures and return match result.
@@ -739,6 +743,7 @@ static void strip_special_chars(char *s) {
 
 /* Check if string validates as hex */
 static int ishex(char *s) {
+	if (!s) { return 0; }
     while (*s) {
         if (!isxdigit(*s)) {
             return 0;
@@ -762,11 +767,7 @@ static void strtoquid(const char *str, cuuid_t *u) {
     char octet[4 + 1];
     char node[2 + 1];
 
-	if (!u) {
-		fprintf(stderr, "strtoquid: 'u' is uninitialized");
-		FATAL_ERROR_BAIL();
-	}
-
+	assert(u);
     memset(octet1, '\0', sizeof(octet1));
     memset(octet, '\0', sizeof(octet));
     memset(node, '\0', sizeof(node));
@@ -821,7 +822,7 @@ QUID_LIB_API cresult quid_validate(cuuid_t *cuuid) {
  *
  * @param    quid   Input string to be parsed by the function
  * @param    cuuid  Output quid structure provided by the caller
- * @return          QUID_ERROR on faillure and QUID_OK on success
+ * @return          QUID_OK on success
  */
 QUID_LIB_API cresult quid_parse(char *quid, cuuid_t *cuuid) {
     int len;
@@ -863,6 +864,7 @@ QUID_LIB_API cresult quid_parse(char *quid, cuuid_t *cuuid) {
  *
  * @param    cuuid  Input quid structure to be converted to string
  * @param    str    Output string in which the result will be written
+ * @return          QUID_OK on success
  */
 QUID_LIB_API cresult quid_tostring(const cuuid_t *cuuid, char str[QUID_FULLLEN + 1]) {
 	if (!str) { return QUID_INVALID_PARAM; }
