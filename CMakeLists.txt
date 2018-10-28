@@ -1,5 +1,11 @@
-# Copyright (c) 2012-2018, Yorick de Wid <yorick17 at outlook dot com>
-# All rights reserved.
+# Copyright (c) 2018 Quenza Inc. All rights reserved.
+# Copyright (c) 2018 Blub Corp. All rights reserved.
+#
+# This file is part of the QUID project.
+#
+# Use of this source code is governed by a private license
+# that can be found in the LICENSE file. Content can not be
+# copied and/or distributed without the express of the author.
 
 # At least this version of CMake but newer is better
 cmake_minimum_required(VERSION 3.2 FATAL_ERROR)
@@ -30,10 +36,10 @@ if(MSVC)
 	set(CMAKE_C_STANDARD 11)
 endif()
 
-string(TIMESTAMP PROJECT_COMPILE_YEAR "%Y")
-set(PROJECT_BUGREPORT "yorick17 at outlook dot com" CACHE STRING "Address to report bugs")
-set(PROJECT_URL "https://github.com/yorickdewid/QUID" CACHE STRING "Project website")
-set(PROJECT_AUTHOR "Blub Corp." CACHE STRING "Project author")
+string(TIMESTAMP QUID_COMPILE_YEAR "%Y")
+set(QUID_BUGREPORT "yorick17 at outlook dot com" CACHE STRING "Address to report bugs")
+set(QUID_URL "https://github.com/yorickdewid/QUID" CACHE STRING "Project website")
+set(QUID_AUTHOR "Blub Corp." CACHE STRING "Project author")
 
 # set(CMAKE_VERBOSE_MAKEFILE ON)
 set(CMAKE_COLOR_MAKEFILE ON)
@@ -43,19 +49,19 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
-configure_file(${CMAKE_SOURCE_DIR}/config.h.in ${PROJECT_BINARY_DIR}/config.h)
+configure_file(config.h.in ${CMAKE_CURRENT_BINARY_DIR}/config.h)
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include ${PROJECT_BINARY_DIR})
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include ${CMAKE_CURRENT_BINARY_DIR})
 
-set(PROJECT_SOURCES
+set(QUID_SOURCES
 	include/quid.h
 	src/quid.c
 	src/chacha.c
 	src/chacha.h
 )
 
-add_library(quid_a STATIC ${PROJECT_SOURCES})
-add_library(quid_lib SHARED ${PROJECT_SOURCES})
+add_library(quid_a STATIC ${QUID_SOURCES})
+add_library(quid_lib SHARED ${QUID_SOURCES})
 
 # Define output directories
 set_target_properties(quid_a
@@ -84,16 +90,17 @@ install(TARGETS quid_lib quid_a
 	ARCHIVE DESTINATION lib
 )
 
-set(CPACK_PACKAGE_NAME ${PROJECT_NAME})
-set(CPACK_PACKAGE_VENDOR ${PROJECT_AUTHOR})
-set(CPACK_PACKAGE_DESCRIPTION_SUMMARY ${PROJECT_NAME})
-set(CPACK_PACKAGE_VERSION "${PROJECT_VERSION}")
-set(CPACK_PACKAGE_DESCRIPTION_FILE "${CMAKE_SOURCE_DIR}/README.md")
+if(NOT CPack_CMake_INCLUDED)
+	set(CPACK_PACKAGE_NAME ${PROJECT_NAME})
+	set(CPACK_PACKAGE_VENDOR ${QUID_AUTHOR})
+	set(CPACK_PACKAGE_DESCRIPTION_SUMMARY ${PROJECT_NAME})
+	set(CPACK_PACKAGE_VERSION "${PROJECT_VERSION}")
+	set(CPACK_PACKAGE_DESCRIPTION_FILE "README.md")
 
-include(CPack)
+	include(CPack)
+endif()
 
 enable_testing()
 
 add_subdirectory(utils)
 add_subdirectory(test)
-add_subdirectory(quidpp)

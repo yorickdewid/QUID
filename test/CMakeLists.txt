@@ -1,5 +1,11 @@
-# Copyright (c) 2012-2018, Yorick de Wid <yorick17 at outlook dot com>
-# All rights reserved.
+# Copyright (c) 2018 Quenza Inc. All rights reserved.
+# Copyright (c) 2018 Blub Corp. All rights reserved.
+#
+# This file is part of the QUID project.
+#
+# Use of this source code is governed by a private license
+# that can be found in the LICENSE file. Content can not be
+# copied and/or distributed without the express of the author.
 
 # At least this version of CMake but newer is better
 cmake_minimum_required(VERSION 3.2 FATAL_ERROR)

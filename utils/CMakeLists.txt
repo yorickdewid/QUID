@@ -1,5 +1,11 @@
-# Copyright (c) 2012-2018, Yorick de Wid <yorick17 at outlook dot com>
-# All rights reserved.
+# Copyright (c) 2018 Quenza Inc. All rights reserved.
+# Copyright (c) 2018 Blub Corp. All rights reserved.
+#
+# This file is part of the QUID project.
+#
+# Use of this source code is governed by a private license
+# that can be found in the LICENSE file. Content can not be
+# copied and/or distributed without the express of the author.
 
 # At least this version of CMake but newer is better
 cmake_minimum_required(VERSION 3.2 FATAL_ERROR)
@@ -7,19 +13,17 @@ cmake_minimum_required(VERSION 3.2 FATAL_ERROR)
 # Set project info
 project(quidutil VERSION 1.7 LANGUAGES C)
 
-configure_file(${CMAKE_SOURCE_DIR}/config.h.in ${PROJECT_BINARY_DIR}/config.h)
+configure_file(../config.h.in ${CMAKE_CURRENT_BINARY_DIR}/config.h)
 
-include_directories(${CMAKE_SOURCE_DIR}/include ${PROJECT_BINARY_DIR})
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include ${CMAKE_CURRENT_BINARY_DIR})
 
 # Sleep is only available with POSIX
 add_definitions(-D_POSIX_C_SOURCE=199309L)
 
-set(PROJECT_SOURCES
+add_executable(quidutil
 	win32_getopt.h
 	quidutil.c
 )
-
-add_executable(quidutil ${PROJECT_SOURCES})
 
 # Define output directories
 set_target_properties(quidutil

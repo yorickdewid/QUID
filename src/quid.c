@@ -46,13 +46,6 @@
  * 2018-10: Version 1.7
  *          - Fix operations in assert
  *          - Bail on fatal error
- *
- * TODO:
- * - Last digit in timestamp
- * - Move random cipher counter
- * - Request version from quid
- * - #if guards around obsolete functions
- * - REV8 2018 version
  */
 
 #include <string.h>
