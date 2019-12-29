@@ -53,4 +53,4 @@ License
 -------
 
 QUID, libquid and genquid are released under the terms of the Quenza license.
-Copyright (c) 2012-2018
+Copyright (c) 2012-2020

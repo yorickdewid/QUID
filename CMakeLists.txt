@@ -1,5 +1,5 @@
-# Copyright (c) 2018 Quenza Inc. All rights reserved.
-# Copyright (c) 2018 Blub Corp. All rights reserved.
+# Copyright (c) 2020 Quenza Inc. All rights reserved.
+# Copyright (c) 2020 Blub Corp. All rights reserved.
 #
 # This file is part of the QUID project.
 #
