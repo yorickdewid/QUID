@@ -71,9 +71,6 @@ void print_version(void);
 int check_fname(const char *);
 void quid_print(cuuid_t, int);
 void quid_print_file(FILE *, cuuid_t, int);
-void quid_print_file_hex(FILE *, cuuid_t);
-void quid_print_file_dec(FILE *, cuuid_t);
-void quid_print_file_hex_bracket(FILE *, cuuid_t);
 
 void set_signint(int);
 const char *category_name(uint8_t cat);
@@ -95,7 +92,7 @@ void quid_print(cuuid_t u, int format) {
     quid_print_file(stdout, u, format);
 }
 
-void quid_print_file_hex(FILE *fp, cuuid_t u) {
+static void quid_print_file_hex(FILE *fp, cuuid_t u) {
     fprintf(fp, "%x", (unsigned int)u.time_low);
     fprintf(fp, "%x", u.time_mid);
     fprintf(fp, "%x", u.time_hi_and_version);
@@ -112,7 +109,7 @@ void quid_print_file_hex(FILE *fp, cuuid_t u) {
     fprintf(fp, "\n");
 }
 
-void quid_print_file_dec(FILE *fp, cuuid_t u) {
+static void quid_print_file_dec(FILE *fp, cuuid_t u) {
 #if defined(WIN32) || defined(__APPLE__)
     fprintf(fp, "%lld", u.time_low);
 #else
@@ -133,7 +130,7 @@ void quid_print_file_dec(FILE *fp, cuuid_t u) {
     fprintf(fp, "\n");
 }
 
-void quid_print_file_hex_bracket(FILE *fp, cuuid_t u) {
+static void quid_print_file_hex_bracket(FILE *fp, cuuid_t u) {
     fprintf(fp, "{");
 
     fprintf(fp, "%.8x-", (unsigned int)u.time_low);
@@ -520,6 +517,10 @@ int main(int argc, char *argv[]) {
             rtn = check_fname(fname);
             if (!rtn) {
                 fp = fopen(fname, "a");
+                if (fp == NULL) {
+                    printf("%s is not writable\n", fname);
+                    return 1;
+                }
             } else if (rtn == 1) {
                 printf("%s is a directory\n", fname);
                 return 1;
