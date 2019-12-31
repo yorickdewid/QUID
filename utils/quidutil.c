@@ -246,7 +246,7 @@ static void generate_verbose(void) {
 static void usage(void) {
     printf("Usage: " PROJECT_NAME " [OPTIONS] identifier...\n");
     printf("Options:\n");
-    printf("  -c <count>               Number of identifiers, 0 for infinite\n");
+    printf("  -c <count>               Number of identifiers\n");
     printf("  -d <ms>                  Delay between generation in miliseconds\n");
     printf("  --rand-seek=<cycles>     Reinitialize rand seed per <cycles>\n");
     printf("  --memory-seed=<cycles>   Reinitialize memory seed per <cycles>\n");
@@ -407,7 +407,7 @@ int main(int argc, char *argv[]) {
                     }
                 } else if (!strcmp("tag", long_options[option_index].name)) {
                     if (strlen(optarg) != 3) {
-                        printf("tag must be 3 characters\n");
+                        printf("tag must be exactly 3 characters, %zu given\n", strlen(optarg));
                         printf("see --help for more information\n");
                         return 1;
                     }
@@ -419,7 +419,7 @@ int main(int argc, char *argv[]) {
                     printf("%d) %s\n", CLS_INFO, category_name(CLS_INFO));
                     printf("%d) %s\n", CLS_WARN, category_name(CLS_WARN));
                     printf("%d) %s\n", CLS_ERROR, category_name(CLS_ERROR));
-                    gen = 0;
+                    return 0;
                 } else if (!strcmp("set-safe", long_options[option_index].name)) {
                     flg |= IDF_IDSAFE;
                 } else if (!strcmp("set-public", long_options[option_index].name)) {

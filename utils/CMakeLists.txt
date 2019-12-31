@@ -1,4 +1,4 @@
-# Copyright (c) 2020 Quenza Inc. All rights reserved.
+# Copyright (c) 2018 Quenza Inc. All rights reserved.
 # Copyright (c) 2020 Blub Corp. All rights reserved.
 #
 # This file is part of the QUID project.
@@ -11,7 +11,7 @@
 cmake_minimum_required(VERSION 3.2 FATAL_ERROR)
 
 # Set project info
-project(quidutil VERSION 1.7 LANGUAGES C)
+project(quidutil VERSION 1.8 LANGUAGES C)
 
 configure_file(../config.h.in ${CMAKE_CURRENT_BINARY_DIR}/config.h)
 
