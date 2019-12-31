@@ -63,34 +63,11 @@ char flg = IDF_NULL;
 char cat = CLS_CMON;
 static int intflag = 0;
 
-/* Prototypes */
-void input_verbose(cuuid_t);
-void generate_verbose(void);
-void usage(void);
-void print_version(void);
-int check_fname(const char *);
-void quid_print(cuuid_t, int);
-void quid_print_file(FILE *, cuuid_t, int);
-
-void set_signint(int);
-const char *category_name(uint8_t cat);
-
 enum {
     PRINT_FORMAT_HEX = 1,
     PRINT_FORMAT_DEC = 2,
     PRINT_FORMAT_HEX_BACKET = 0,
 };
-
-/* Set flag if program got terminated */
-void set_signint(int s) {
-    ((void)s);
-    intflag = 1;
-}
-
-/* Print QUID on screen */
-void quid_print(cuuid_t u, int format) {
-    quid_print_file(stdout, u, format);
-}
 
 static void quid_print_file_hex(FILE *fp, cuuid_t u) {
     fprintf(fp, "%x", (unsigned int)u.time_low);
@@ -150,23 +127,45 @@ static void quid_print_file_hex_bracket(FILE *fp, cuuid_t u) {
 }
 
 /* Print QUID to file */
-void quid_print_file(FILE *fp, cuuid_t u, int format) {
+static void quid_print_file(FILE *fp, cuuid_t u, int format) {
     switch (format) {
-    case PRINT_FORMAT_HEX:
-        quid_print_file_hex(fp, u);
-        break;
-    case PRINT_FORMAT_DEC:
-        quid_print_file_dec(fp, u);
-        break;
-    case PRINT_FORMAT_HEX_BACKET:
-    default:
-        quid_print_file_hex_bracket(fp, u);
-        break;
+        case PRINT_FORMAT_HEX:
+            quid_print_file_hex(fp, u);
+            break;
+        case PRINT_FORMAT_DEC:
+            quid_print_file_dec(fp, u);
+            break;
+        case PRINT_FORMAT_HEX_BACKET:
+        default:
+            quid_print_file_hex_bracket(fp, u);
+            break;
     }
 }
 
+/* Print QUID on screen */
+static void quid_print(cuuid_t u, int format) {
+    quid_print_file(stdout, u, format);
+}
+
+static const char *category_name(uint8_t _cat) {
+    switch (_cat) {
+        case CLS_CMON:
+            return "Common";
+        case CLS_INFO:
+            return "Info";
+        case CLS_WARN:
+            return "Warning";
+        case CLS_ERROR:
+            return "Error";
+        default:
+            break;
+    }
+
+    return "Unknown";
+}
+
 /* Report versbose identifier info */
-void input_verbose(cuuid_t u) {
+static void input_verbose(cuuid_t u) {
     char sflag;
     int version = 0;
     char structure[32];
@@ -226,7 +225,7 @@ void input_verbose(cuuid_t u) {
 }
 
 /* Show verbose generation information */
-void generate_verbose(void) {
+static void generate_verbose(void) {
     double elapsedTime;
 
     printf("-----------------------------\n");
@@ -244,7 +243,7 @@ void generate_verbose(void) {
 }
 
 /* Program usage */
-void usage(void) {
+static void usage(void) {
     printf("Usage: " PROJECT_NAME " [OPTIONS] identifier...\n");
     printf("Options:\n");
     printf("  -c <count>               Number of identifiers, 0 for infinite\n");
@@ -278,14 +277,14 @@ void usage(void) {
 }
 
 /* Print program version */
-void print_version(void) {
+static void print_version(void) {
     printf("QUID Generator %s\n", PROJECT_VERSION);
     printf("Copyright (C) " PROJECT_COMPILE_YEAR " " PROJECT_AUTHOR "\n");
     printf("Report bugs to <" PROJECT_BUGREPORT ">\n");
 }
 
 /* Check filesystem for output file */
-int check_fname(const char *pathname) {
+static int check_fname(const char *pathname) {
     struct stat info;
 
     if (stat(pathname, &info) != 0) {
@@ -295,23 +294,6 @@ int check_fname(const char *pathname) {
     }
 
     return 2;
-}
-
-const char *category_name(uint8_t _cat) {
-    switch (_cat) {
-        case CLS_CMON:
-            return "Common";
-        case CLS_INFO:
-            return "Info";
-        case CLS_WARN:
-            return "Warning";
-        case CLS_ERROR:
-            return "Error";
-        default:
-            break;
-    }
-
-    return "Unknown";
 }
 
 static void qusleep(int64_t usec) {
@@ -338,7 +320,7 @@ static void qusleep(int64_t usec) {
 int gettimeofday(struct timeval *tp, char *tzp) {
     ((void)tzp);
 
-    // Note: some broken versions only have 8 trailing zero's, the correct epoch has 9 trailing zero's
+    // NOTE: some broken versions only have 8 trailing zero's, the correct epoch has 9 trailing zero's
     // This magic number is the number of 100 nanosecond intervals since January 1, 1601 (UTC)
     // until 00:00:00 January 1, 1970
     static const uint64_t EPOCH = ((uint64_t)11644473600ULL);
@@ -357,6 +339,12 @@ int gettimeofday(struct timeval *tp, char *tzp) {
     return 0;
 }
 #endif
+
+/* Set flag if program got terminated */
+static void set_signint(int s) {
+    ((void)s);
+    intflag = 1;
+}
 
 /* Program main */
 int main(int argc, char *argv[]) {
@@ -397,8 +385,9 @@ int main(int argc, char *argv[]) {
         option_index = 0;
 
         c = getopt_long(argc, argv, "c:d:o:qxivVh", long_options, &option_index);
-        if (c == -1)
+        if (c == -1) {
             break;
+        }
 
         switch (c) {
             case 0:
@@ -498,10 +487,12 @@ int main(int argc, char *argv[]) {
             printf("%s\t", argv[optind]);
             if (quid_parse(argv[optind], &uuid)) {
                 printf("VALID\n");
-                if (vbose)
+                if (vbose) {
                     input_verbose(uuid);
-            } else
+                }
+            } else {
                 printf("INVALID\n");
+            }
             optind++;
         }
 
