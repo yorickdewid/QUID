@@ -95,7 +95,7 @@ static void doublerounds(uint8_t output[64], const uint32_t input[16], uint8_t r
     }
 }
 
-void chacha_init(chacha_ctx *ctx, uint8_t *key, uint32_t keylen, uint8_t *iv, uint32_t counter) {
+void chacha_init(chacha_ctx *ctx, const uint8_t *key, uint32_t keylen, const uint8_t *iv, uint32_t counter) {
     switch (keylen) {
         case 256:
             ctx->state[0]  = U8TO32_LITTLE(SIGMA + 0);
@@ -177,7 +177,7 @@ void chacha_xor(chacha_ctx *ctx, uint8_t *input, size_t len) {
 }
 
 void chacha_init_ctx(chacha_ctx *ctx, uint8_t rounds) {
-    /* Not too crazy */
+    /* Not *too* crazy */
     if (rounds < 2) {
         abort();
     }

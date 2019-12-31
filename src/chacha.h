@@ -46,7 +46,7 @@ typedef struct {
 } chacha_ctx;
 
 void chacha_init_ctx(chacha_ctx *, uint8_t);
-void chacha_init(chacha_ctx *, uint8_t *, uint32_t, uint8_t *, uint32_t);
+void chacha_init(chacha_ctx *, const uint8_t *, uint32_t, const uint8_t *, uint32_t);
 void chacha_next(chacha_ctx *, const uint8_t *, uint8_t *);
 void chacha_xor(chacha_ctx *ctx, uint8_t *input, size_t len);
 
