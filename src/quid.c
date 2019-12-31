@@ -491,7 +491,7 @@ static void encrypt_node(uint64_t prekey, uint8_t preiv1, uint8_t preiv2, cuuid_
     assert(prekey);
     assert(node);
 
-    /* Weak key stretching */
+    /* Key stretching */
     key[0] = 0x0;
     key[1] = (uint8_t)prekey | (uint8_t)(prekey >> 16);
     key[2] = (uint8_t)prekey ^ (uint8_t)(prekey >> 8);
@@ -540,7 +540,7 @@ QUID_LIB_API cresult quid_create_rev4(cuuid_t *uid, uint8_t flag, uint8_t subc) 
 
     if (!uid) { return QUID_INVALID_PARAM; }
 
-    /* Structure must be empty. We only check this at debug compiles
+    /* Structure must be empty. We only check this in debug compilations
      * since this operation is too expensive for release builds, 
      */
     assert(memvcmp(uid, '\0', sizeof(cuuid_t)));
@@ -568,8 +568,8 @@ QUID_LIB_API cresult quid_create_rev7(cuuid_t *uid, uint8_t flag, uint8_t subc, 
 
     if (!uid) { return QUID_INVALID_PARAM; }
 
-    /* Structure must be empty. We only check this at debug compiles
-     * since this operation is too expensive for release builds,
+    /* Structure must be empty. We only check this in debug compilations
+     * since this operation is too expensive for release builds, 
      */
     assert(memvcmp(uid, '\0', sizeof(cuuid_t)));
 
@@ -588,7 +588,7 @@ QUID_LIB_API cresult quid_create_rev7(cuuid_t *uid, uint8_t flag, uint8_t subc, 
     node.node[4] = padding[1];
     node.node[5] = padding[2];
 
-    /* Set tag if passed */
+    /* Set tag if provided available */
     if (tag && tag[0] != 0 && tag[1] != 0 && tag[2] != 0) {
         node.node[3] = tag[0];
         node.node[4] = tag[1];
@@ -658,7 +658,7 @@ static void format_quid_rev4(cuuid_t* uid, uint16_t clock_seq, cuuid_time_t time
 
 /**
  * Format QUID from the timestamp, clocksequence, and node ID
- * Structure succeeds version 7 (REV7).
+ * Structure succeeds version 4 (REV4).
  */
 static void format_quid_rev7(cuuid_t *uid, uint16_t clock_seq, cuuid_time_t timestamp) {
     uid->time_low = (uint64_t)(timestamp & 0xffffffff);
@@ -719,11 +719,12 @@ static double get_tick_count(void) {
 #endif
 }
 
-/* Create true random as prescribed by the IEEE */
+/* Create true randomness as prescribed by the IEEE */
 static uint16_t true_random(void) {
     static int rnd_seed_count = 0;
     cuuid_time_t time_now;
 
+    /* Reseed if max seed count is reached */
     if (!rnd_seed_count) {
         get_system_time(&time_now);
         time_now = time_now / UIDS_PER_TICK;
