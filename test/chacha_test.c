@@ -35,11 +35,8 @@
 
 #include "tinytest.h"
 
-static void print_block(uint8_t block[64])
-{
-    uint8_t i;
-
-    for (i = 0; i < 64; i++) {
+static void print_block(uint8_t block[64]) {
+    for (uint8_t i = 0; i < 64; i++) {
         printf("0x%02x ", block[i]);
 
         if (((i + 1) % 8) == 0) {
@@ -50,12 +47,9 @@ static void print_block(uint8_t block[64])
     printf("\n");
 }
 
-static void print_key_iv(uint8_t *key, uint32_t keylen, uint8_t *iv)
-{
-    uint8_t i;
-
+static void print_key_iv(uint8_t *key, uint32_t keylen, uint8_t *iv) {
     printf("Key:    ");
-    for (i = 0; i < (keylen / 8); i++) {
+    for (uint8_t i = 0; i < (keylen / 8); i++) {
         if ((i > 0) && (0 == (i % 8))) {
             printf("\n        ");
         }
@@ -64,14 +58,13 @@ static void print_key_iv(uint8_t *key, uint32_t keylen, uint8_t *iv)
     printf("\n");
 
     printf("IV:     ");
-    for (i = 0; i < 8; i++) {
+    for (uint8_t i = 0; i < 8; i++) {
         printf("0x%02x ", iv[i]);
     }
     printf("\n");
 }
 
-static void test_vectors(uint8_t *key, uint8_t *iv, uint8_t keystream[2 * 3][64])
-{
+static void test_vectors(uint8_t *key, uint8_t *iv, uint8_t keystream[2 * 3][64]) {
     uint32_t keylengths[2] = { 128, 256 };
     uint8_t rounds[4] = { 8, 12, 20 };
 
@@ -93,15 +86,13 @@ static void test_vectors(uint8_t *key, uint8_t *iv, uint8_t keystream[2 * 3][64]
                          0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
                          0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
 
-    uint32_t ki;
-    uint8_t ri;
     chacha_ctx my_ctx;
 
     /* For a given key and iv we process two consecutive blocks
      * using 8, 12 or 20 rounds */
     int count = 0;
-    for (ki = 0; ki < 2; ki++) {
-        for (ri = 0; ri < 3; ri++) {
+    for (uint32_t ki = 0; ki < 2; ki++) {
+        for (uint8_t ri = 0; ri < 3; ri++) {
             print_key_iv(key, keylengths[ki], iv);
             printf("Rounds: %d\n\n", rounds[ri]);
 
@@ -120,8 +111,7 @@ static void test_vectors(uint8_t *key, uint8_t *iv, uint8_t keystream[2 * 3][64]
     }
 }
 
-static void all_zero_key()
-{
+static void all_zero_key() {
     printf("TC1: All zero key and IV.\n");
     printf("-------------------------\n");
     uint8_t tc1_key[32] = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -184,8 +174,7 @@ static void all_zero_key()
     test_vectors(tc1_key, tc1_iv, tc1_keystream);
 }
 
-int main()
-{
+int main() {
     printf("Test vectors for the ChaCha stream cipher\n");
     printf("=========================================\n\n");
 

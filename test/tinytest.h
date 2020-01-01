@@ -46,10 +46,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#ifdef _WIN32
-# define TT_NO_COLOR
-#endif
-
 /* Main assertion method */
 #define ASSERT(msg, expression) if (!tt_assert(__FILE__, __LINE__, (msg), (#expression), (expression) ? 1 : 0)) return
 
@@ -75,53 +71,42 @@ const char* tt_current_expression = NULL;
 const char* tt_current_file = NULL;
 int tt_current_line = 0;
 
-static void tt_execute(const char* name, void(*test_function)())
+void tt_execute(const char* name, void (*test_function)())
 {
-    tt_current_test_failed = 0;
-    test_function();
-    printf("%s... ", name);
-    if (tt_current_test_failed) {
-        printf("failure: %s:%d: In test %s():\n>>    %s (%s)\n",
-               tt_current_file, tt_current_line, name, tt_current_msg, tt_current_expression);
-        tt_fails++;
-    }
-    else {
-        printf("passed\n");
-        tt_passes++;
-    }
+  tt_current_test_failed = 0;
+  test_function();
+  if (tt_current_test_failed) {
+    printf("failure: %s:%d: In test %s():\n    %s (%s)\n",
+      tt_current_file, tt_current_line, name, tt_current_msg, tt_current_expression);
+    tt_fails++;
+  } else {
+    tt_passes++;
+  }
 }
 
-static int tt_assert(const char* file, int line, const char* msg, const char* expression, int pass)
+int tt_assert(const char* file, int line, const char* msg, const char* expression, int pass)
 {
-    tt_current_msg = msg;
-    tt_current_expression = expression;
-    tt_current_file = file;
-    tt_current_line = line;
-    tt_current_test_failed = !pass;
-    return pass;
+  tt_current_msg = msg;
+  tt_current_expression = expression;
+  tt_current_file = file;
+  tt_current_line = line;
+  tt_current_test_failed = !pass;
+  return pass;
 }
 
-static int tt_report(void)
+int tt_report(void)
 {
-    puts("");
-    if (tt_fails) {
-#ifdef TT_NO_COLOR
-        printf("FAILED [%s] (passed:%d, failed:%d, total:%d)\n",
-#else
-        printf("%c%sFAILED%c%s [%s] (passed:%d, failed:%d, total:%d)\n", TT_COLOR_CODE, TT_COLOR_RED, TT_COLOR_CODE, TT_COLOR_RESET,
-#endif
-               tt_current_file, tt_passes, tt_fails, tt_passes + tt_fails);
-        return -1;
-    }
-    else {
-#ifdef TT_NO_COLOR
-        printf("PASSED [%s] (total:%d)\n",
-#else
-        printf("%c%sPASSED%c%s [%s] (total:%d)\n", TT_COLOR_CODE, TT_COLOR_GREEN, TT_COLOR_CODE, TT_COLOR_RESET,
-#endif
-               tt_current_file, tt_passes);
-        return 0;
-    }
+  if (tt_fails) {
+    printf("%c%sFAILED%c%s [%s] (passed:%d, failed:%d, total:%d)\n",
+      TT_COLOR_CODE, TT_COLOR_RED, TT_COLOR_CODE, TT_COLOR_RESET,
+      tt_current_file, tt_passes, tt_fails, tt_passes + tt_fails);
+    return -1;
+  } else {
+    printf("%c%sPASSED%c%s [%s] (total:%d)\n", 
+      TT_COLOR_CODE, TT_COLOR_GREEN, TT_COLOR_CODE, TT_COLOR_RESET,
+      tt_current_file, tt_passes);
+    return 0;
+  }
 }
 
 #endif

@@ -47,23 +47,22 @@ static void lib_quid() {
 
 static void general_quid() {
     cuuid_t tc_u;
-    int i;
     
-    for (i = 0; i < 10000; ++i) {
+    for (int i = 0; i < 10000; ++i) {
         ASSERT_EQUALS(QUID_OK, quid_create(&tc_u, IDF_NULL, CLS_CMON, NULL));
         ASSERT_EQUALS(QUID_OK, quid_validate(&tc_u));
     }
 
     quid_set_rnd_seed(2);
     
-    for (i = 0; i < 5000; ++i) {
+    for (int i = 0; i < 5000; ++i) {
         ASSERT_EQUALS(QUID_OK, quid_create(&tc_u, IDF_NULL, CLS_CMON, NULL));
         ASSERT_EQUALS(QUID_OK, quid_validate(&tc_u));
     }
 
     quid_set_rnd_seed(1 << 20);
 
-    for (i = 0; i < 5000; ++i) {
+    for (int i = 0; i < 5000; ++i) {
         ASSERT_EQUALS(QUID_OK, quid_create(&tc_u, IDF_NULL, CLS_CMON, NULL));
         ASSERT_EQUALS(QUID_OK, quid_validate(&tc_u));
     }
@@ -72,9 +71,8 @@ static void general_quid() {
 static void convert_string() {
     cuuid_t tc_u;
     char tc_str[QUID_FULLLEN + 1];
-    int i;
 
-    for (i = 0; i < 100; ++i) {
+    for (int i = 0; i < 100; ++i) {
         ASSERT_EQUALS(QUID_OK, quid_create_simple(&tc_u));
         quid_tostring(&tc_u, tc_str);
         ASSERT("string does not match quid format", tc_str[0] == '{'
@@ -88,9 +86,8 @@ static void convert_string() {
 static void convert_string_and_back() {
     cuuid_t tc_u, tc_b, tc_c;
     char tc_str[QUID_FULLLEN + 1];
-    int i;
 
-    for (i = 0; i < 20; ++i) {
+    for (int i = 0; i < 20; ++i) {
         ASSERT_EQUALS(QUID_OK, quid_create_simple(&tc_u));
         quid_tostring(&tc_u, tc_str);
         ASSERT("first char cannot be empty", tc_str[0] != 0);
@@ -119,9 +116,8 @@ static void legacy_string_and_back() {
 
 static void check_category_and_flags() {
     cuuid_t tc_u;
-    int i;
 
-    for (i = 0; i < 2000; ++i) {
+    for (int i = 0; i < 2000; ++i) {
         ASSERT_EQUALS(QUID_OK, quid_create(&tc_u, IDF_MASTER | IDF_STRICT, CLS_WARN, NULL));
         ASSERT_EQUALS(QUID_OK, quid_validate(&tc_u));
         ASSERT("no flag found", quid_flag(&tc_u) & FLAG_MASTER);
@@ -144,9 +140,8 @@ static void check_legacy_category_and_flags() {
 
 static void check_tag() {
     cuuid_t tc_u;
-    int i;
 
-    for (i = 0; i < 100; ++i) {
+    for (int i = 0; i < 100; ++i) {
         ASSERT_EQUALS(QUID_OK, quid_create(&tc_u, IDF_SIGNED | IDF_PUBLIC, CLS_ERROR, "CHK"));
         ASSERT_EQUALS(QUID_OK, quid_validate(&tc_u));
         ASSERT("no flag found", quid_flag(&tc_u) & IDF_SIGNED);
@@ -158,9 +153,8 @@ static void check_tag() {
 
 static void check_timestamp() {
     cuuid_t tc_u;
-    int i;
 
-    for (i = 0; i < 500; ++i) {
+    for (int i = 0; i < 500; ++i) {
         time_t timt = time(NULL);
         struct tm ti1;
 #ifdef WIN32
@@ -192,9 +186,8 @@ static void check_timestamp() {
 //TODO:
 static void check_quid_version() {
     cuuid_t tc_u;
-    int i;
 
-    for (i = 0; i < 5000; ++i) {
+    for (int i = 0; i < 5000; ++i) {
         ASSERT_EQUALS(QUID_OK, quid_create_simple(&tc_u));
         ASSERT_EQUALS(QUID_OK, quid_validate(&tc_u));
     }
