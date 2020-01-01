@@ -383,6 +383,9 @@ int main(int argc, char *argv[]) {
     /* Register interrupt handler */
     signal(SIGINT, set_signint);
 
+    /* Default to latest version */
+    cuuid.version = QUID_REV7;
+
     while (1) {
         option_index = 0;
 
@@ -403,9 +406,11 @@ int main(int argc, char *argv[]) {
                             cuuid.version = QUID_REV4;
                             break;
                         case 7:
-                        default:
                             cuuid.version = QUID_REV7;
                             break;
+                        default:
+                            printf("supported revisions: 4, 7\n");
+                            return 1;
                     }
                 } else if (!strcmp("tag", long_options[option_index].name)) {
                     if (strlen(optarg) != 3) {

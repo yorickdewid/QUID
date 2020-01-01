@@ -46,6 +46,8 @@
  * 2018-10: Version 1.7
  *          - Fix operations in assert
  *          - Bail on fatal error
+ * 2020-01: Versio 1.8
+ *          - Fix quid validation
  */
 
 #include <string.h>
@@ -605,6 +607,7 @@ QUID_LIB_API cresult quid_create_rev7(cuuid_t *uid, uint8_t flag, uint8_t subc, 
     return QUID_OK;
 }
 
+// TODO: Passing version ia structure is **DANGEROUS**.
 /**
  * Default constructor for new quid structures.
  *
@@ -619,15 +622,22 @@ QUID_LIB_API cresult quid_create(cuuid_t *cuuid, uint8_t flag, uint8_t subc, cha
 
     if (!cuuid) { return QUID_INVALID_PARAM; }
 
+    /* Try and get version */
+    int requested_version = cuuid->version;
+
     if (!memset(cuuid, '\0', sizeof(cuuid_t))) {
         perror("memset");
         FATAL_ERROR_BAIL();
     }
-    if (cuuid->version == QUID_REV4) {//TODO
-        return quid_create_rev4(cuuid, flag, subc);
+
+    switch (requested_version) {
+        case QUID_REV4:
+            return quid_create_rev4(cuuid, flag, subc);
+        default:
+            /* Default to latest */
+            break;
     }
 
-    /* Default to latest */
     return quid_create_rev7(cuuid, flag, subc, tag);
 }
 
@@ -769,7 +779,7 @@ static int ishex(char *s) {
 /**
  * Parse string into quid structure. Even if the resulting quid structure
  * is not a valid quid identifier, no validation is performed in this
- * function.
+ * function, nor should it.
  *
  * @param   str    Quid structure to be parsed represented as string
  * @param   u      The output quid structure, caller must provide memory
@@ -786,7 +796,6 @@ static void strtoquid(const char *str, cuuid_t *u) {
 
     memcpy(octet1, str, 8);
     u->time_low = (uint64_t)strtoll(octet1, NULL, 16);
-    assert(u->time_low != 0L && u->time_low != LLONG_MAX && u->time_low != LLONG_MIN);
 
     memcpy(octet, str + 8, 4);
     u->time_mid = (uint16_t)strtol(octet, NULL, 16);
@@ -800,8 +809,7 @@ static void strtoquid(const char *str, cuuid_t *u) {
     memcpy(node, str + 8 + 4 + 4 + 2, 2);
     u->clock_seq_low = (uint8_t)strtol(node, NULL, 16);
 
-    int i;
-    for (i = 0; i < sizeof(u->node); ++i) {
+    for (int i = 0; i < sizeof(u->node); ++i) {
         memcpy(node, str + 20 + (i * 2), 2);
         u->node[i] = (uint8_t)strtol(node, NULL, 16);
     }
@@ -816,6 +824,15 @@ static void strtoquid(const char *str, cuuid_t *u) {
  */
 QUID_LIB_API cresult quid_validate(cuuid_t *cuuid) {
     if (!cuuid) { return QUID_INVALID_PARAM; }
+
+    /**
+     * NOTE: Time lowerbound can *never* be 0. There is no practical
+     * reason why that is the case, however the protocol specifies this
+     * be the situation. Lowerbound time is used in other protocol operations.
+     */
+    if (cuuid->time_low == 0L) {
+        return QUID_ERROR;
+    }
 
     if ((cuuid->time_hi_and_version & VERSION_REV7) == VERSION_REV7) {
         cuuid->version = QUID_REV7;
@@ -837,8 +854,6 @@ QUID_LIB_API cresult quid_validate(cuuid_t *cuuid) {
  * @return          QUID_OK on success
  */
 QUID_LIB_API cresult quid_parse(char *quid, cuuid_t *cuuid) {
-    int len;
-    
     if (!quid) { return QUID_INVALID_PARAM; }
     if (!cuuid) { return QUID_INVALID_PARAM; }
 
@@ -847,10 +862,9 @@ QUID_LIB_API cresult quid_parse(char *quid, cuuid_t *cuuid) {
 
     /* Remove all special characters */
     strip_special_chars(quid);
-    len = (int)strlen(quid);
 
     /* Fail if invalid length */
-    if (len != QUID_LEN) {
+    if (strlen(quid) != QUID_LEN) {
         return QUID_ERROR;
     }
 

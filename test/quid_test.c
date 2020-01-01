@@ -49,6 +49,7 @@ static void general_quid() {
     cuuid_t tc_u;
     
     for (int i = 0; i < 10000; ++i) {
+        tc_u.version = QUID_REV7;
         ASSERT_EQUALS(QUID_OK, quid_create(&tc_u, IDF_NULL, CLS_CMON, NULL));
         ASSERT_EQUALS(QUID_OK, quid_validate(&tc_u));
     }
@@ -56,14 +57,18 @@ static void general_quid() {
     quid_set_rnd_seed(2);
     
     for (int i = 0; i < 5000; ++i) {
+        tc_u.version = QUID_REV7;
         ASSERT_EQUALS(QUID_OK, quid_create(&tc_u, IDF_NULL, CLS_CMON, NULL));
+        ASSERT_EQUALS(QUID_REV7, tc_u.version);
         ASSERT_EQUALS(QUID_OK, quid_validate(&tc_u));
     }
 
     quid_set_rnd_seed(1 << 20);
 
     for (int i = 0; i < 5000; ++i) {
+        tc_u.version = QUID_REV7;
         ASSERT_EQUALS(QUID_OK, quid_create(&tc_u, IDF_NULL, CLS_CMON, NULL));
+        ASSERT_EQUALS(QUID_REV7, tc_u.version);
         ASSERT_EQUALS(QUID_OK, quid_validate(&tc_u));
     }
 }
@@ -73,7 +78,9 @@ static void convert_string() {
     char tc_str[QUID_FULLLEN + 1];
 
     for (int i = 0; i < 100; ++i) {
+        tc_u.version = QUID_REV7;
         ASSERT_EQUALS(QUID_OK, quid_create_simple(&tc_u));
+        ASSERT_EQUALS(QUID_REV7, tc_u.version);
         quid_tostring(&tc_u, tc_str);
         ASSERT("string does not match quid format", tc_str[0] == '{'
                && tc_str[9] == '-'
@@ -88,7 +95,9 @@ static void convert_string_and_back() {
     char tc_str[QUID_FULLLEN + 1];
 
     for (int i = 0; i < 20; ++i) {
+        tc_u.version = QUID_REV7;
         ASSERT_EQUALS(QUID_OK, quid_create_simple(&tc_u));
+        ASSERT_EQUALS(QUID_REV7, tc_u.version);
         quid_tostring(&tc_u, tc_str);
         ASSERT("first char cannot be empty", tc_str[0] != 0);
         ASSERT_EQUALS(QUID_OK, quid_parse(tc_str, &tc_b));
@@ -101,24 +110,28 @@ static void convert_string_and_back() {
     ASSERT_EQUALS(QUID_OK, quid_parse(tc_str, &tc_c));
 }
 
-//TODO
 static void legacy_string_and_back() {
     cuuid_t tc_4u, tc_4u_;
     char tc_4str[QUID_FULLLEN + 1];
-    tc_4u.version = QUID_REV4;
 
-    ASSERT_EQUALS(QUID_OK, quid_create_simple(&tc_4u));
-    quid_tostring(&tc_4u, tc_4str);
-    ASSERT("first char cannot be empty", tc_4str[0] != 0);
-    ASSERT_EQUALS(QUID_OK, quid_parse(tc_4str, &tc_4u_));
-    ASSERT("quid does not match", quid_cmp(&tc_4u, &tc_4u_));
+    for (int i = 0; i < 20; ++i) {
+        tc_4u.version = QUID_REV4;
+        ASSERT_EQUALS(QUID_OK, quid_create_simple(&tc_4u));
+        ASSERT_EQUALS(QUID_REV4, tc_4u.version);
+        quid_tostring(&tc_4u, tc_4str);
+        ASSERT("first char cannot be empty", tc_4str[0] != 0);
+        ASSERT_EQUALS(QUID_OK, quid_parse(tc_4str, &tc_4u_));
+        ASSERT("quid does not match", quid_cmp(&tc_4u, &tc_4u_));
+    }
 }
 
 static void check_category_and_flags() {
     cuuid_t tc_u;
 
     for (int i = 0; i < 2000; ++i) {
+        tc_u.version = QUID_REV7;
         ASSERT_EQUALS(QUID_OK, quid_create(&tc_u, IDF_MASTER | IDF_STRICT, CLS_WARN, NULL));
+        ASSERT_EQUALS(QUID_REV7, tc_u.version);
         ASSERT_EQUALS(QUID_OK, quid_validate(&tc_u));
         ASSERT("no flag found", quid_flag(&tc_u) & FLAG_MASTER);
         ASSERT("no flag found", quid_flag(&tc_u) & FLAG_STRICT);
@@ -126,23 +139,27 @@ static void check_category_and_flags() {
     }
 }
 
-//TODO
 static void check_legacy_category_and_flags() {
     cuuid_t tc_u;
-    tc_u.version = QUID_REV4;
 
-    ASSERT_EQUALS(QUID_OK, quid_create(&tc_u, IDF_MASTER | IDF_STRICT, CLS_WARN, NULL));
-    ASSERT_EQUALS(QUID_OK, quid_validate(&tc_u));
-    ASSERT("no flag found", quid_flag(&tc_u) & FLAG_MASTER);
-    ASSERT("no flag found", quid_flag(&tc_u) & FLAG_STRICT);
-    ASSERT_EQUALS(CLS_WARN, quid_category(&tc_u));
+    for (int i = 0; i < 2000; ++i) {
+        tc_u.version = QUID_REV4;
+        ASSERT_EQUALS(QUID_OK, quid_create(&tc_u, IDF_MASTER | IDF_STRICT, CLS_WARN, NULL));
+        ASSERT_EQUALS(QUID_REV4, tc_u.version);
+        ASSERT_EQUALS(QUID_OK, quid_validate(&tc_u));
+        ASSERT("no flag found", quid_flag(&tc_u) & FLAG_MASTER);
+        ASSERT("no flag found", quid_flag(&tc_u) & FLAG_STRICT);
+        ASSERT_EQUALS(CLS_WARN, quid_category(&tc_u));
+    }
 }
 
 static void check_tag() {
     cuuid_t tc_u;
 
     for (int i = 0; i < 100; ++i) {
+        tc_u.version = QUID_REV7;
         ASSERT_EQUALS(QUID_OK, quid_create(&tc_u, IDF_SIGNED | IDF_PUBLIC, CLS_ERROR, "CHK"));
+        ASSERT_EQUALS(QUID_REV7, tc_u.version);
         ASSERT_EQUALS(QUID_OK, quid_validate(&tc_u));
         ASSERT("no flag found", quid_flag(&tc_u) & IDF_SIGNED);
         ASSERT("no flag found", quid_flag(&tc_u) & IDF_PUBLIC);
@@ -167,7 +184,9 @@ static void check_timestamp() {
         struct tm *_ti1 = gmtime(&timt);
         ti1 = *_ti1;
 #endif
+        tc_u.version = QUID_REV7;
         ASSERT_EQUALS(QUID_OK, quid_create_simple(&tc_u));
+        ASSERT_EQUALS(QUID_REV7, tc_u.version);
         ASSERT_EQUALS(QUID_OK, quid_validate(&tc_u));
         struct tm *ti2 = quid_timestamp(&tc_u);
         assert(ti2);
@@ -183,12 +202,13 @@ static void check_timestamp() {
     }
 }
 
-//TODO:
 static void check_quid_version() {
     cuuid_t tc_u;
 
     for (int i = 0; i < 5000; ++i) {
+        tc_u.version = QUID_REV7;
         ASSERT_EQUALS(QUID_OK, quid_create_simple(&tc_u));
+        ASSERT_EQUALS(QUID_REV7, tc_u.version);
         ASSERT_EQUALS(QUID_OK, quid_validate(&tc_u));
     }
 }
