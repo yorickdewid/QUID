@@ -106,12 +106,26 @@ static void convert_string_and_back() {
 
     STRCOPY(tc_str, "{faf38af0-c099-b089-ca43-75cfd0bb5725}");
     ASSERT_EQUALS(QUID_OK, quid_parse(tc_str, &tc_c));
+    ASSERT_EQUALS(QUID_REV7, tc_u.version);
     STRCOPY(tc_str, "b4be7a9e-ca82-b0b5-8000-9a3df5bf6f88");
     ASSERT_EQUALS(QUID_OK, quid_parse(tc_str, &tc_c));
+    ASSERT_EQUALS(QUID_REV7, tc_u.version);
+    STRCOPY(tc_str, "{c8e1eb92-0f17-b0b8-8000-53e145d9f3d8}");
+    ASSERT_EQUALS(QUID_OK, quid_parse(tc_str, &tc_c));
+    ASSERT_EQUALS(QUID_REV7, tc_u.version);
+    STRCOPY(tc_str, "b95921d6-0f17-b0b8-8000-3c07a199576c");
+    ASSERT_EQUALS(QUID_OK, quid_parse(tc_str, &tc_c));
+    ASSERT_EQUALS(QUID_REV7, tc_u.version);
+    STRCOPY(tc_str, "{d3ff24680f17b0b880009cdd9b27fd64}");
+    ASSERT_EQUALS(QUID_OK, quid_parse(tc_str, &tc_c));
+    ASSERT_EQUALS(QUID_REV7, tc_u.version);
+    STRCOPY(tc_str, "ef8b38d40f17b0b88000ce377d90ec18");
+    ASSERT_EQUALS(QUID_OK, quid_parse(tc_str, &tc_c));
+    ASSERT_EQUALS(QUID_REV7, tc_u.version);
 }
 
 static void legacy_string_and_back() {
-    cuuid_t tc_4u, tc_4u_;
+    cuuid_t tc_4u, tc_4u_, tc_c;
     char tc_4str[QUID_FULLLEN + 1];
 
     for (int i = 0; i < 20; ++i) {
@@ -123,6 +137,25 @@ static void legacy_string_and_back() {
         ASSERT_EQUALS(QUID_OK, quid_parse(tc_4str, &tc_4u_));
         ASSERT("quid does not match", quid_cmp(&tc_4u, &tc_4u_));
     }
+
+    STRCOPY(tc_4str, "{720ecc1c-0f18-a0b8-8000-0000015dfc00}");
+    ASSERT_EQUALS(QUID_OK, quid_parse(tc_4str, &tc_c));
+    ASSERT_EQUALS(QUID_REV4, tc_c.version);
+    STRCOPY(tc_4str, "8330f196-0f18-a0b8-8000-0000015dfc00");
+    ASSERT_EQUALS(QUID_OK, quid_parse(tc_4str, &tc_c));
+    ASSERT_EQUALS(QUID_REV4, tc_c.version);
+    STRCOPY(tc_4str, "{89cc0270-0f18-a0b8-8000-0000015dfc00}");
+    ASSERT_EQUALS(QUID_OK, quid_parse(tc_4str, &tc_c));
+    ASSERT_EQUALS(QUID_REV4, tc_c.version);
+    STRCOPY(tc_4str, "932b6b94-0f18-a0b8-8000-0000015dfc00");
+    ASSERT_EQUALS(QUID_OK, quid_parse(tc_4str, &tc_c));
+    ASSERT_EQUALS(QUID_REV4, tc_c.version);
+    STRCOPY(tc_4str, "{a3c5d3f40f18a0b880000000015dfc00}");
+    ASSERT_EQUALS(QUID_OK, quid_parse(tc_4str, &tc_c));
+    ASSERT_EQUALS(QUID_REV4, tc_c.version);
+    STRCOPY(tc_4str, "afadfb600f18a0b880000000015dfc00");
+    ASSERT_EQUALS(QUID_OK, quid_parse(tc_4str, &tc_c));
+    ASSERT_EQUALS(QUID_REV4, tc_c.version);
 }
 
 static void check_category_and_flags() {
