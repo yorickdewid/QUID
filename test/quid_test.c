@@ -122,6 +122,11 @@ static void convert_string_and_back() {
     STRCOPY(tc_str, "ef8b38d40f17b0b88000ce377d90ec18");
     ASSERT_EQUALS(QUID_OK, quid_parse(tc_str, &tc_c));
     ASSERT_EQUALS(QUID_REV7, tc_u.version);
+
+    STRCOPY(tc_str, "{00000000-0000-0000-0000-000000000000}");
+    ASSERT_EQUALS(QUID_ERROR, quid_parse(tc_str, &tc_c));
+    STRCOPY(tc_str, "{00000001-0000-b000-0000-000000000000}");
+    ASSERT_EQUALS(QUID_OK, quid_parse(tc_str, &tc_c));
 }
 
 static void legacy_string_and_back() {
