@@ -58,7 +58,7 @@
 int delay = 0;
 static struct timeval t1, t2;
 clock_t ticks = 0;
-unsigned int i;
+unsigned long long int i;
 char flg = IDF_NULL;
 char cat = CLS_CMON;
 static int intflag = 0;
@@ -225,7 +225,7 @@ static void input_verbose(cuuid_t u) {
 }
 
 /* Show verbose generation information */
-static void generate_verbose(void) {
+static void print_verbose(void) {
     double elapsedTime;
 
     printf("-----------------------------\n");
@@ -234,7 +234,7 @@ static void generate_verbose(void) {
     elapsedTime += (t2.tv_usec - t1.tv_usec) / 1000.0;
     elapsedTime = (elapsedTime / 1000);
 
-    printf("Generated %d identifiers\n", i);
+    printf("Generated %llu identifiers\n", i);
     printf("Used %0.2f seconds of CPU time\n", (double)ticks/CLOCKS_PER_SEC);
     printf("Finished in about %0.2f seconds\n", elapsedTime);
     printf("Delayed %d miliseconds\n", delay);
@@ -245,7 +245,9 @@ static void generate_verbose(void) {
 /* Program usage */
 static void usage(void) {
     printf("Usage: " PROJECT_NAME " [OPTIONS] identifier...\n");
-    printf("Options:\n");
+    printf("QUID generation and validation tool.\n");
+    
+    printf("\nOptions:\n");
     printf("  -c <count>               Number of identifiers\n");
     printf("  -d <ms>                  Delay between generation in miliseconds\n");
     printf("  --rand-seek=<cycles>     Reinitialize rand seed per <cycles>\n");
@@ -350,7 +352,7 @@ static void set_signint(int s) {
 int main(int argc, char *argv[]) {
     cuuid_t cuuid;
     int c, rtn;
-    unsigned int n = 1;
+    unsigned long long n = 1;
     char *fname = NULL;
     FILE *fp = NULL;
     int fout = 0, nout = 0, fmat = PRINT_FORMAT_HEX_BACKET, vbose = 0, gen = 1;
@@ -448,7 +450,7 @@ int main(int argc, char *argv[]) {
                 }
                 break;
             case 'c':
-                n = atoi(optarg);
+                n = atoll(optarg);
                 break;
             case 'd':
                 delay = atoi(optarg);
@@ -553,7 +555,7 @@ int main(int argc, char *argv[]) {
 
     /* Show counters */
     if (vbose && gen) {
-        generate_verbose();
+        print_verbose();
     }
 
     return 0;
